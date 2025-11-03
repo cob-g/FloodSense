@@ -1,0 +1,20 @@
+{
+  "name": "floodsense",
+  "version": "1.0.0",
+  "description": "Flood monitoring and reporting system for communities",
+  "main": "index.js",
+  "scripts": {
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start"
+    
+  },
+  "keywords": ["flood", "monitoring", "reporting", "community"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
