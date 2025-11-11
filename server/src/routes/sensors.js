@@ -1,5 +1,6 @@
 import express from 'express';
 import SensorData from '../models/SensorData.js';
+import Sensor from '../models/Sensor.js';
 import { getIO } from '../socket.js';
 
 const router = express.Router();
@@ -9,7 +10,7 @@ const router = express.Router();
 // @access  Public (ESP32 device)
 router.post('/sensor-data', async (req, res) => {
   try {
-    const { distance } = req.body;
+    const { distance, sensorId: sensorIdBody = null, sensor_id = null, lat = null, lng = null, latitude = null, longitude = null, location } = req.body;
     
     // Validate distance
     if (typeof distance !== 'number') {
@@ -19,8 +20,38 @@ router.post('/sensor-data', async (req, res) => {
       });
     }
     
+    // Normalize location fields and location name
+    let locationName = null;
+    if (typeof location === 'string') {
+      locationName = location;
+    } else if (location && typeof location === 'object' && typeof location.name === 'string') {
+      locationName = location.name;
+    }
+
+    const latNum = Number(latitude ?? lat);
+    const lngNum = Number(longitude ?? lng);
+    const loc = location && typeof location === 'object' && (location.lat != null || location.lng != null)
+      ? { lat: Number(location.lat ?? latNum) || null, lng: Number(location.lng ?? lngNum) || null }
+      : { lat: Number(latNum) || null, lng: Number(lngNum) || null };
+
+    // Prefer camelCase sensorId; accept snake_case from devices
+    const sensorId = sensorIdBody || sensor_id || null;
+
+    // Enrich using registry if available (registry is authoritative)
+    let reg = null;
+    if (sensorId) {
+      reg = await Sensor.findOne({ sensorId }).lean();
+    }
+    if (reg) {
+      locationName = reg.locationName ?? locationName;
+      if (typeof reg.latitude === 'number' && typeof reg.longitude === 'number') {
+        loc.lat = reg.latitude;
+        loc.lng = reg.longitude;
+      }
+    }
+
     // Create new sensor reading
-    const newData = new SensorData({ distance });
+    const newData = new SensorData({ distance, sensorId, location: loc, locationName });
     await newData.save();
     
     console.log(`📊 Sensor reading saved: ${distance} cm at ${newData.timestamp}`);
@@ -92,6 +123,131 @@ router.get('/sensor-data/latest', async (req, res) => {
       success: false,
       error: 'Failed to fetch latest sensor data'
     });
+  }
+});
+
+// @route   GET /api/sensors
+// @desc    List registered sensors
+// @access  Admin (no auth check here; assumed handled by parent or future middleware)
+router.get('/sensors', async (req, res) => {
+  try {
+    const sensors = await Sensor.find().sort({ createdAt: -1 });
+    res.json({ success: true, count: sensors.length, data: sensors });
+  } catch (error) {
+    console.error('Error fetching sensors registry:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch sensors' });
+  }
+});
+
+// @route   POST /api/sensors
+// @desc    Create/register a new sensor (unique sensorId)
+// @access  Admin
+router.post('/sensors', async (req, res) => {
+  try {
+    const {
+      sensorId: sensorIdBody,
+      sensor_id,
+      locationName: locationNameBody,
+      location,
+      latitude,
+      longitude,
+      mountHeight: mountHeightBody,
+      mount_height,
+      notes,
+    } = req.body || {};
+
+    const sensorId = (sensorIdBody || sensor_id || '').trim();
+    const locationName = (locationNameBody || (typeof location === 'string' ? location : location?.name) || '').trim();
+    const lat = Number(latitude ?? location?.lat);
+    const lng = Number(longitude ?? location?.lng);
+    const mountHeight = Number.isFinite(Number(mountHeightBody ?? mount_height)) ? Number(mountHeightBody ?? mount_height) : null;
+
+    if (!sensorId) return res.status(400).json({ success: false, error: 'sensorId is required' });
+    if (!locationName) return res.status(400).json({ success: false, error: 'locationName is required' });
+
+    const existing = await Sensor.findOne({ sensorId });
+    if (existing) return res.status(409).json({ success: false, error: 'Sensor ID already exists' });
+
+    const created = await Sensor.create({
+      sensorId,
+      locationName,
+      latitude: Number.isFinite(lat) ? lat : null,
+      longitude: Number.isFinite(lng) ? lng : null,
+      mountHeight,
+      notes: notes || null,
+    });
+
+    res.status(201).json({ success: true, data: created });
+  } catch (error) {
+    console.error('Error creating sensor:', error);
+    res.status(500).json({ success: false, error: 'Failed to create sensor' });
+  }
+});
+
+// @route   GET /api/sensors/with-status
+// @desc    List sensors with lastSeen and online/offline status
+// @access  Admin
+router.get('/sensors/with-status', async (req, res) => {
+  try {
+    const sensors = await Sensor.find().sort({ createdAt: -1 }).lean();
+    const now = Date.now();
+    const results = await Promise.all(
+      sensors.map(async (s) => {
+        const last = await SensorData.findOne({ sensorId: s.sensorId }).sort({ timestamp: -1 }).lean();
+        const lastSeen = last?.timestamp ? new Date(last.timestamp).toISOString() : null;
+        const online = last?.timestamp ? (now - new Date(last.timestamp).getTime() < 2 * 60 * 1000) : false; // 2 minutes
+        return { ...s, lastSeen, online };
+      })
+    );
+    res.json({ success: true, count: results.length, data: results });
+  } catch (error) {
+    console.error('Error fetching sensors with status:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch sensors with status' });
+  }
+});
+
+// @route   PUT /api/sensors/:id
+// @desc    Update sensor registry entry
+// @access  Admin
+router.put('/sensors/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { sensorId, locationName, latitude, longitude, mountHeight, notes } = req.body || {};
+
+    if (sensorId) {
+      const dupe = await Sensor.findOne({ sensorId, _id: { $ne: id } });
+      if (dupe) return res.status(409).json({ success: false, error: 'Sensor ID already exists' });
+    }
+
+    const update = {};
+    if (sensorId != null) update.sensorId = sensorId;
+    if (locationName != null) update.locationName = locationName;
+    if (latitude != null) update.latitude = Number(latitude);
+    if (longitude != null) update.longitude = Number(longitude);
+    if (mountHeight != null) update.mountHeight = Number(mountHeight);
+    if (notes != null) update.notes = notes;
+
+    const saved = await Sensor.findByIdAndUpdate(id, update, { new: true });
+    if (!saved) return res.status(404).json({ success: false, error: 'Sensor not found' });
+    res.json({ success: true, data: saved });
+  } catch (error) {
+    console.error('Error updating sensor:', error);
+    res.status(500).json({ success: false, error: 'Failed to update sensor' });
+  }
+});
+
+// @route   DELETE /api/sensors/:id
+// @desc    Delete sensor registry entry
+// @access  Admin
+router.delete('/sensors/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const removed = await Sensor.findByIdAndDelete(id);
+    if (!removed) return res.status(404).json({ success: false, error: 'Sensor not found' });
+    res.json({ success: true, data: removed });
+  } catch (error) {
+    console.error('Error deleting sensor:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete sensor' });
   }
 });
 

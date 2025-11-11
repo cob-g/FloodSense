@@ -2,8 +2,9 @@ import { useState, memo } from 'react';
 import ReportCard from './ReportCard';
 import ReportDetailModal from './ReportDetailModal';
 
-export const ReportList = ({ reports, loading, error }) => {
+export const ReportList = ({ reports, loading, error, initialPageSize = 20, pageStep = 20 }) => {
   const [selectedReport, setSelectedReport] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(initialPageSize);
 
   if (loading) {
     return (
@@ -39,10 +40,12 @@ export const ReportList = ({ reports, loading, error }) => {
     );
   }
 
+  const visibleReports = Array.isArray(reports) ? reports.slice(0, visibleCount) : [];
+
   return (
     <>
-      <div className="space-y-4">
-        {reports.map((report) => (
+      <div className="space-y-4 will-change-auto">
+        {visibleReports.map((report) => (
           <ReportCard
             key={report._id}
             report={report}
@@ -50,6 +53,17 @@ export const ReportList = ({ reports, loading, error }) => {
           />
         ))}
       </div>
+
+      {visibleCount < (reports?.length || 0) && (
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={() => setVisibleCount((c) => c + pageStep)}
+            className="px-4 py-2 text-sm font-medium rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white/90 transition-colors"
+          >
+            Load more ({visibleCount}/{reports.length})
+          </button>
+        </div>
+      )}
 
       {selectedReport && (
         <ReportDetailModal

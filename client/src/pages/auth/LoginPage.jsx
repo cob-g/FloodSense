@@ -1,13 +1,15 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useState, useContext } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { AuthContext } from '../../contexts/AuthContext';
 
 export const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,11 +20,8 @@ export const LoginPage = () => {
       const response = await login(formData);
       if (response.success) {
         const role = response?.data?.user?.role;
-        if (role === 'admin' || role === 'superadmin') {
-          navigate('/admin');
-        } else {
-          navigate('/');
-        }
+        // Redirect to the intended page or home
+        navigate(from, { replace: true });
       } else {
         setError(response.message || 'Login failed');
       }
@@ -45,6 +44,8 @@ export const LoginPage = () => {
             <h1 className="text-5xl font-black mb-4 bg-gradient-to-r from-white to-light-orange bg-clip-text text-transparent">
               FloodSense
             </h1>
+
+            
             <p className="text-medium-gray text-xl">Community Flood Monitoring</p>
           </div>
           

@@ -23,41 +23,52 @@ const checkAndCreateAdmin = async () => {
     const adminUsers = await User.find({ role: { $in: ['admin', 'superadmin'] } });
     console.log(`👑 Admin users found: ${adminUsers.length}`);
 
+    // Check if any superadmin exists
+    const superadminCount = await User.countDocuments({ role: 'superadmin', isActive: true });
+    console.log(`👑 Active superadmins: ${superadminCount}`);
+
     // Check if our specific admin exists
-    const existingAdmin = await User.findByEmail(adminEmail);
+    const account = await User.findByEmail(adminEmail);
 
-    if (existingAdmin) {
-      console.log('✅ Admin user already exists:');
-      console.log(`   Email: ${existingAdmin.email}`);
-      console.log(`   Role: ${existingAdmin.role}`);
-      console.log(`   Active: ${existingAdmin.isActive}`);
-      console.log(`   Created: ${existingAdmin.createdAt}`);
+    if (superadminCount === 0) {
+      if (account) {
+        // Promote existing account
+        console.log('⚠️ No active superadmin found. Promoting existing account to superadmin...');
+        account.role = 'superadmin';
+        account.isActive = true;
+        await account.save();
+        console.log('✅ Promotion complete:');
+        console.log(`   Email: ${account.email}`);
+        console.log(`   Role: ${account.role}`);
+        console.log(`   Active: ${account.isActive}`);
+      } else {
+        console.log('❌ Specified admin email not found. Creating a new superadmin account...');
+        const adminData = {
+          name: 'System Administrator',
+          email: adminEmail,
+          passwordHash: adminPassword,
+          role: 'superadmin',
+          barangay: null
+        };
+        const newAdmin = await User.create(adminData);
+        console.log('✅ Admin user created successfully:');
+        console.log(`   Email: ${newAdmin.email}`);
+        console.log(`   Password: ${adminPassword}`);
+        console.log(`   Role: ${newAdmin.role}`);
+        console.log(`   ID: ${newAdmin._id}`);
 
-      // Test password
-      const isValidPassword = await existingAdmin.comparePassword(adminPassword);
-      console.log(`   Password valid: ${isValidPassword ? '✅' : '❌'}`);
-
+        // Test the password
+        const isValidPassword = await newAdmin.comparePassword(adminPassword);
+        console.log(`   Password verification: ${isValidPassword ? '✅' : '❌'}`);
+      }
+    } else if (account) {
+      // If superadmin exists already, just show status for the configured account
+      console.log('✅ Account status:');
+      console.log(`   Email: ${account.email}`);
+      console.log(`   Role: ${account.role}`);
+      console.log(`   Active: ${account.isActive}`);
     } else {
-      console.log('❌ Admin user not found. Creating...');
-
-      const adminData = {
-        name: 'System Administrator',
-        email: adminEmail,
-        passwordHash: adminPassword,
-        role: 'superadmin',
-        barangay: null
-      };
-
-      const newAdmin = await User.create(adminData);
-      console.log('✅ Admin user created successfully:');
-      console.log(`   Email: ${newAdmin.email}`);
-      console.log(`   Password: ${adminPassword}`);
-      console.log(`   Role: ${newAdmin.role}`);
-      console.log(`   ID: ${newAdmin._id}`);
-
-      // Test the password
-      const isValidPassword = await newAdmin.comparePassword(adminPassword);
-      console.log(`   Password verification: ${isValidPassword ? '✅' : '❌'}`);
+      console.log('ℹ️ A superadmin already exists. The configured admin email does not exist. No action needed.');
     }
 
   } catch (error) {

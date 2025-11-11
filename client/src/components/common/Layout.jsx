@@ -42,7 +42,7 @@ export const Layout = () => {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/auth/login');
+    setMenuOpen(false);
   };
 
   // Don't show navbar on auth pages
@@ -56,53 +56,50 @@ export const Layout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-space-950 bg-dot-pattern text-white overflow-x-hidden">
+    <div className="min-h-screen bg-space-950 text-white overflow-x-hidden">
       {/* Glassmorphism Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-[2000] bg-space-900/80 backdrop-blur-xl border-b border-white/5 shadow-2xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+      <header className="fixed top-0 left-0 right-0 z-[2000] bg-transparent backdrop-blur-xl border-b border-white/5 shadow-2xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-0">
+          <div className="flex items-center justify-between h-[4.5rem]">
             <Link to="/" className="flex items-center space-x-3 group">
               <img
                 src="/logo.png"
                 alt="FloodSense Logo"
                 className="w-9 h-9 rounded-lg object-contain shadow-md group-hover:shadow-lg transition-shadow"
               />
-              <h1 className="text-xl font-black bg-gradient-to-r from-white to-light-orange bg-clip-text text-transparent">
-                FloodSense
+              <h1 className="text-2xl font-black bg-gradient-to-r from-white to-accent-500 bg-clip-text text-transparent">
+                  FloodSense
               </h1>
             </Link>
 
-            <div className="flex items-center space-x-4">
+            {/* Centered navigation */}
+            <nav className="hidden md:flex flex-1 justify-center items-center gap-1">
+              <NavLink to="/">Home</NavLink>
+              <NavLink to="/feed">Feed</NavLink>
+              <NavLink to="/learn">Learn</NavLink>
+              <NavLink to="/about">About</NavLink>
+              <NavLink to="/contact">Contact Us</NavLink>
+            </nav>
+
+            <div className="flex items-center">
               {/* Connection Status (unified) */}
               <div className="hidden md:flex items-center space-x-2 bg-white/5 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-white/5 shadow-inner">
                 <div
                   className={`w-2.5 h-2.5 rounded-full ${
                     !online
                       ? 'bg-red-500'
-                      : connected
-                      ? 'bg-green-500'
-                      : 'bg-amber-500'
+                      : user
+                        ? (connected ? 'bg-green-500' : 'bg-amber-500')
+                        : 'bg-green-500'
                   }`}
                 />
                 <span className="text-sm font-medium text-white/80">
-                  {!online ? 'Offline' : connected ? 'Live' : 'Connecting...'}
+                  {!online ? 'Offline' : user ? (connected ? 'Live' : 'Connecting...') : 'Online'}
                 </span>
               </div>
 
               {user && (
-                <div className="flex items-center space-x-2">
-                  {/* Navigation - desktop */}
-                  <nav className="hidden md:flex items-center space-x-1 bg-transparent">
-                    <NavLink to="/">Feed</NavLink>
-                    {(user.role === 'admin' || user.role === 'superadmin') && (
-                      <>
-                        <NavLink to="/admin/reports">Reports</NavLink>
-                        <NavLink to="/admin/users">Users</NavLink>
-                      </>
-                    )}
-                    {/* Map link removed */}
-                  </nav>
-
+                <div className="flex items-center">
                   {/* Hamburger - mobile */}
                   <button
                     className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl hover:bg-white/10 transition-colors"
@@ -165,6 +162,23 @@ export const Layout = () => {
                   </div>
                 </div>
               )}
+
+              {!user && (
+                <div className="flex items-center space-x-2">
+                  <Link
+                    to="/auth/login"
+                    className="px-4 py-2 text-sm font-medium rounded-xl bg-accent-orange text-space-black hover:bg-bright-orange transition-colors"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/auth/register"
+                    className="px-4 py-2 text-sm font-medium rounded-xl border border-white/10 text-white/90 hover:bg-white/10 transition-colors"
+                  >
+                    Register
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -198,9 +212,15 @@ export const Layout = () => {
 
             {/* Nav links */}
             <nav className="py-1">
-              <RouterLink to="/" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Feed</RouterLink>
+              <RouterLink to="/" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Home</RouterLink>
+              <RouterLink to="/feed" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Feed</RouterLink>
+              <RouterLink to="/learn" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Learn</RouterLink>
+              <RouterLink to="/about" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">About</RouterLink>
+              <RouterLink to="/contact" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Contact Us</RouterLink>
+
               {(user.role === 'admin' || user.role === 'superadmin') && (
                 <>
+                  <div className="my-1 border-t border-white/10"></div>
                   <RouterLink to="/admin/reports" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Reports</RouterLink>
                   <RouterLink to="/admin/users" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Users</RouterLink>
                 </>
@@ -211,7 +231,7 @@ export const Layout = () => {
       )}
 
       {/* Main Content */}
-      <main className="pt-20 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <main className="pt-20 pb-12 px-4 sm:px-6 lg:px-0 lg:pb-0 w-full mx- bg-dot-pattern">
         <Outlet />
       </main>
 

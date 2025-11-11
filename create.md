@@ -582,10 +582,10 @@ export default function ReportsMap({ reports }){
   - [x] Weekly reports view
 - [ ] Phase 7: Offline Support
   - [x] Service worker setup
-  - [ ] IndexedDB integration
+  - [x] IndexedDB integration
   - [x] Offline fallback list
-  - [ ] Connection status indicator
-  - [ ] Network-adaptive UI
+  - [x] Connection status indicator
+  - [x] Network-adaptive UI
 - [ ] Phase 8: Polish & Optimization
   - [ ] Responsive design refinement
   - [ ] Loading states

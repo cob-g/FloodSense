@@ -1,115 +1,372 @@
 import { useMemo } from 'react';
-import { useReports } from '../../hooks/useReports';
+import { useWeeklyReport } from '../../hooks/useAnalytics';
+import { analyticsService } from '../../services/analytics.service';
+import { useNavigate } from 'react-router-dom';
 
-const daysArray = (n = 7) => {
-  const arr = [];
-  const now = new Date();
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(now.getDate() - i);
-    d.setHours(0, 0, 0, 0);
-    arr.push(new Date(d));
-  }
-  return arr;
-};
-
-const formatDay = (d) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+ 
 
 export const AdminWeekly = () => {
-  const { data, isLoading, error } = useReports({ limit: 500 });
-  const reports = useMemo(() => data?.data?.reports || [], [data]);
+  // Server-generated weekly report (aggregated)
+  const { data: wr, isLoading: wrLoading, error: wrError } = useWeeklyReport();
+  const weekly = wr?.data; // api interceptor: { success, data }
 
-  const series = useMemo(() => {
-    const days = daysArray(7);
-    const buckets = days.map((d) => ({
-      key: d.getTime(),
-      label: formatDay(d),
-      VALIDATED: 0,
-      UNVERIFIED: 0,
-      REJECTED: 0,
-      TOTAL: 0,
-    }));
-    const idx = (dt) => {
-      const dd = new Date(dt);
-      dd.setHours(0, 0, 0, 0);
-      const t = dd.getTime();
-      return buckets.findIndex((b) => b.key === t);
-    };
-    for (const r of reports) {
-      const i = idx(r.createdAt);
-      if (i !== -1) {
-        buckets[i][r.status] = (buckets[i][r.status] || 0) + 1;
-        buckets[i].TOTAL += 1;
-      }
+  // Helper: get severity count ignoring key case
+  const getSeverityCount = (target) => {
+    const by = weekly?.communityReports?.bySeverity || {};
+    const key = String(target).trim().toLowerCase();
+    let sum = 0;
+    for (const [k, v] of Object.entries(by)) {
+      if (String(k).trim().toLowerCase() === key) sum += v || 0;
     }
-    const max = Math.max(1, ...buckets.map((b) => b.TOTAL));
-    return { buckets, max };
-  }, [reports]);
+    return sum;
+  };
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-black text-white">Weekly Reports</h1>
-        <p className="text-white/60">Last 7 days by status</p>
+      {/* Weekly Report - Server Aggregation */}
+      <HeaderWithActions />
+
+      {/* Header Section */}
+      <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 mb-6">
+        {wrLoading && <div className="text-white/70">Loading weekly report…</div>}
+        {wrError && <div className="text-red-400">Failed to load weekly report</div>}
+        {!wrLoading && !wrError && weekly && (
+          <div className="grid lg:grid-cols-3 gap-4 text-sm">
+            <div className="col-span-2 grid sm:grid-cols-2 gap-4">
+              <BadgeRow
+                items={[
+                  { label: 'Community', value: weekly.header?.community },
+                  { label: 'Range', value: weekly.header?.dateRange },
+                ]}
+              />
+              <BadgeRow
+                items={[
+                  { label: 'Generated', value: new Date(weekly.header?.generatedOn || Date.now()).toLocaleString() },
+                  { label: 'By', value: weekly.header?.generatedBy },
+                ]}
+              />
+            </div>
+            <div className="flex lg:justify-end items-start">
+              <div className="px-3 py-1.5 rounded-lg border border-white/15 bg-white/5 text-white/80 text-xs">
+                Status: <span className="text-white/90 font-medium">{weekly.header?.systemStatus}</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-          <h2 className="text-white/90 font-semibold mb-4">Trends</h2>
-          {isLoading && <div className="text-white/70">Loading...</div>}
-          {error && <div className="text-red-400">Failed to load</div>}
-          {!isLoading && !error && (
-            <div className="space-y-3">
-              {series.buckets.map((b) => (
-                <div key={b.key} className="grid grid-cols-12 items-center gap-3">
-                  <div className="col-span-3 text-sm text-white/80">{b.label}</div>
-                  <div className="col-span-9">
-                    <div className="h-6 w-full bg-white/5 rounded-lg overflow-hidden border border-white/10">
-                      <div className="h-full flex">
-                        <div className="bg-green-500/60" style={{ width: `${(b.VALIDATED / (series.max || 1)) * 100}%` }} />
-                        <div className="bg-amber-500/60" style={{ width: `${(b.UNVERIFIED / (series.max || 1)) * 100}%` }} />
-                        <div className="bg-red-500/60" style={{ width: `${(b.REJECTED / (series.max || 1)) * 100}%` }} />
-                      </div>
-                    </div>
-                    <div className="mt-1 text-xs text-white/70">
-                      <span className="mr-3">Total: {b.TOTAL}</span>
-                      <span className="mr-3">Validated: {b.VALIDATED}</span>
-                      <span className="mr-3">Pending: {b.UNVERIFIED}</span>
-                      <span>Rejected: {b.REJECTED}</span>
-                    </div>
-                  </div>
+      {/* IoT Water Level Summary */}
+      {!wrLoading && !wrError && weekly && (
+        <div className="grid gap-6 md:grid-cols-2 mb-6">
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+            <h2 className="text-white/90 font-semibold mb-4">IoT Water Level Summary</h2>
+            <div className="grid grid-cols-4 gap-3">
+              <Metric label="Average (cm)" value={weekly.iotWaterLevel?.overall?.averageCm?.toFixed ? weekly.iotWaterLevel.overall.averageCm.toFixed(1) : (weekly.iotWaterLevel?.overall?.averageCm ?? '—')} />
+              <Metric label="Max (cm)" value={weekly.iotWaterLevel?.overall?.maxCm ?? '—'} />
+              <Metric label="Min (cm)" value={weekly.iotWaterLevel?.overall?.minCm ?? '—'} />
+              <Metric label="Days above threshold" value={weekly.iotWaterLevel?.overall?.daysAboveThreshold ?? 0} />
+            </div>
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-white/80">Daily Max Levels</div>
+                <div className="text-xs text-white/50">Last {weekly.iotWaterLevel?.daily?.length || 0} days</div>
+              </div>
+              <AreaChart
+                data={(weekly.iotWaterLevel?.daily || []).map(d => ({ x: new Date(d.date), y: d.max ?? 0 }))}
+                height={200}
+              />
+            </div>
+          </div>
+
+          {/* Community Reports Summary */}
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+            <h2 className="text-white/90 font-semibold mb-4">Community Reports Summary</h2>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <Metric label="Total Reports" value={weekly.communityReports?.totalReports ?? 0} large />
+              <Metric label="Verified vs Unverified" value={`${weekly.communityReports?.verified ?? 0} • ${weekly.communityReports?.unverified ?? 0}`} />
+              <Metric label="Rejected" value={weekly.communityReports?.rejected ?? 0} />
+            </div>
+            <div className="mt-2">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-white/80">Status Distribution</div>
+              </div>
+              <BarChart
+                data={[
+                  { label: 'Verified', value: weekly.communityReports?.verified ?? 0, color: '#22c55e' },
+                  { label: 'Unverified', value: weekly.communityReports?.unverified ?? 0, color: '#f59e0b' },
+                  { label: 'Rejected', value: weekly.communityReports?.rejected ?? 0, color: '#ef4444' },
+                ]}
+                height={160}
+              />
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <div className="text-sm text-white/80 mb-2">By Severity</div>
+                <ul className="space-y-2 text-sm text-white/80">
+                  {[
+                    { label: 'Minor Flood', key: 'minor flood' },
+                    { label: 'Moderate Flood', key: 'moderate flood' },
+                    { label: 'Severe Flood', key: 'severe flood' },
+                  ].map(({ label, key }) => (
+                    <li key={key} className="flex justify-between">
+                      <span>{label}</span>
+                      <span className="text-white/70">{getSeverityCount(key)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <div className="text-sm text-white/80 mb-2">Most Reported Areas</div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-white/60">
+                        <th className="py-1 pr-2">Area</th>
+                        <th className="py-1 pr-2 text-right">Reports</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/10">
+                      {(weekly.communityReports?.mostReportedAreas || []).map((a) => (
+                        <tr key={a.name}>
+                          <td className="py-1 pr-2 text-white/80">{a.name}</td>
+                          <td className="py-1 pr-2 text-right text-white/70">{a.count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-          <h2 className="text-white/90 font-semibold mb-4">Summary</h2>
-          {!isLoading && !error && (
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
-                <div className="text-sm text-green-300 mb-1">Validated</div>
-                <div className="text-3xl font-black text-white">{series.buckets.reduce((a,b)=>a+b.VALIDATED,0)}</div>
-              </div>
-              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
-                <div className="text-sm text-amber-300 mb-1">Pending</div>
-                <div className="text-3xl font-black text-white">{series.buckets.reduce((a,b)=>a+b.UNVERIFIED,0)}</div>
-              </div>
-              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
-                <div className="text-sm text-red-300 mb-1">Rejected</div>
-                <div className="text-3xl font-black text-white">{series.buckets.reduce((a,b)=>a+b.REJECTED,0)}</div>
+                <div className="mt-3 text-xs text-white/60">
+                  Peak Hours: {(weekly.communityReports?.peakHours || []).map((h) => `${h.hour}:00`).join(', ') || '—'}
+                </div>
               </div>
             </div>
-          )}
-          {isLoading && <div className="text-white/70">Loading...</div>}
-          {error && <div className="text-red-400">Failed to load</div>}
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="mt-6 text-xs text-white/50">Note: Computed client-side from fetched reports (last 7 days).</div>
+      {/* Alerts and Warnings */}
+      {!wrLoading && !wrError && weekly && (
+        <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 mb-6">
+          <h2 className="text-white/90 font-semibold mb-4">Alerts and Warnings</h2>
+          <div className="space-y-3">
+            {(weekly.alerts || []).length === 0 && (
+              <div className="text-white/60 text-sm">No alerts recorded for this period.</div>
+            )}
+            {(weekly.alerts || []).map((a, idx) => (
+              <div key={idx} className="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl p-3">
+                <div className="space-y-0.5">
+                  <div className="text-sm text-white/90">{new Date(a.timestamp).toLocaleString()}</div>
+                  <div className="text-xs text-white/70">{a.message}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs px-2 py-1 rounded-lg border ${a.alertType === 'Critical' ? 'text-red-300 border-red-400/40 bg-red-400/10' : a.alertType === 'Warning' ? 'text-amber-300 border-amber-400/40 bg-amber-400/10' : 'text-white/70 border-white/20 bg-white/5'}`}>{a.alertType}</span>
+                  <span className="text-xs px-2 py-1 rounded-lg border text-white/70 border-white/20 bg-white/5">{a.responseStatus || 'Unknown'}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Offline Data Sync Status */}
+      {!wrLoading && !wrError && weekly && (
+        <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 mb-6">
+          <h2 className="text-white/90 font-semibold mb-2">Offline Data Sync Status</h2>
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+              <div className="text-white/60">Unsynced Records</div>
+              <div className="text-white/90 font-semibold">{weekly.offlineSync?.unsyncedRecords ?? 'N/A'}</div>
+            </div>
+            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+              <div className="text-white/60">Last Successful Sync</div>
+              <div className="text-white/90 font-semibold">{weekly.offlineSync?.lastSuccessfulSync ? new Date(weekly.offlineSync.lastSuccessfulSync).toLocaleString() : 'N/A'}</div>
+            </div>
+            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+              <div className="text-white/60">Local Cache (bytes)</div>
+              <div className="text-white/90 font-semibold">{weekly.offlineSync?.localCacheBytes ?? 'N/A'}</div>
+            </div>
+            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+              <div className="text-white/60">Next Scheduled Sync</div>
+              <div className="text-white/90 font-semibold">{weekly.offlineSync?.nextScheduledAttempt ? new Date(weekly.offlineSync.nextScheduledAttempt).toLocaleString() : 'N/A'}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* Footer */}
+      {!wrLoading && !wrError && weekly && (
+        <div className="text-xs text-white/50 mb-8 text-center space-y-1">
+          <div>{weekly.footer?.copyright}</div>
+          <div>{weekly.footer?.developedBy}</div>
+          <div>{weekly.footer?.generator}</div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default AdminWeekly;
+
+// Local header with actions to keep file lean
+function HeaderWithActions() {
+  const navigate = useNavigate();
+
+  const downloadCSV = async () => {
+    try {
+      const blob = await analyticsService.exportWeeklyReport('csv');
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `weekly-report_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert('Failed to export CSV');
+    }
+  };
+
+  const printPDF = () => {
+    navigate('/admin/weekly/print?auto=1');
+  };
+
+  return (
+    <div className="mb-6 flex items-center justify-between gap-3">
+      <h1 className="text-2xl font-black text-white">Weekly Report</h1>
+      <div className="flex items-center gap-2">
+        <button onClick={downloadCSV} className="px-3 py-2 rounded-lg border border-white/15 bg-white/5 text-white hover:bg-white/10 text-sm">Export CSV</button>
+        <button onClick={printPDF} className="px-3 py-2 rounded-lg border border-orange-400/30 bg-orange-500/10 text-orange-200 hover:bg-orange-500/20 text-sm">Export PDF / Print</button>
+      </div>
+    </div>
+  );
+}
+
+function BarChart({ data = [], height = 160 }) {
+  const w = 680;
+  const h = height;
+  const pad = { l: 80, r: 12, t: 8, b: 28 };
+  const innerW = w - pad.l - pad.r;
+  const innerH = h - pad.t - pad.b;
+
+  const items = useMemo(() => data.map(d => ({ label: d.label, value: Number(d.value) || 0, color: d.color || '#60a5fa' })), [data]);
+  const maxV = useMemo(() => Math.max(1, ...items.map(i => i.value)), [items]);
+  const barH = innerH / (items.length || 1);
+
+  return (
+    <div className="w-full overflow-x-auto">
+      <svg width={w} height={h} className="max-w-full">
+        <g>
+          <line x1={pad.l} y1={pad.t} x2={pad.l} y2={pad.t + innerH} stroke="#ffffff22" />
+          <line x1={pad.l} y1={pad.t + innerH} x2={pad.l + innerW} y2={pad.t + innerH} stroke="#ffffff22" />
+          {items.map((it, idx) => {
+            const y = pad.t + idx * barH + barH * 0.15;
+            const bh = barH * 0.7;
+            const bw = innerW * (it.value / maxV);
+            return (
+              <g key={idx}>
+                <text x={pad.l - 10} y={y + bh / 2} fill="#94a3b8" fontSize="10" textAnchor="end" dominantBaseline="middle">{it.label}</text>
+                <rect x={pad.l} y={y} width={bw} height={bh} fill={it.color} opacity="0.9" />
+                <text x={pad.l + bw + 6} y={y + bh / 2} fill="#cbd5e1" fontSize="10" dominantBaseline="middle">{it.value}</text>
+              </g>
+            );
+          })}
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+function BadgeRow({ items = [] }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {items.map((i, idx) => (
+        <div key={idx} className="px-3 py-1.5 rounded-lg border border-white/15 bg-white/5 text-white/80 text-xs">
+          <span className="text-white/60 mr-1">{i.label}:</span>
+          <span className="text-white/90 font-medium">{i.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Metric({ label, value, large = false }) {
+  return (
+    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+      <div className="text-xs text-white/60 mb-1">{label}</div>
+      <div className={`${large ? 'text-3xl' : 'text-2xl'} font-black text-white`}>{value}</div>
+    </div>
+  );
+}
+
+function AreaChart({ data = [], height = 180, stroke = '#f97316' }) {
+  const w = 680;
+  const h = height;
+  const pad = { l: 36, r: 12, t: 8, b: 28 };
+  const innerW = w - pad.l - pad.r;
+  const innerH = h - pad.t - pad.b;
+
+  const points = useMemo(() => data.map((d, i) => ({ x: i, y: Number(d.y) || 0, label: d.x })), [data]);
+  const yMax = useMemo(() => Math.max(1, ...points.map(p => p.y)), [points]);
+  const xStep = points.length > 1 ? innerW / (points.length - 1) : 0;
+  const toX = (i) => pad.l + i * xStep;
+  const toY = (v) => pad.t + innerH - (v / yMax) * innerH;
+
+  const pathD = useMemo(() => {
+    if (points.length === 0) return '';
+    return points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${toX(i)} ${toY(p.y)}`).join(' ');
+  }, [points]);
+
+  const areaD = useMemo(() => {
+    if (points.length === 0) return '';
+    const top = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${toX(i)} ${toY(p.y)}`).join(' ');
+    const lastX = toX(points.length - 1);
+    const firstX = toX(0);
+    return `${top} L ${lastX} ${pad.t + innerH} L ${firstX} ${pad.t + innerH} Z`;
+  }, [points]);
+
+  const xLabels = useMemo(() => {
+    if (points.length === 0) return [];
+    const idxs = [0, Math.floor(points.length / 2), points.length - 1];
+    return Array.from(new Set(idxs)).map(i => ({ x: toX(i), label: new Date(points[i].label).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) }));
+  }, [points]);
+
+  const yTicks = useMemo(() => {
+    const ticks = [0, 0.5, 1].map(r => Math.round(r * yMax));
+    return ticks.map(v => ({ y: toY(v), label: String(v) }));
+  }, [yMax]);
+
+  return (
+    <div className="w-full overflow-x-auto">
+      <svg width={w} height={h} className="max-w-full">
+        <defs>
+          <linearGradient id="areaFill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor={stroke} stopOpacity="0.25" />
+            <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width={w} height={h} fill="none" />
+        <g>
+          <line x1={pad.l} y1={pad.t} x2={pad.l} y2={pad.t + innerH} stroke="#ffffff22" />
+          <line x1={pad.l} y1={pad.t + innerH} x2={pad.l + innerW} y2={pad.t + innerH} stroke="#ffffff22" />
+          {yTicks.map((t, i) => (
+            <g key={i}>
+              <line x1={pad.l} y1={t.y} x2={pad.l + innerW} y2={t.y} stroke="#ffffff14" />
+              <text x={pad.l - 6} y={t.y} fill="#94a3b8" fontSize="10" textAnchor="end" dominantBaseline="middle">{t.label}</text>
+            </g>
+          ))}
+          {xLabels.map((t, i) => (
+            <text key={i} x={t.x} y={pad.t + innerH + 16} fill="#94a3b8" fontSize="10" textAnchor="middle">{t.label}</text>
+          ))}
+        </g>
+        {points.length > 0 && (
+          <g>
+            <path d={areaD} fill="url(#areaFill)" />
+            <path d={pathD} fill="none" stroke={stroke} strokeWidth="2.5" />
+          </g>
+        )}
+      </svg>
+    </div>
+  );
+}

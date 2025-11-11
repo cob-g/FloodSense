@@ -19,6 +19,9 @@ export const SocketProvider = ({ children }) => {
         console.log('Socket connecting...');
       }
 
+      // Initialize connection state in case we're already connected
+      setConnected(!!socket.connected);
+
       // Socket event listeners
       socket.on('connect', () => {
         console.log('Socket connected');
@@ -32,6 +35,11 @@ export const SocketProvider = ({ children }) => {
 
       socket.on('disconnect', () => {
         console.log('Socket disconnected');
+        setConnected(false);
+      });
+
+      socket.on('connect_error', (err) => {
+        console.log('Socket connect_error:', err?.message || err);
         setConnected(false);
       });
 
@@ -69,6 +77,7 @@ export const SocketProvider = ({ children }) => {
       return () => {
         socket.off('connect');
         socket.off('disconnect');
+        socket.off('connect_error');
         socket.off('joined-barangay');
         socket.off('new-report');
         socket.off('report-validated');

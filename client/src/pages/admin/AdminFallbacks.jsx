@@ -30,26 +30,26 @@ export const AdminFallbacks = () => {
   const [query, setQuery] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ name: '', barangay: '', address: '', lat: '', lng: '', priority: 0 });
+  const [form, setForm] = useState({ name: '', barangay: '', notes: '', lat: '', lng: '' });
 
   useEffect(() => {
     if (editing) {
       setForm({
         name: editing.name || '',
         barangay: editing.barangay || '',
-        address: editing.address || '',
+        notes: editing.notes || '',
         lat: editing.location?.coordinates?.[1] ?? '',
         lng: editing.location?.coordinates?.[0] ?? '',
-        priority: editing.priority ?? 0,
       });
     } else {
-      setForm({ name: '', barangay: '', address: '', lat: '', lng: '', priority: 0 });
+      setForm({ name: '', barangay: '', notes: '', lat: '', lng: '' });
     }
   }, [editing]);
 
   const filtered = useMemo(() => {
     return items.filter((i) => {
-      const matchQ = !query || i.name?.toLowerCase().includes(query.toLowerCase()) || i.address?.toLowerCase().includes(query.toLowerCase());
+      const q = (query || '').toLowerCase();
+      const matchQ = !q || i.name?.toLowerCase().includes(q) || i.notes?.toLowerCase().includes(q);
       return matchQ;
     });
   }, [items, query]);
@@ -62,12 +62,12 @@ export const AdminFallbacks = () => {
     try {
       const name = (form.name || '').trim();
       const barangay = (form.barangay || '').trim();
-      const address = (form.address || '').trim();
+      const notes = (form.notes || '').trim();
       const lat = parseFloat(form.lat);
       const lng = parseFloat(form.lng);
 
-      if (!name || !barangay || !address) {
-        toast.warning('Name, barangay, and address are required');
+      if (!name || !barangay) {
+        toast.warning('Name and barangay are required');
         return;
       }
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
@@ -83,10 +83,9 @@ export const AdminFallbacks = () => {
         name,
         category: editing?.category || 'other',
         barangay,
-        address,
+        notes,
         latitude: lat,
         longitude: lng,
-        priority: Number.isFinite(parseInt(form.priority)) ? parseInt(form.priority) : 0,
       };
       if (editing) {
         await updateMut.mutateAsync({ id: editing._id, data: payload });
@@ -119,7 +118,7 @@ export const AdminFallbacks = () => {
           <p className="text-white/60">Manage verified flood spots used when offline</p>
         </div>
         <div className="flex gap-2">
-          <input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Search name/address" className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-white/50"/>
+          <input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Search name/notes" className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-white/50"/>
           <button onClick={openCreate} className="px-4 py-2 bg-accent-orange hover:bg-bright-orange text-space-black font-semibold rounded-lg">Add Place</button>
         </div>
       </div>
@@ -131,28 +130,30 @@ export const AdminFallbacks = () => {
               <tr>
                 <th className="px-4 py-3 text-left text-sm text-white/70">Name</th>
                 <th className="px-4 py-3 text-left text-sm text-white/70">Barangay</th>
-                <th className="px-4 py-3 text-left text-sm text-white/70">Address</th>
-                <th className="px-4 py-3 text-left text-sm text-white/70">Priority</th>
+                <th className="px-4 py-3 text-left text-sm text-white/70">Notes / Landmark</th>
                 <th className="px-4 py-3 text-left text-sm text-white/70">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/10">
               {isLoading && (
-                <tr><td className="px-4 py-6 text-white/70" colSpan={6}>Loading...</td></tr>
+                <tr><td className="px-4 py-6 text-white/70" colSpan={4}>Loading...</td></tr>
               )}
               {error && (
-                <tr><td className="px-4 py-6 text-red-400" colSpan={6}>Failed to load</td></tr>
+                <tr><td className="px-4 py-6 text-red-400" colSpan={4}>Failed to load</td></tr>
               )}
               {!isLoading && !error && filtered.map((i) => (
                 <tr key={i._id} className="hover:bg-white/5">
                   <td className="px-4 py-3 font-medium text-white">{i.name}</td>
                   <td className="px-4 py-3 text-white/80">{i.barangay}</td>
-                  <td className="px-4 py-3 text-white/60">{i.address}</td>
-                  <td className="px-4 py-3 text-white/80">{i.priority ?? 0}</td>
+                  <td className="px-4 py-3 text-white/60">{i.notes || '—'}</td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      <button onClick={()=>openEdit(i)} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm">Edit</button>
-                      <button onClick={()=>confirmDelete(i._id)} className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg text-sm">Delete</button>
+                    <div className="flex gap-1.5">
+                      <button title="Edit" onClick={()=>openEdit(i)} className="w-9 h-9 rounded-lg hover:bg-white/10 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4h2a2 2 0 012 2v2m-1 5l3-3a2.121 2.121 0 10-3-3l-3 3m-1 1l-4 4v2h2l4-4"/></svg>
+                      </button>
+                      <button title="Delete" onClick={()=>confirmDelete(i._id)} className="w-9 h-9 rounded-lg hover:bg-red-500/10 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-1-2H10a1 1 0 00-1 1v1h8V6a1 1 0 00-1-1z"/></svg>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -185,8 +186,8 @@ export const AdminFallbacks = () => {
                 </select>
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-sm text-white/70 mb-1">Address</label>
-                <input value={form.address} onChange={(e)=>setForm({...form, address: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white" required />
+                <label className="block text-sm text-white/70 mb-1">Notes / Landmark</label>
+                <textarea value={form.notes} onChange={(e)=>setForm({...form, notes: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white min-h-[70px]" placeholder="Describe landmark, nearby street, building, etc." />
               </div>
               <div>
                 <label className="block text-sm text-white/70 mb-1">Latitude</label>
@@ -196,10 +197,7 @@ export const AdminFallbacks = () => {
                 <label className="block text-sm text-white/70 mb-1">Longitude</label>
                 <input type="number" step="any" value={form.lng} onChange={(e)=>setForm({...form, lng: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white" required />
               </div>
-              <div>
-                <label className="block text-sm text-white/70 mb-1">Priority</label>
-                <input type="number" value={form.priority} onChange={(e)=>setForm({...form, priority: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white" />
-              </div>
+              
               <div className="sm:col-span-2 flex justify-end gap-2 mt-2">
                 <button type="button" onClick={()=>setModalOpen(false)} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white">Cancel</button>
                 <button type="submit" disabled={createMut.isPending || updateMut.isPending} className="px-4 py-2 bg-accent-orange hover:bg-bright-orange text-space-black font-semibold rounded-lg">

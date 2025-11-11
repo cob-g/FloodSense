@@ -117,6 +117,19 @@ function SensorDashboard() {
               </div>
             </div>
 
+            {/* Sensor meta */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+              <div className="text-gray-700">
+                <span className="text-gray-500">Sensor ID:</span> <span className="font-medium">{latest.sensorId || 'N/A'}</span>
+              </div>
+              <div className="text-gray-700">
+                <span className="text-gray-500">Latitude:</span> <span className="font-medium">{latest?.location?.lat ?? 'N/A'}</span>
+              </div>
+              <div className="text-gray-700">
+                <span className="text-gray-500">Longitude:</span> <span className="font-medium">{latest?.location?.lng ?? 'N/A'}</span>
+              </div>
+            </div>
+
             {/* Timestamp */}
             <div className="flex items-center text-sm text-gray-600">
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,10 +158,16 @@ function SensorDashboard() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Sensor ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Time
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Distance (cm)
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Location
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
@@ -161,10 +180,18 @@ function SensorDashboard() {
                   return (
                     <tr key={reading._id || index} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {reading.sensorId || '—'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {formatTime(reading.timestamp)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {reading.distance}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {reading?.location?.lat != null && reading?.location?.lng != null
+                          ? `${reading.location.lat}, ${reading.location.lng}`
+                          : '—'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${status.bg} ${status.color}`}>

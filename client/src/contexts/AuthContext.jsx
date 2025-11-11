@@ -13,29 +13,17 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const checkAuth = async () => {
-    // Skip if we're already on the login page to prevent redirect loops
-    if (window.location.pathname.startsWith('/auth/login')) {
-      setLoading(false);
-      return;
-    }
-
     try {
       const response = await authService.getProfile();
       if (response?.success && response.data?.user) {
         setUser(response.data.user);
         connectSocket(response.data.user.id);
       } else {
-        // If no valid user data, ensure we're not in a redirect loop
-        if (!window.location.pathname.startsWith('/auth/login')) {
-          window.location.href = '/auth/login';
-        }
+        setUser(null);
       }
     } catch (error) {
       console.log('Authentication check failed:', error.message);
       setUser(null);
-      if (!window.location.pathname.startsWith('/auth/login')) {
-        window.location.href = '/auth/login';
-      }
     } finally {
       setLoading(false);
     }

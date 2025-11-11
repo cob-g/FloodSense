@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { formatDate, getSeverityColor } from '../../utils/helpers';
 import { STATUS_LABELS } from '../../utils/constants';
 import { useValidateReport, useRejectReport } from '../../hooks/useReports';
@@ -95,24 +96,24 @@ export const AdminReportsTable = ({ reports, loading }) => {
     <>
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-neutral-50 border-b border-neutral-200">
+          <thead className="bg-white/5 border-b border-white/10">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-neutral-700">Location</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-neutral-700">Severity</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-neutral-700">Reporter</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-neutral-700">Photo</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-neutral-700">Date</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-neutral-700">Status</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-neutral-700">Actions</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-white/70">Location</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-white/70">Severity</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-white/70">Reporter</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-white/70">Photo</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-white/70">Date</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-white/70">Status</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-white/70">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-200">
+          <tbody className="divide-y divide-white/10">
             {reports.map((report) => (
-              <tr key={report._id} className="hover:bg-neutral-50 transition-colors">
+              <tr key={report._id} className="hover:bg-white/5 transition-colors">
                 <td className="px-4 py-4">
                   <div>
-                    <p className="font-medium text-neutral-900">{report.barangay}</p>
-                    <p className="text-sm text-neutral-600 truncate max-w-xs">
+                    <p className="font-medium text-white">{report.barangay}</p>
+                    <p className="text-sm text-white/60 truncate max-w-xs">
                       {report.location?.address || 'No address'}
                     </p>
                   </div>
@@ -123,7 +124,7 @@ export const AdminReportsTable = ({ reports, loading }) => {
                   </span>
                 </td>
                 <td className="px-4 py-4">
-                  <p className="text-sm text-neutral-900">{report.reporter?.name || report.user?.name || 'Unknown'}</p>
+                  <p className="text-sm text-white/90">{report.reporter?.name || report.user?.name || 'Unknown'}</p>
                 </td>
                 <td className="px-4 py-4">
                   {report.photos && report.photos.length > 0 ? (
@@ -134,7 +135,7 @@ export const AdminReportsTable = ({ reports, loading }) => {
                         console.log('Full URL:', `${BASE_URL}/uploads/${report.photos[0]}`);
                         setPhotoModal(report.photos);
                       }}
-                      className="relative w-12 h-12 rounded-lg overflow-hidden hover:ring-2 hover:ring-primary-500 transition-all"
+                      className="relative w-12 h-12 rounded-lg overflow-hidden hover:ring-2 hover:ring-accent/50 transition-all"
                     >
                       <img
                         src={`${BASE_URL}/uploads/${report.photos[0]}`}
@@ -152,20 +153,18 @@ export const AdminReportsTable = ({ reports, loading }) => {
                       )}
                     </button>
                   ) : (
-                    <span className="text-sm text-neutral-400">No photo</span>
+                    <span className="text-sm text-white/50">No photo</span>
                   )}
                 </td>
                 <td className="px-4 py-4">
-                  <p className="text-sm text-neutral-600">{formatDate(report.createdAt)}</p>
+                  <p className="text-sm text-white/60">{formatDate(report.createdAt)}</p>
                 </td>
                 <td className="px-4 py-4">
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    report.status === 'VALIDATED' ? 'bg-primary-100 text-primary-800' :
-                    report.status === 'REJECTED' ? 'bg-danger-100 text-danger-800' :
-                    'bg-warning-100 text-warning-800'
-                  }`}>
-                    {STATUS_LABELS[report.status]}
-                  </span>
+                  <span className={`text-xs px-2 py-1 rounded-lg border ${
+                    report.status === 'VALIDATED' ? 'text-green-300 border-green-400/40 bg-green-400/10' :
+                    report.status === 'REJECTED' ? 'text-red-300 border-red-400/40 bg-red-400/10' :
+                    'text-amber-300 border-amber-400/40 bg-amber-400/10'
+                  }`}>{STATUS_LABELS[report.status]}</span>
                 </td>
                 <td className="px-4 py-4">
                   {report.status === 'UNVERIFIED' && (
@@ -173,21 +172,21 @@ export const AdminReportsTable = ({ reports, loading }) => {
                       <button
                         onClick={() => handleValidate(report)}
                         disabled={processingId === report._id}
-                        className="px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                        className="px-3 py-1.5 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 bg-green-500/20 hover:bg-green-500/30 border border-green-500/40"
                       >
                         Validate
                       </button>
                       <button
                         onClick={() => handleReject(report)}
                         disabled={processingId === report._id}
-                        className="px-3 py-1.5 bg-danger-500 hover:bg-danger-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                        className="px-3 py-1.5 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40"
                       >
                         Reject
                       </button>
                     </div>
                   )}
                   {report.status !== 'UNVERIFIED' && (
-                    <span className="text-sm text-neutral-500">-</span>
+                    <span className="text-sm text-white/50">-</span>
                   )}
                 </td>
               </tr>
@@ -197,8 +196,14 @@ export const AdminReportsTable = ({ reports, loading }) => {
       </div>
 
       {/* Action Modal */}
-      {actionModal && selectedReport && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={closeModal}>
+      {actionModal && selectedReport && createPortal(
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-[2000]" onClick={closeModal}>
+          <button
+            onClick={closeModal}
+            className="fixed top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow hover:bg-neutral-100 transition-colors z-[2100]"
+          >
+            ×
+          </button>
           <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-bold text-neutral-900 mb-4">
               {actionModal === 'validate' ? 'Validate Report' : 'Reject Report'}
@@ -248,19 +253,20 @@ export const AdminReportsTable = ({ reports, loading }) => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Photo Viewer Modal */}
-      {photoModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center p-4 z-50" onClick={() => setPhotoModal(null)}>
+      {photoModal && createPortal(
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-[2100]" onClick={() => setPhotoModal(null)}>
+          <button
+            onClick={() => setPhotoModal(null)}
+            className="fixed top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow hover:bg-neutral-100 transition-colors z-[2200]"
+          >
+            ×
+          </button>
           <div className="relative max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => setPhotoModal(null)}
-              className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-neutral-100 transition-colors z-10"
-            >
-              ×
-            </button>
             <div className="flex gap-4 overflow-x-auto pb-4">
               {photoModal.map((photo, index) => (
                 <img
@@ -275,7 +281,8 @@ export const AdminReportsTable = ({ reports, loading }) => {
               {photoModal.length} photo{photoModal.length > 1 ? 's' : ''}
             </p>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
