@@ -232,7 +232,7 @@ export const MapView = ({
       const iconHtml = `
         <div style="
           width: 24px; height: 24px; border-radius: 50%;
-          background: #ffffff; border: 3px solid #f59e0b;
+          background: #ffffff; border: 3px solid #3b82f6;
           box-shadow: 0 2px 8px rgba(0,0,0,0.12);
         "></div>
       `;
@@ -254,8 +254,8 @@ export const MapView = ({
       // Sensor popup with Distance and Status (updates throttled by parent)
       const passStatus = (dist) => {
         if (dist == null || Number.isNaN(dist)) return { text: 'Passable', color: '#10b981' };
-        if (dist < 10) return { text: 'Not Passable', color: '#ef4444' };
-        if (dist < 20) return { text: 'Heavy Vehicles Only', color: '#f59e0b' };
+        if (dist < 40) return { text: 'Not Passable', color: '#ef4444' };
+        if (dist < 60) return { text: 'Heavy Vehicles Only', color: '#f59e0b' };
         return { text: 'Passable', color: '#10b981' };
       };
       const p = passStatus(s.distance);
@@ -330,7 +330,7 @@ export const MapView = ({
             <span className="text-gray-700">Not Passable</span>
           </div>
           <div className="flex items-center gap-2 pt-2 border-t border-gray-200">
-            <div className="w-3 h-3 rounded-[6px] bg-orange-500 shadow-sm"></div>
+            <div className="w-3 h-3 rounded-[6px] bg-blue-500 shadow-sm"></div>
             <span className="text-gray-700">Sensor</span>
           </div>
         </div>

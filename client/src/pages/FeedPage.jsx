@@ -25,6 +25,7 @@ const FeedPage = () => {
   const toast = useToast();
   const [reachable, setReachable] = useState(true);
   const effectiveOnline = online && reachable;
+  const [sensorsForMap, setSensorsForMap] = useState([]);
 
   const reports = reportsData?.data?.reports || [];
 
@@ -50,6 +51,35 @@ const FeedPage = () => {
     }
     return () => { mounted = false; };
   }, [online]);
+
+  useEffect(() => {
+    let timer;
+    let cancelled = false;
+    async function fetchSensorsOnce() {
+      try {
+        const res = await fetch('/api/sensor-data?limit=100', { cache: 'no-store' });
+        const payload = await res.json();
+        const list = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
+        const latestById = {};
+        for (const s of list) {
+          const id = s.sensorId || s._id;
+          const prev = id ? latestById[id] : undefined;
+          if (!prev || new Date(s.timestamp || 0) > new Date(prev.timestamp || 0)) {
+            if (id) latestById[id] = s;
+          }
+        }
+        const deduped = Object.values(latestById);
+        if (!cancelled) setSensorsForMap(deduped);
+      } catch (e) {
+        // ignore and keep previous state
+      }
+    }
+    if (effectiveOnline) {
+      fetchSensorsOnce();
+      timer = setInterval(fetchSensorsOnce, 30000);
+    }
+    return () => { cancelled = true; if (timer) clearInterval(timer); };
+  }, [effectiveOnline]);
 
   // Reachability check: detects when connected to LAN/Wi‑Fi but internet/server not reachable
   useEffect(() => {
@@ -335,6 +365,7 @@ const FeedPage = () => {
                 ) : (
                   <MapView
                     reports={reports}
+                    sensors={sensorsForMap}
                     onMarkerClick={(report) => console.log('Clicked report:', report)}
                     className="h-full"
                   />
