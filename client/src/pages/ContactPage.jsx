@@ -1,11 +1,320 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Mail, MapPin, Phone, Send, MessageSquare, Users, Building, Code, AlertCircle } from 'lucide-react';
 
 const ContactPage = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    category: '',
+    message: ''
+  });
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log('Form submitted:', formData);
+    alert('Thank you for your message! We will get back to you soon.');
+    setFormData({ name: '', email: '', subject: '', category: '', message: '' });
+  };
+
+  const contactReasons = [
+    {
+      icon: <Building className="w-6 h-6" />,
+      title: "Partnership Inquiries",
+      description: "Collaborate with us on research, deployment, or community initiatives",
+      gradient: "from-orange-500 to-red-500"
+    },
+    {
+      icon: <Code className="w-6 h-6" />,
+      title: "Technical Support",
+      description: "Get assistance with the platform, sensors, or data integration",
+      gradient: "from-red-500 to-orange-600"
+    },
+    {
+      icon: <MessageSquare className="w-6 h-6" />,
+      title: "General Feedback",
+      description: "Share your thoughts, suggestions, or report issues with the system",
+      gradient: "from-orange-600 to-orange-500"
+    },
+    {
+      icon: <Users className="w-6 h-6" />,
+      title: "Community Engagement",
+      description: "Learn how to become a validator or contribute to FloodSense",
+      gradient: "from-red-600 to-orange-500"
+    }
+  ];
+
+  const contactInfo = [
+    {
+      icon: <Mail className="w-5 h-5" />,
+      label: "Email Address",
+      value: "floodsense.caloocan@gmail.com",
+      link: "mailto:floodsense.caloocan@gmail.com"
+    },
+    {
+      icon: <MapPin className="w-5 h-5" />,
+      label: "Location",
+      value: "North Caloocan City, Metro Manila, Philippines",
+      link: null
+    },
+    {
+      icon: <Phone className="w-5 h-5" />,
+      label: "Response Time",
+      value: "Within 24-48 hours on business days",
+      link: null
+    }
+  ];
+
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-8 text-white">
-        <h1 className="text-3xl font-black mb-2">Contact Us</h1>
-        <p className="text-white/70">This page is a placeholder. Content coming soon.</p>
+    <div className="min-h-screen bg-transparent text-white overflow-hidden">
+      {/* Gradient Orbs */}
+      <div className="fixed top-20 right-1/4 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl animate-pulse"></div>
+      <div className="fixed bottom-20 left-1/4 w-96 h-96 bg-red-500/20 rounded-full blur-3xl animate-pulse delay-700"></div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+        
+        {/* Hero Section */}
+        <section className="mb-32 text-center">
+          <div className="mb-8">
+            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-full px-6 py-3 backdrop-blur-sm mb-6">
+              <MessageSquare className="w-5 h-5 text-orange-500" />
+              <span className="text-sm font-semibold text-orange-400 tracking-wide">GET IN TOUCH</span>
+            </div>
+            
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black mb-6 leading-tight">
+              We'd Love to
+              <br />
+              <span className="bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 bg-clip-text text-transparent">
+                Hear From You
+              </span>
+            </h1>
+            
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+              Whether you're a researcher, local official, community member, or developer—
+              your input helps us build a stronger, more resilient FloodSense system.
+            </p>
+          </div>
+        </section>
+
+        {/* Contact Reasons Grid */}
+        <section className="mb-32">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-black mb-4">
+              How Can We <span className="text-orange-500">Help?</span>
+            </h2>
+            <p className="text-gray-400 text-lg">Select the reason that best describes your inquiry</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-6 mb-12">
+            {contactReasons.map((reason, index) => (
+              <div 
+                key={index}
+                className="group relative bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:border-orange-500/50 transition-all duration-300 cursor-pointer"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${reason.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-2xl`}></div>
+                
+                <div className="relative flex gap-6">
+                  <div className={`flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br ${reason.gradient} flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300`}>
+                    {reason.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">{reason.title}</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">{reason.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Contact Form & Info - Split Layout */}
+        <section className="mb-32">
+          <div className="grid lg:grid-cols-5 gap-12">
+            
+            {/* Contact Information - Left Side */}
+            <div className="lg:col-span-2 space-y-8">
+              <div>
+                <h2 className="text-3xl font-black mb-4">
+                  Contact <span className="text-orange-500">Information</span>
+                </h2>
+                <p className="text-gray-400 leading-relaxed mb-8">
+                  Reach out to us directly through any of the channels below. 
+                  We're committed to responding promptly to all inquiries.
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                {contactInfo.map((info, index) => (
+                  <div 
+                    key={index}
+                    className="flex gap-4 p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-orange-500/30 transition-all duration-300"
+                  >
+                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white">
+                      {info.icon}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm text-gray-400 mb-1">{info.label}</div>
+                      {info.link ? (
+                        <a href={info.link} className="text-white font-semibold hover:text-orange-400 transition-colors">
+                          {info.value}
+                        </a>
+                      ) : (
+                        <div className="text-white font-semibold">{info.value}</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Important Notice */}
+              <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6">
+                <div className="flex gap-3">
+                  <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-bold text-orange-400 mb-2">Important Note</h4>
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                      For urgent flood-related emergencies, please contact your local barangay 
+                      office or dial the emergency hotline 911 immediately.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Contact Form - Right Side */}
+            <div className="lg:col-span-3">
+              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 lg:p-10 border border-white/10">
+                <h3 className="text-2xl font-bold mb-6">Send Us a Message</h3>
+                
+                <div className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 text-gray-300">
+                        Full Name <span className="text-orange-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors"
+                        placeholder="Juan Dela Cruz"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 text-gray-300">
+                        Email Address <span className="text-orange-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors"
+                        placeholder="juan@example.com"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 text-gray-300">
+                        Category <span className="text-orange-500">*</span>
+                      </label>
+                      <select
+                        name="category"
+                        value={formData.category}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-orange-500/50 transition-colors"
+                      >
+                        <option value="" className="bg-gray-900">Select a category</option>
+                        <option value="partnership" className="bg-gray-900">Partnership Inquiry</option>
+                        <option value="technical" className="bg-gray-900">Technical Support</option>
+                        <option value="feedback" className="bg-gray-900">General Feedback</option>
+                        <option value="community" className="bg-gray-900">Community Engagement</option>
+                        <option value="other" className="bg-gray-900">Other</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 text-gray-300">
+                        Subject <span className="text-orange-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="subject"
+                        value={formData.subject}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors"
+                        placeholder="Brief subject line"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-gray-300">
+                      Message <span className="text-orange-500">*</span>
+                    </label>
+                    <textarea
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      rows="6"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors resize-none"
+                      placeholder="Tell us more about your inquiry..."
+                    ></textarea>
+                  </div>
+
+                  <button
+                    onClick={handleSubmit}
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-orange-500/25 flex items-center justify-center gap-3"
+                  >
+                    <Send className="w-5 h-5" />
+                    Send Message
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* FAQ Preview Section */}
+        <section className="mb-32">
+          <div className="bg-gradient-to-br from-orange-500/10 via-red-500/5 to-transparent backdrop-blur-md border border-orange-500/20 rounded-3xl p-12 lg:p-16 text-center">
+            <h2 className="text-3xl lg:text-4xl font-black mb-4">
+              Have a <span className="text-orange-500">Quick Question?</span>
+            </h2>
+            <p className="text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed mb-8">
+              Many common questions are already answered in our Learn section. 
+              Check out our comprehensive guides and documentation before reaching out.
+            </p>
+            <button className="bg-white/10 hover:bg-white/20 border border-white/20 hover:border-orange-500/50 text-white px-8 py-4 rounded-xl font-bold transition-all duration-300 hover:scale-105">
+              Visit Learning Resources
+            </button>
+          </div>
+        </section>
+
+        {/* Office Hours Info */}
+        {/* <section>
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 text-center">
+            <h3 className="text-xl font-bold mb-3">Response Times & Availability</h3>
+            <p className="text-gray-400 leading-relaxed max-w-2xl mx-auto">
+              Our team reviews all inquiries carefully. While we strive to respond within 24-48 hours 
+              during business days, complex technical or partnership inquiries may require additional time. 
+              Thank you for your patience and interest in FloodSense.
+            </p>
+          </div>
+        </section> */}
+
       </div>
     </div>
   );

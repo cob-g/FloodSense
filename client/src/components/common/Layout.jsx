@@ -2,6 +2,7 @@ import { Outlet, Link, useNavigate, useLocation, NavLink as RouterLink, Navigate
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useSocket } from '../../hooks/useSocket';
+import Footer from './Footer';
 
 // Custom NavLink component with active state styling
 const NavLink = ({ to, children, className = '' }) => {
@@ -234,6 +235,8 @@ export const Layout = () => {
       <main className="pt-20 pb-12 px-4 sm:px-6 lg:px-0 lg:pb-0 w-full mx- bg-dot-pattern">
         <Outlet />
       </main>
+
+      <Footer />
 
       {/* Background Effects */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
