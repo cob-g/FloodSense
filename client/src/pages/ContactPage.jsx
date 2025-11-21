@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
-import { Mail, MapPin, Phone, Send, MessageSquare, Users, Building, Code, AlertCircle } from 'lucide-react';
+import { Mail, MapPin, Phone, Send, MessageSquare, Users, Building, Code, AlertCircle, Loader2 } from 'lucide-react';
+import { api } from '../services/api';
+import { useToast } from '../contexts/ToastContext';
 
 const ContactPage = () => {
+  const toast = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -17,11 +21,25 @@ const ContactPage = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    alert('Thank you for your message! We will get back to you soon.');
-    setFormData({ name: '', email: '', subject: '', category: '', message: '' });
+    
+    if (!formData.name || !formData.email || !formData.subject || !formData.category || !formData.message) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await api.post('/contact', formData);
+      toast.success('Thank you for your message! We will get back to you soon.');
+      setFormData({ name: '', email: '', subject: '', category: '', message: '' });
+    } catch (error) {
+      console.error('Contact form error:', error);
+      toast.error(error.message || 'Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactReasons = [
@@ -275,10 +293,20 @@ const ContactPage = () => {
 
                   <button
                     onClick={handleSubmit}
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-orange-500/25 flex items-center justify-center gap-3"
+                    disabled={isSubmitting}
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-orange-500/25 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
-                    <Send className="w-5 h-5" />
-                    Send Message
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-5 h-5" />
+                        Send Message
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

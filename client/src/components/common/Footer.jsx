@@ -6,10 +6,12 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-accent-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">FS</span>
-              </div>
+            <div className="flex items-center space-x-3 mb-4 group">
+              <img
+                src="/logo.png"
+                alt="FloodSense Logo"
+                className="w-8 h-8 rounded-lg object-contain shadow-md group-hover:shadow-lg transition-all duration-300"
+              />
               <span className="text-xl font-black bg-gradient-to-r from-white to-accent-500 bg-clip-text text-transparent">
                 FloodSense
               </span>

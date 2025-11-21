@@ -99,7 +99,7 @@ export const Layout = () => {
                 </span>
               </div>
 
-              {user && (
+              {user ? (
                 <div className="flex items-center">
                   {/* Hamburger - mobile */}
                   <button
@@ -162,22 +162,33 @@ export const Layout = () => {
                     </div>
                   </div>
                 </div>
-              )}
-
-              {!user && (
+              ) : (
                 <div className="flex items-center space-x-2">
-                  <Link
-                    to="/auth/login"
-                    className="px-4 py-2 text-sm font-medium rounded-xl bg-accent-orange text-space-black hover:bg-bright-orange transition-colors"
+                  {/* Hamburger - mobile (also for guests) */}
+                  <button
+                    className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl hover:bg-white/10 transition-colors mr-2"
+                    onClick={() => setMenuOpen((v) => !v)}
+                    aria-label="Toggle menu"
                   >
-                    Login
-                  </Link>
-                  <Link
-                    to="/auth/register"
-                    className="px-4 py-2 text-sm font-medium rounded-xl border border-white/10 text-white/90 hover:bg-white/10 transition-colors"
-                  >
-                    Register
-                  </Link>
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
+                  
+                  <div className="hidden md:flex items-center space-x-2">
+                    <Link
+                      to="/auth/login"
+                      className="px-4 py-2 text-sm font-medium rounded-xl bg-accent-orange text-space-black hover:bg-bright-orange transition-colors"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      to="/auth/register"
+                      className="px-4 py-2 text-sm font-medium rounded-xl border border-white/10 text-white/90 hover:bg-white/10 transition-colors"
+                    >
+                      Register
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>
@@ -186,13 +197,13 @@ export const Layout = () => {
       </header>
 
       {/* Mobile slide-down nav */}
-      {user && (
-        <div className={`md:hidden fixed top-16 left-0 right-0 z-[1900] transition-all duration-300 ${menuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'}`}>
-          <div className="mx-4 rounded-2xl bg-space-900/95 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden origin-top animate-none" style={{ transformOrigin: 'top center' }}>
-            {/* Accent bar for unique touch */}
-            <div className="h-1 w-full bg-gradient-to-r from-accent-orange to-transparent"></div>
+      <div className={`md:hidden fixed top-16 left-0 right-0 z-[1900] transition-all duration-300 ${menuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'}`}>
+        <div className="mx-4 rounded-2xl bg-space-900/95 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden origin-top animate-none" style={{ transformOrigin: 'top center' }}>
+          {/* Accent bar for unique touch */}
+          <div className="h-1 w-full bg-gradient-to-r from-accent-orange to-transparent"></div>
 
-            {/* User section */}
+          {/* User section or Auth buttons */}
+          {user ? (
             <div className="px-4 py-3 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center text-white font-bold shadow-md">
                 {user.name?.charAt(0)?.toUpperCase() || 'U'}
@@ -208,28 +219,45 @@ export const Layout = () => {
                 Sign out
               </button>
             </div>
+          ) : (
+            <div className="px-4 py-3 grid grid-cols-2 gap-3">
+              <Link
+                to="/auth/login"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center justify-center px-4 py-2 text-sm font-medium rounded-xl bg-accent-orange text-space-black hover:bg-bright-orange transition-colors"
+              >
+                Login
+              </Link>
+              <Link
+                to="/auth/register"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center justify-center px-4 py-2 text-sm font-medium rounded-xl border border-white/10 text-white/90 hover:bg-white/10 transition-colors"
+              >
+                Register
+              </Link>
+            </div>
+          )}
 
-            <div className="border-t border-white/10"></div>
+          <div className="border-t border-white/10"></div>
 
-            {/* Nav links */}
-            <nav className="py-1">
-              <RouterLink to="/" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Home</RouterLink>
-              <RouterLink to="/feed" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Feed</RouterLink>
-              <RouterLink to="/learn" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Learn</RouterLink>
-              <RouterLink to="/about" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">About</RouterLink>
-              <RouterLink to="/contact" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Contact Us</RouterLink>
+          {/* Nav links */}
+          <nav className="py-1">
+            <RouterLink to="/" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Home</RouterLink>
+            <RouterLink to="/feed" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Feed</RouterLink>
+            <RouterLink to="/learn" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Learn</RouterLink>
+            <RouterLink to="/about" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">About</RouterLink>
+            <RouterLink to="/contact" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Contact Us</RouterLink>
 
-              {(user.role === 'admin' || user.role === 'superadmin') && (
-                <>
-                  <div className="my-1 border-t border-white/10"></div>
-                  <RouterLink to="/admin/reports" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Reports</RouterLink>
-                  <RouterLink to="/admin/users" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Users</RouterLink>
-                </>
-              )}
-            </nav>
-          </div>
+            {user && (user.role === 'admin' || user.role === 'superadmin') && (
+              <>
+                <div className="my-1 border-t border-white/10"></div>
+                <RouterLink to="/admin/reports" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Reports</RouterLink>
+                <RouterLink to="/admin/users" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Users</RouterLink>
+              </>
+            )}
+          </nav>
         </div>
-      )}
+      </div>
 
       {/* Main Content */}
       <main className="pt-20 pb-12 px-4 sm:px-6 lg:px-0 lg:pb-0 w-full mx- bg-dot-pattern">

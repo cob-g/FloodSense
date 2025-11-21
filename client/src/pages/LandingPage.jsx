@@ -4,6 +4,19 @@ import { useAuth } from '../hooks/useAuth';
 import MapView from '../components/map/MapView';
 import { useReports } from '../hooks/useReports';
 import { useSensors } from '../hooks/useSensors';
+import { 
+  Satellite, 
+  Users, 
+  ShieldCheck,
+  AlertTriangle,
+  MapPin,
+  Plus,
+  ChevronRight,
+  Activity,
+  Car,
+  Home,
+  Building
+} from 'lucide-react';
 
 export const LandingPage = () => {
   const { user } = useAuth();
@@ -23,17 +36,17 @@ export const LandingPage = () => {
 
   const features = [
     {
-      icon: '📡',
+      icon: <Satellite className="w-6 h-6" />,
       title: 'IoT Sensor Network',
       description: 'Real-time water level monitoring across North Caloocan'
     },
     {
-      icon: '👥',
+      icon: <Users className="w-6 h-6" />,
       title: 'Community Reports',
       description: 'Verified ground-level flood intelligence'
     },
     {
-      icon: '🛡️',
+      icon: <ShieldCheck className="w-6 h-6" />,
       title: 'Barangay Validation',
       description: 'Officially confirmed flood data'
     }
@@ -102,7 +115,8 @@ export const LandingPage = () => {
             <div className="">
               <div className="space-y-4">
                 <div className="inline-flex items-center px-4 py-2 bg-accent-500/10 border border-accent-500/20 rounded-full text-accent-500 text-sm font-medium">
-                  🚨 Live Flood Monitoring Active
+                  <AlertTriangle className="w-4 h-4 mr-2" />
+                  Live Flood Monitoring Active
                 </div>
                 <h1 className="text-5xl sm:text-6xl font-black leading-tight">
                   <span className="text-white">Flood Intelligence</span>
@@ -139,18 +153,14 @@ export const LandingPage = () => {
                   className="px-8 py-4 bg-accent-500 hover:bg-accent-600 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-accent-500/25 hover:scale-105 flex items-center justify-center space-x-2"
                 >
                   <span>View Live Map</span>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <ChevronRight className="w-5 h-5" />
                 </button>
                 <Link
                   to="/report"
                   className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all duration-300 backdrop-blur-sm flex items-center justify-center space-x-2"
                 >
                   <span>Submit Report</span>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
+                  <Plus className="w-5 h-5" />
                 </Link>
               </div>
             </div>
@@ -170,7 +180,7 @@ export const LandingPage = () => {
                       onMouseEnter={() => setActiveFeature(index)}
                     >
                       <div className="flex items-center space-x-4">
-                        <div className="text-2xl">{feature.icon}</div>
+                        <div className="text-accent-500">{feature.icon}</div>
                         <div>
                           <h3 className="font-bold text-white text-lg">{feature.title}</h3>
                           <p className="text-white/60 text-sm">{feature.description}</p>
@@ -185,7 +195,7 @@ export const LandingPage = () => {
               <div className="absolute -bottom-6 -right-6 w-64 h-48 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 shadow-2xl overflow-hidden">
                 <div className="w-full h-full bg-gradient-to-br from-accent-500/10 to-accent-600/10 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="text-2xl mb-2">🗺️</div>
+                    <MapPin className="w-8 h-8 mx-auto mb-2 text-accent-500" />
                     <div className="text-white font-semibold">Live Map</div>
                     <div className="text-white/60 text-xs">Real-time data</div>
                   </div>
@@ -215,24 +225,6 @@ export const LandingPage = () => {
             <div className="w-full h-[600px] rounded-xl overflow-hidden">
               <MapView reports={validatedReports} sensors={sensorReadings} className="h-full" />
             </div>
-            
-            {/* Map Controls Overlay */}
-            {/* <div className="absolute bottom-8 left-8 bg-space-950/80 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 text-sm">
-                  <div className="w-3 h-3 bg-accent-500 rounded-full"></div>
-                  <span className="text-white">Active Sensors</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-white">Community Reports</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <span className="text-white">Flood Warnings</span>
-                </div>
-              </div>
-            </div> */}
           </div>
         </div>
       </section>
@@ -256,7 +248,7 @@ export const LandingPage = () => {
               <div className="space-y-4">
                 <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-xl border border-white/5 hover:border-accent-500/30 transition-all duration-300">
                   <div className="w-12 h-12 bg-accent-500/10 rounded-lg flex items-center justify-center">
-                    <span className="text-accent-500 text-xl">⚡</span>
+                    <Activity className="w-6 h-6 text-accent-500" />
                   </div>
                   <div>
                     <h3 className="font-bold text-white">Real-time Alerts</h3>
@@ -266,7 +258,7 @@ export const LandingPage = () => {
                 
                 <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-xl border border-white/5 hover:border-accent-500/30 transition-all duration-300">
                   <div className="w-12 h-12 bg-accent-500/10 rounded-lg flex items-center justify-center">
-                    <span className="text-accent-500 text-xl">🎯</span>
+                    <MapPin className="w-6 h-6 text-accent-500" />
                   </div>
                   <div>
                     <h3 className="font-bold text-white">Hyperlocal Data</h3>
@@ -276,7 +268,7 @@ export const LandingPage = () => {
                 
                 <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-xl border border-white/5 hover:border-accent-500/30 transition-all duration-300">
                   <div className="w-12 h-12 bg-accent-500/10 rounded-lg flex items-center justify-center">
-                    <span className="text-accent-500 text-xl">🤝</span>
+                    <Users className="w-6 h-6 text-accent-500" />
                   </div>
                   <div>
                     <h3 className="font-bold text-white">Community Powered</h3>
@@ -290,7 +282,7 @@ export const LandingPage = () => {
               <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
                 <div className="space-y-6">
                   <div className="text-center">
-                    <div className="text-4xl mb-4">🚗</div>
+                    <Car className="w-12 h-12 mx-auto mb-4 text-accent-500" />
                     <h3 className="text-2xl font-bold text-white mb-2">For Commuters</h3>
                     <p className="text-white/70">Plan safer routes with real-time flood data</p>
                   </div>
@@ -298,7 +290,7 @@ export const LandingPage = () => {
                   <div className="h-px bg-white/10"></div>
                   
                   <div className="text-center">
-                    <div className="text-4xl mb-4">🏘️</div>
+                    <Home className="w-12 h-12 mx-auto mb-4 text-accent-500" />
                     <h3 className="text-2xl font-bold text-white mb-2">For Residents</h3>
                     <p className="text-white/70">Stay informed and protect your property</p>
                   </div>
@@ -306,7 +298,7 @@ export const LandingPage = () => {
                   <div className="h-px bg-white/10"></div>
                   
                   <div className="text-center">
-                    <div className="text-4xl mb-4">🏛️</div>
+                    <Building className="w-12 h-12 mx-auto mb-4 text-accent-500" />
                     <h3 className="text-2xl font-bold text-white mb-2">For Government</h3>
                     <p className="text-white/70">Make data-driven emergency decisions</p>
                   </div>
@@ -346,8 +338,6 @@ export const LandingPage = () => {
           </div>
         </div>
       </section>
-
-      {/* Footer removed - now provided globally by Layout */}
     </div>
   );
 };
