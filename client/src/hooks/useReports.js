@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { reportsService } from '../services/reports.service';
 
-export const useReports = (filters = {}) => {
+export const useReports = (filters = {}, options = {}) => {
   return useQuery({
     queryKey: ['reports', filters],
     queryFn: () => reportsService.getReports(filters),
+    ...options,
   });
 };
 

@@ -18,7 +18,12 @@ const FeedPage = () => {
   const location = useLocation();
   const [showReportForm, setShowReportForm] = useState(false);
   const [activeTab, setActiveTab] = useState('map'); // 'map', 'sensors', 'reports'
-  const { data: reportsData, isLoading: reportsLoading, error: reportsError } = useReports();
+
+  const { data: reportsData, isLoading: reportsLoading, error: reportsError } = useReports({}, {
+    refetchInterval: 10000,
+    refetchIntervalInBackground: true,
+  });
+
   const { online, isSlow } = useNetwork();
   useFallbacks({}, { enabled: online });
   const [offlineItems, setOfflineItems] = useState([]);
@@ -29,6 +34,25 @@ const FeedPage = () => {
   const [sensorsForMap, setSensorsForMap] = useState([]);
 
   const reports = reportsData?.data?.reports || [];
+
+  // Auto-open report modal when navigated with intent from another page
+  useEffect(() => {
+    if (location?.state?.openReport) {
+      setShowReportForm(true);
+      // Clear navigation state so modal doesn't re-open on back/refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
+
+  // Fallback: open modal if a session flag was set before redirect/login
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const flag = window.sessionStorage.getItem('openReportAfterLogin');
+    if (flag) {
+      window.sessionStorage.removeItem('openReportAfterLogin');
+      setShowReportForm(true);
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -58,26 +82,18 @@ const FeedPage = () => {
     let cancelled = false;
     async function fetchSensorsOnce() {
       try {
-        const res = await fetch('/api/sensor-data?limit=100', { cache: 'no-store' });
+        const res = await fetch('/api/sensors/with-status', { cache: 'no-store' });
         const payload = await res.json();
         const list = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
-        const latestById = {};
-        for (const s of list) {
-          const id = s.sensorId || s._id;
-          const prev = id ? latestById[id] : undefined;
-          if (!prev || new Date(s.timestamp || 0) > new Date(prev.timestamp || 0)) {
-            if (id) latestById[id] = s;
-          }
-        }
-        const deduped = Object.values(latestById);
-        if (!cancelled) setSensorsForMap(deduped);
+        if (!cancelled) setSensorsForMap(list);
       } catch (e) {
         // ignore and keep previous state
       }
     }
+
     if (effectiveOnline) {
       fetchSensorsOnce();
-      timer = setInterval(fetchSensorsOnce, 30000);
+      timer = setInterval(fetchSensorsOnce, 10000);
     }
     return () => { cancelled = true; if (timer) clearInterval(timer); };
   }, [effectiveOnline]);

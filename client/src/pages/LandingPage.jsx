@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+
 import { useAuth } from '../hooks/useAuth';
 import MapView from '../components/map/MapView';
+
 import { useReports } from '../hooks/useReports';
 import { useSensors } from '../hooks/useSensors';
 import { 
@@ -23,15 +25,23 @@ export const LandingPage = () => {
   const navigate = useNavigate();
   const [activeFeature, setActiveFeature] = useState(0);
 
-  // Fetch validated reports for the map
+  // Fetch validated reports for the map (auto-refresh every 30s)
   const { data: validatedData } = useReports({
     status: 'VALIDATED',
     limit: 100,
+  }, {
+    refetchInterval: 30000,
+    refetchIntervalInBackground: true,
   });
+
   const validatedReports = validatedData?.data?.reports || [];
 
-  // Fetch sensor data
-  const { data: sensorsRes } = useSensors({ limit: 100 });
+  // Fetch sensor data (auto-refresh every 30s)
+  const { data: sensorsRes } = useSensors({ withStatus: true }, {
+    refetchInterval: 30000,
+    refetchIntervalInBackground: true,
+  });
+
   const sensorReadings = sensorsRes?.data || [];
 
   const features = [
@@ -96,7 +106,10 @@ export const LandingPage = () => {
                 </button>
               ) : (
                 <button 
-                  onClick={() => navigate('/login')}
+                  onClick={() => {
+                    try { window.sessionStorage.setItem('openReportAfterLogin', '1'); } catch (_) {}
+                    navigate('/auth/login', { state: { from: { pathname: '/feed' } } });
+                  }}
                   className="px-6 py-2 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-lg border border-white/10 transition-all duration-300"
                 >
                   Sign In
@@ -155,13 +168,21 @@ export const LandingPage = () => {
                   <span>View Live Map</span>
                   <ChevronRight className="w-5 h-5" />
                 </button>
-                <Link
-                  to="/report"
+                <button
+                  onClick={() => {
+                    if (!user) {
+                      try { window.sessionStorage.setItem('openReportAfterLogin', '1'); } catch (_) {}
+                      navigate('/auth/login', { state: { from: { pathname: '/feed' } } });
+                      return;
+                    }
+                    try { window.sessionStorage.setItem('openReportAfterLogin', '1'); } catch (_) {}
+                    navigate('/feed', { state: { openReport: true } });
+                  }}
                   className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all duration-300 backdrop-blur-sm flex items-center justify-center space-x-2"
                 >
                   <span>Submit Report</span>
                   <Plus className="w-5 h-5" />
-                </Link>
+                </button>
               </div>
             </div>
 

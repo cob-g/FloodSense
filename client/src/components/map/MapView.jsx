@@ -242,8 +242,10 @@ export const MapView = ({
 
     // Add markers for sensors
     sensors.forEach(s => {
-      const lat = s?.location?.lat;
-      const lng = s?.location?.lng;
+      // Support both SensorData-style location.lat/lng and
+      // Sensor registry fields latitude/longitude (from /sensors/with-status)
+      const lat = s?.location?.lat ?? s?.latitude ?? null;
+      const lng = s?.location?.lng ?? s?.longitude ?? null;
       if (lat == null || lng == null) return;
 
       const iconUrl = createMarkerSVG('#3b82f6', Satellite);
@@ -309,7 +311,9 @@ export const MapView = ({
       if (r.location?.coordinates) boundsPoints.push([r.location.coordinates[1], r.location.coordinates[0]]);
     });
     sensors.forEach(s => {
-      if (s?.location?.lat != null && s?.location?.lng != null) boundsPoints.push([s.location.lat, s.location.lng]);
+      const lat = s?.location?.lat ?? s?.latitude ?? null;
+      const lng = s?.location?.lng ?? s?.longitude ?? null;
+      if (lat != null && lng != null) boundsPoints.push([lat, lng]);
     });
     if (boundsPoints.length > 0) {
       const bounds = L.latLngBounds(boundsPoints);
