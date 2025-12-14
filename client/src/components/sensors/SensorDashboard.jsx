@@ -25,6 +25,7 @@ function SensorDashboard() {
         if (response.ok) {
           const data = await response.json();
           const sensorList = Array.isArray(data) ? data : data.data || [];
+          console.log('SensorDashboard fetched sensors:', sensorList);
           setSensors(sensorList.map(s => ({ ...s, isActive: false })));
         }
       } catch (error) {
@@ -54,7 +55,11 @@ function SensorDashboard() {
     // Listen for sensor updates
     socket.on('update', (data) => {
       console.log('📊 Received sensor update:', data);
-      console.log('Sensor location data:', data.location);
+      console.log('Sensor location data:', {
+        lat: data.location?.lat,
+        lng: data.location?.lng,
+        address: data.location?.address
+      });
       
       // Mark sensor as active
       setActiveSensorIds(prev => new Set([...prev, data.sensorId]));

@@ -240,15 +240,20 @@ export const MapView = ({
       markersRef.current.push(marker);
     });
 
-    // Add markers for sensors
-    sensors.forEach(s => {
-      // Support both SensorData-style location.lat/lng and
-      // Sensor registry fields latitude/longitude (from /sensors/with-status)
+    // Add markers for sensors - ALL sensors including offline ones
+    sensors.forEach((s, idx) => {
       const lat = s?.location?.lat ?? s?.latitude ?? null;
       const lng = s?.location?.lng ?? s?.longitude ?? null;
-      if (lat == null || lng == null) return;
+      
+      if (lat == null || lng == null) {
+        return;
+      }
 
-      const iconUrl = createMarkerSVG('#3b82f6', Satellite);
+      // Use gray color for offline sensors, blue for online
+      const isOnline = s.online === true;
+      const sensorColor = isOnline ? '#3b82f6' : '#6b7280'; // blue for online, gray for offline
+      
+      const iconUrl = createMarkerSVG(sensorColor, Satellite);
 
       const customIcon = L.icon({
         iconUrl: iconUrl,
@@ -264,20 +269,26 @@ export const MapView = ({
         marker.addTo(mapInstanceRef.current);
       }
 
-      // Sensor popup
-      const passStatus = (dist) => {
-        if (dist == null || Number.isNaN(dist)) return { text: 'Passable', color: '#10b981' };
+      // Sensor popup with online/offline status
+      const passStatus = (dist, online) => {
+        if (!online) return { text: 'Offline', color: '#6b7280' };
+        if (dist == null || Number.isNaN(dist)) return { text: 'No Data', color: '#6b7280' };
         if (dist < 40) return { text: 'Not Passable', color: '#ef4444' };
         if (dist < 60) return { text: 'Heavy Vehicles Only', color: '#f59e0b' };
         return { text: 'Passable', color: '#10b981' };
       };
-      const p = passStatus(s.distance);
+      const p = passStatus(s.distance, isOnline);
+      const statusDot = isOnline ? '#10b981' : '#6b7280';
       
       const popupContent = `
         <div style="min-width: 240px; background: white; border-radius: 8px; padding: 16px; color: #1f2937; font-family: system-ui, -apple-system, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-            <div style="width: 16px; height: 16px; border-radius: 4px; background: #3b82f6;"></div>
+            <div style="width: 16px; height: 16px; border-radius: 4px; background: ${sensorColor};"></div>
             <div style="font-weight: 600; font-size: 14px;">Sensor Station</div>
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 4px;">
+              <div style="width: 8px; height: 8px; border-radius: 50%; background: ${statusDot};"></div>
+              <span style="font-size: 11px; color: ${statusDot};">${isOnline ? 'Online' : 'Offline'}</span>
+            </div>
           </div>
           
           <div style="font-size: 13px; color: #6b7280; margin-bottom: 12px;">
@@ -291,12 +302,18 @@ export const MapView = ({
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: #6b7280;">Distance:</span>
-              <span style="color: #111827; font-weight: 500;">${s.distance} cm</span>
+              <span style="color: #111827; font-weight: 500;">${s.distance != null ? `${s.distance} cm` : 'No data'}</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
-              <span style="color: #6b7280;">Status:</span>
+              <span style="color: #6b7280;">Road Status:</span>
               <span style="color: ${p.color}; font-weight: 600;">${p.text}</span>
             </div>
+            ${s.lastSeen ? `
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #6b7280;">Last Seen:</span>
+              <span style="color: #111827; font-weight: 500;">${new Date(s.lastSeen).toLocaleString()}</span>
+            </div>
+            ` : ''}
           </div>
         </div>
       `;
@@ -359,7 +376,13 @@ export const MapView = ({
             <div className="w-3 h-3 rounded bg-blue-500 flex items-center justify-center">
               <Satellite size={8} color="white" />
             </div>
-            <span className="text-gray-600">Sensor</span>
+            <span className="text-gray-600">Sensor (Online)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded bg-gray-500 flex items-center justify-center">
+              <Satellite size={8} color="white" />
+            </div>
+            <span className="text-gray-600">Sensor (Offline)</span>
           </div>
         </div>
       </div>

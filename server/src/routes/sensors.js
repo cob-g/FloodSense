@@ -185,8 +185,8 @@ router.post('/sensors', async (req, res) => {
 });
 
 // @route   GET /api/sensors/with-status
-// @desc    List sensors with lastSeen and online/offline status
-// @access  Admin
+// @desc    List sensors with lastSeen, online/offline status, and latest distance
+// @access  Public
 router.get('/sensors/with-status', async (req, res) => {
   try {
     const sensors = await Sensor.find().sort({ createdAt: -1 }).lean();
@@ -195,10 +195,29 @@ router.get('/sensors/with-status', async (req, res) => {
       sensors.map(async (s) => {
         const last = await SensorData.findOne({ sensorId: s.sensorId }).sort({ timestamp: -1 }).lean();
         const lastSeen = last?.timestamp ? new Date(last.timestamp).toISOString() : null;
-        const online = last?.timestamp ? (now - new Date(last.timestamp).getTime() < 2 * 60 * 1000) : false; // 2 minutes
-        return { ...s, lastSeen, online };
+        const online = last?.timestamp ? (now - new Date(last.timestamp).getTime() < 2 * 60 * 1000) : false;
+        const distance = last?.distance ?? null;
+        const timestamp = last?.timestamp ?? null;
+        
+        return { 
+          ...s, 
+          lastSeen, 
+          online, 
+          distance,
+          timestamp,
+          // Include both formats for maximum compatibility
+          location: {
+            lat: s.latitude,
+            lng: s.longitude
+          },
+          // Keep original fields too
+          latitude: s.latitude,
+          longitude: s.longitude
+        };
       })
     );
+    
+    console.log(`📡 /api/sensors/with-status: Returning ${results.length} sensors`);
     res.json({ success: true, count: results.length, data: results });
   } catch (error) {
     console.error('Error fetching sensors with status:', error);
