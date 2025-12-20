@@ -62,110 +62,34 @@ The FloodSense application was built using multiple programming languages and di
 
 ## C. NETWORK TOPOLOGY
 
-The FloodSense system implements a distributed network architecture connecting IoT sensors, client applications, backend servers, and database infrastructure. The topology ensures real-time data flow, scalability, and reliability across multiple network layers.
+The FloodSense system uses a client–server architecture with real-time updates. Community users access the React web app, which communicates with the Node.js/Express API. Real-time events are delivered via Socket.IO. IoT sensors (ESP32 + ultrasonic) optionally POST readings to the backend over the local network or internet (deployment-dependent). MongoDB persists application and sensor data.
 
-### System Architecture Diagram:
+### Topology Overview (Text Format)
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         CLIENT LAYER                                │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐             │
-│  │  Web Browser │  │    Mobile    │  │    Admin     │             │
-│  │  (Chrome,    │  │   Devices    │  │  Dashboard   │             │
-│  │  Firefox,    │  │  (iOS/       │  │  (Desktop)   │             │
-│  │  Safari)     │  │  Android)    │  │              │             │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘             │
-│         │                 │                 │                      │
-│         └─────────────────┼─────────────────┘                      │
-│                           │                                        │
-│                    HTTPS/WebSocket                                 │
-│                     (Port 5000/5173)                               │
-└───────────────────────────┼────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      APPLICATION LAYER                              │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │              NGINX / Load Balancer (Production)              │  │
-│  │              [Optional: Port 80/443 → 5000]                  │  │
-│  └───────────────────────────┬──────────────────────────────────┘  │
-│                              │                                     │
-│  ┌───────────────────────────▼──────────────────────────────────┐  │
-│  │            React Frontend (Vite Dev Server)                  │  │
-│  │            • Port: 5173 (Development)                        │  │
-│  │            • Static Files: Served via CDN (Production)       │  │
-│  │            • WebSocket Client: Socket.IO                     │  │
-│  │            • API Calls: Axios HTTP Client                    │  │
-│  └───────────────────────────┬──────────────────────────────────┘  │
-│                              │                                     │
-│                         API Requests                               │
-│                              │                                     │
-│  ┌───────────────────────────▼──────────────────────────────────┐  │
-│  │            Node.js Backend Server (Express)                  │  │
-│  │            • Port: 5000                                      │  │
-│  │            • RESTful API Endpoints                           │  │
-│  │            • Socket.IO Server (Real-time)                    │  │
-│  │            • Authentication: JWT (httpOnly cookies)          │  │
-│  │            • File Upload: Multer (/uploads)                  │  │
-│  │            • Middleware: CORS, Helmet, Compression, Morgan   │  │
-│  └──────┬──────────────────────────────┬────────────────────────┘  │
-│         │                              │                           │
-│         │                              │                           │
-└─────────┼──────────────────────────────┼───────────────────────────┘
-          │                              │
-          │                      ┌───────▼────────┐
-          │                      │   Socket.IO    │
-          │                      │  Event Emitter │
-          │                      │  (Real-time    │
-          │                      │   Updates)     │
-          │                      └────────────────┘
-          │
-          ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                       DATABASE LAYER                                │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │              MongoDB Database (Port 27017)                   │  │
-│  │              • Collections: users, reports, sensors,         │  │
-│  │                sensordatas, fallbackplaces, contacts         │  │
-│  │              • Indexes: Geospatial, Timestamp, SensorID      │  │
-│  │              • Management: MongoDB Compass                   │  │
-│  │              • Connection: Mongoose ODM                      │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
+**Client Layer**
+- Web browsers (desktop/mobile) access the FloodSense frontend.
+- The frontend makes REST API calls and maintains a Socket.IO connection for live updates.
 
-┌─────────────────────────────────────────────────────────────────────┐
-│                         IOT SENSOR LAYER                            │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐             │
-│  │   Sensor 1   │  │   Sensor 2   │  │   Sensor N   │             │
-│  │  ┌────────┐  │  │  ┌────────┐  │  │  ┌────────┐  │             │
-│  │  │ ESP32  │  │  │  │ ESP32  │  │  │  │ ESP32  │  │             │
-│  │  │ + JSN- │  │  │  │ + JSN- │  │  │  │ + JSN- │  │             │
-│  │  │ SR04T  │  │  │  │ SR04T  │  │  │  │ SR04T  │  │             │
-│  │  └────────┘  │  │  └────────┘  │  │  └────────┘  │             │
-│  │              │  │              │  │              │             │
-│  │  Location 1  │  │  Location 2  │  │  Location N  │             │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘             │
-│         │                 │                 │                      │
-│         └─────────────────┼─────────────────┘                      │
-│                           │                                        │
-│                      WiFi 2.4GHz                                   │
-│                    HTTP POST Request                               │
-│                 (Every 10 seconds)                                 │
-│                 /api/sensor-data                                   │
-│                           │                                        │
-│                           ▼                                        │
-│                  Backend Server (Port 5000)                        │
-└─────────────────────────────────────────────────────────────────────┘
-```
+**Application Layer**
+- **Frontend**: React (Vite dev server in development; static hosting/CDN in production).
+- **Backend**: Node.js + Express REST API + Socket.IO (same origin/host as API in typical deployments).
+- **Uploads**: Server filesystem for image uploads in development/standard deployments (via Multer).
+
+**Database Layer**
+- MongoDB (local or managed/hosted). Accessed only by the backend via Mongoose.
+
+**IoT Sensor Layer (Optional / Deployment-Based)**
+- ESP32 device posts JSON readings to `/api/sensor-data` at a fixed interval.
+- Device connectivity is typically Wi‑Fi (2.4 GHz), same LAN as server for simplest deployment.
+
+### Ports, Protocols, and Endpoints
+
+| Component | Protocol | Default Port | Notes |
+|----------|----------|--------------|------|
+| Frontend (Vite dev) | HTTP | 5173 | Development only |
+| Backend API | HTTP/HTTPS | 5000 | REST endpoints under `/api/*` |
+| Real-time (Socket.IO) | WS/WSS | 5000 | Same server/port as backend |
+| MongoDB | MongoDB wire protocol | 27017 | Local default; hosted uses provider URI |
 
 ### Network Specifications:
 
@@ -187,226 +111,126 @@ The FloodSense system implements a distributed network architecture connecting I
 | **Data Validation** | Input sanitization on all API endpoints<br>Mongoose schema validation<br>File type and size validation (Multer)<br>SQL injection prevention (NoSQL by design) |
 | **Network Filtering** | Firewall rules (ports 5000, 27017, 80, 443)<br>IP whitelisting for admin endpoints (optional)<br>DDoS protection via rate limiting<br>Origin validation for Socket.IO connections |
 
-## D. AVAILABILITY
+## III. Data Flow
 
-The FloodSense system is designed for high availability to ensure continuous flood monitoring and timely alerts to communities. System uptime is critical for public safety applications.
+### Local/Client to Backend (Reports, Auth, Admin)
 
-### Uptime Requirements:
+**Process:**
+- User actions in the React app (login/register, submit report, view reports, admin validate) call the backend REST API over HTTP(S).
+- Authentication uses JWT stored in **httpOnly cookies** (browser → backend), with CORS configured to allow the frontend origin and credentials.
+- Uploaded photos are sent as `multipart/form-data` to the reports endpoint (Multer), then stored under the server upload path.
 
-| Component | Target Availability | Acceptable Downtime |
-|-----------|--------------------|--------------------|
-| **IoT Sensors** | 99.5% (24/7 monitoring) | <3.6 hours/month (scheduled maintenance during low-flood-risk periods) |
-| **Backend API Server** | 99.9% (Three nines) | <43 minutes/month (planned maintenance windows) |
-| **Frontend Application** | 99.9% (Three nines) | <43 minutes/month (CDN-served static files) |
-| **Database (MongoDB)** | 99.95% | <22 minutes/month (automated backups and replica sets) |
-| **Real-time Updates (Socket.IO)** | 99.5% | <3.6 hours/month (graceful degradation to polling) |
+**Example:**
+- A user submits a flood report in the UI → `POST /api/reports` (with photo + metadata) → backend validates/rate-limits → saves the report in MongoDB → emits a Socket.IO event (e.g., `new-report`) to update other clients.
 
-### High Availability Strategies:
+**Rationale:**
+- Separates UI concerns from business logic, supports role-based access, and provides a consistent REST surface for both browser and potential mobile clients.
 
-| Strategy | Implementation |
-|----------|----------------|
-| **Server Redundancy** | **Production:** Multi-instance deployment with load balancer<br>**Database:** MongoDB replica set (primary + 2 secondaries)<br>**Failover:** Automatic failover to standby server<br>**Recovery Time Objective (RTO):** <5 minutes |
-| **Data Backup** | **Frequency:** Automated daily backups at 2:00 AM<br>**Retention:** 30-day rolling backup retention<br>**Storage:** Off-site backup storage (cloud or secondary location)<br>**Recovery Point Objective (RPO):** <24 hours<br>**Testing:** Monthly backup restoration tests |
-| **Monitoring & Alerts** | **System Monitoring:** CPU, memory, disk usage, network traffic<br>**Application Monitoring:** API response times, error rates, active users<br>**Sensor Monitoring:** Last reading timestamp, offline detection (>5 minutes)<br>**Alerting:** Email/SMS notifications for critical failures<br>**Tools:** Node.js process managers (PM2), MongoDB monitoring, uptime monitors |
-| **Error Handling** | **API:** Graceful error responses with proper HTTP status codes<br>**Frontend:** Error boundaries, offline fallback UI, retry mechanisms<br>**Database:** Connection pooling, automatic reconnection<br>**Sensors:** Exponential backoff for failed transmissions |
-| **Scalability** | **Horizontal Scaling:** Multiple backend instances behind load balancer<br>**Database Sharding:** Partition by barangay/region for large deployments<br>**CDN:** Static asset delivery via Content Delivery Network<br>**Caching:** Redis/Memcached for frequently accessed data (optional) |
-| **Disaster Recovery** | **Backup Server:** Hot standby or cloud deployment ready for activation<br>**Documentation:** Runbooks for common failure scenarios<br>**Recovery Procedures:** Step-by-step restoration guides<br>**Contact Information:** 24/7 emergency contact for critical incidents |
-| **Offline Capabilities** | **PWA Features:** Service workers for offline functionality<br>**Local Storage:** IndexedDB caching of fallback locations and recent reports<br>**Graceful Degradation:** App remains functional with limited features when offline<br>**Sync:** Automatic data synchronization when connection restored |
-| **Maintenance Windows** | **Scheduled Maintenance:** Weekly Sundays 2:00 AM - 4:00 AM (low traffic)<br>**Notification:** 72-hour advance notice to users<br>**Zero-Downtime Deployments:** Blue-green deployment strategy<br>**Rollback Plan:** Automated rollback on deployment failure |
+### IoT Sensor to Backend (Water Level Readings)
 
-### Performance Metrics:
+**Process:**
+- ESP32 reads distance/level → sends JSON to `POST /api/sensor-data`.
+- Backend validates payload (e.g., range checks, schema checks) → stores reading in MongoDB (time-series style collection) → emits Socket.IO event (e.g., `sensor-update`) for live dashboards.
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| **API Response Time** | <200ms (p95), <500ms (p99) | Average response time for GET requests |
-| **Database Query Time** | <100ms (p95) | MongoDB query execution time |
-| **Page Load Time** | <3 seconds (first contentful paint) | Lighthouse performance score >90 |
-| **WebSocket Latency** | <100ms | Real-time update delivery time |
-| **Sensor Data Freshness** | <30 seconds | Time from sensor reading to dashboard display |
-| **Concurrent Users** | 1,000+ simultaneous users | Load testing verified capacity |
+**Example:**
+- Sensor sends `{"sensorId":"NC-001","distance":123.45,"timestamp":"..."}` → backend stores as `SensorData` → clients subscribed to updates render the latest reading.
 
-### Service Level Objectives (SLOs):
+**Rationale:**
+- Enables real-time monitoring while preserving historical readings for analytics and auditing.
 
-- **Critical Alerts:** 99.99% delivery rate within 30 seconds of detection
-- **Sensor Data Accuracy:** 98%+ valid readings (outliers filtered)
-- **Report Validation:** <2 hours median response time for admin review
-- **System Recovery:** <15 minutes for automatic recovery from common failures
-- **Data Integrity:** Zero data loss for committed transactions (ACID compliance)
+### Backend to Client (Real-time Updates)
 
-## E. API SPECIFICATION
+**Process:**
+- Clients establish a Socket.IO connection to the backend.
+- Server broadcasts events when key domain actions happen (new report, validation, sensor updates).
+- Clients update UI state (and/or invalidate React Query caches) to reflect new data.
 
-The FloodSense RESTful API provides programmatic access to flood monitoring data, user management, sensor readings, and administrative functions. All endpoints follow REST conventions with JSON request/response format.
+**Example:**
+- Admin validates a report → `PATCH/PUT /api/reports/:id/validate` → server emits `report-validated` → all connected clients update “Validated Feed”.
 
-### Base URL:
-- **Development:** `http://localhost:5000/api`
-- **Production:** `https://your-domain.com/api`
+**Rationale:**
+- Avoids heavy polling and improves responsiveness under active flood situations.
 
-### Authentication:
-- **Method:** JWT (JSON Web Token) stored in httpOnly cookies
-- **Header:** `Cookie: token=<jwt_token>`
-- **Expiration:** 7 days (configurable)
-- **Roles:** `user`, `admin`, `super_admin`
+### Offline / Degraded Mode (Client)
 
-### API Endpoints:
+**Process:**
+- Client uses service worker + cached assets (and optionally IndexedDB) to load the app shell when offline.
+- When offline, the UI displays cached fallback/emergency places (admin-curated) and disables actions that require server write operations (e.g., report submission).
 
-#### 1. Health & System
+**Example:**
+- User loses connectivity → app loads from cache → shows offline banner + cached emergency/fallback list.
 
-| Method | Endpoint | Description | Auth Required | Response |
-|--------|----------|-------------|---------------|----------|
-| GET | `/api/ping` | Health check endpoint | No | `{ message, timestamp, status, version }` |
-| GET | `/api` | API information and available endpoints | No | `{ name, version, description, endpoints }` |
+**Rationale:**
+- Maintains usability during disasters where connectivity is unreliable.
 
-#### 2. Authentication Endpoints (`/api/auth`)
+## IV. Database Design
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/auth/register` | Register new user account | No |
-| POST | `/api/auth/login` | User login | No |
-| POST | `/api/auth/logout` | User logout | Yes |
-| GET | `/api/auth/me` | Get current user profile | Yes |
-| PUT | `/api/auth/profile` | Update user profile | Yes |
-| PUT | `/api/auth/password` | Change password | Yes |
+### Local Database (Development)
+**Description:**
+- MongoDB running locally (default `mongodb://localhost:27017/floodsense`).
+- Used for developer testing, rapid iteration, and local integration (frontend + backend).
 
-**Rate Limiting:** 100 requests per 15 minutes per IP
+### Hosted Database (Production)
+**Description:**
+- Managed MongoDB (Atlas or equivalent) accessed via `MONGODB_URI`.
+- Backend connects via Mongoose with authentication and TLS handled by the provider.
 
-#### 3. Flood Reports Endpoints (`/api/reports`)
+### Core Collections / Tables (MongoDB)
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/reports` | Get all flood reports (with filters) | No |
-| GET | `/api/reports/:id` | Get single report by ID | No |
-| POST | `/api/reports` | Create new flood report | Yes |
-| PUT | `/api/reports/:id` | Update own report | Yes (Owner) |
-| DELETE | `/api/reports/:id` | Delete own report | Yes (Owner/Admin) |
-| PUT | `/api/reports/:id/validate` | Validate report (admin) | Yes (Admin) |
-| PUT | `/api/reports/:id/reject` | Reject report (admin) | Yes (Admin) |
-| PUT | `/api/reports/:id/request-info` | Request more info (admin) | Yes (Admin) |
-| GET | `/api/reports/nearby` | Find reports near location | No |
+**users**
+- Stores user identity, hashed password, role (`user/admin/superadmin`), and profile metadata (e.g., barangay assignment).
 
-**Rate Limiting:** 1 report per 3 minutes per user
+**reports**
+- Flood report documents including location (GeoJSON Point), status (`UNVERIFIED/VALIDATED/REJECTED`), evidence photo path/url, timestamps, and validation metadata.
 
-#### 4. Sensor Endpoints (`/api/sensors`, `/api/sensor-data`)
+**fallbackplaces**
+- Admin-curated emergency locations for offline access and “fallback” information.
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/sensors` | Get all registered sensors | No |
-| GET | `/api/sensors/:id` | Get sensor by ID | No |
-| POST | `/api/sensors` | Register new sensor (admin) | Yes (Admin) |
-| PUT | `/api/sensors/:id` | Update sensor (admin) | Yes (Admin) |
-| DELETE | `/api/sensors/:id` | Delete sensor (admin) | Yes (Admin) |
-| POST | `/api/sensor-data` | Submit sensor reading (IoT device) | No |
-| GET | `/api/sensor-data` | Get sensor readings | No |
-| GET | `/api/sensor-data/latest` | Get latest readings from all sensors | No |
+**sensors** (if enabled in this repo deployment)
+- Registry of deployed sensors (sensorId, label, installation metadata, location).
 
-#### 5. Fallback/Emergency Facilities (`/api/fallbacks`)
+**sensordatas** (time-series style)
+- Sensor readings over time keyed by sensorId + timestamp (distance/water level and derived fields if used).
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/fallbacks` | Get all emergency facilities | No |
-| GET | `/api/fallbacks/:id` | Get facility by ID | No |
-| POST | `/api/fallbacks` | Create facility (admin) | Yes (Admin) |
-| PUT | `/api/fallbacks/:id` | Update facility (admin) | Yes (Admin) |
-| DELETE | `/api/fallbacks/:id` | Delete facility (admin) | Yes (Admin) |
-| GET | `/api/fallbacks/nearby` | Find facilities near location | No |
+**contacts** (if enabled)
+- Contact form submissions and admin review flags.
 
-#### 6. Admin Endpoints (`/api/admin`)
+### Indexing / Constraints (Recommended)
+- `reports.location` → `2dsphere` index (nearby queries / map rendering).
+- `reports.createdAt` and `reports.status` → compound index for feed filtering.
+- `sensordatas.sensorId` + `sensordatas.timestamp` → compound index for latest/graphs.
+- `users.email` → unique index.
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/admin/users` | Get all users | Yes (Admin) |
-| GET | `/api/admin/users/:id` | Get user by ID | Yes (Admin) |
-| PUT | `/api/admin/users/:id/role` | Update user role | Yes (Super Admin) |
-| DELETE | `/api/admin/users/:id` | Delete user | Yes (Super Admin) |
-| GET | `/api/admin/analytics/weekly-report` | Generate weekly analytics report | Yes (Admin) |
-| GET | `/api/admin/analytics/export` | Export analytics to CSV/PDF | Yes (Admin) |
+**Rationale:**
+- MongoDB’s document model fits mixed report + sensor payloads, while geospatial indexing supports map-based queries efficiently.
 
-#### 7. Contact Endpoints (`/api/contact`)
+## V. Network Integration
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/contact` | Submit contact form | No |
-| GET | `/api/contact` | Get all contact messages (admin) | Yes (Admin) |
-| PUT | `/api/contact/:id/mark-read` | Mark message as read (admin) | Yes (Admin) |
+**Description:**
+- REST API communication uses HTTP in development and HTTPS in production.
+- Real-time communication uses WebSocket (Socket.IO) on the backend port.
+- CORS is configured to allow the frontend origin (via `CLIENT_URL`) and credentials for cookie-based auth.
+- Static asset delivery is handled by Vite (dev) or static hosting/CDN (prod), while the API remains on the backend host.
 
-### WebSocket Events (Socket.IO):
+**Rationale:**
+- Balances accessibility and security: cookie-based sessions + strict origin controls for browser clients, and a simple POST interface for IoT devices.
 
-**Client → Server:**
-- `join-barangay` - Subscribe to barangay-specific updates
+## VI. Design Principles
 
-**Server → Client:**
-- `new-report` - New flood report created
-- `report-validated` - Report validated by admin
-- `report-rejected` - Report rejected by admin
-- `sensor-update` - Real-time sensor data update
+**Modularity:**
+- Separate concerns across frontend (React UI), backend (Express API + Socket.IO), and data layer (MongoDB/Mongoose), enabling independent updates and testing.
 
-### Error Responses:
+**Scalability:**
+- Stateless API design and event-based real-time updates enable horizontal scaling (with appropriate Socket.IO adapter in multi-instance production).
+- Database indexing supports increasing report volume and geospatial queries.
 
-All API endpoints follow a consistent error format with proper HTTP status codes:
+**Security:**
+- JWT in httpOnly cookies, CORS origin validation, input validation, and hardened headers (Helmet) reduce common web risks.
+- Upload constraints (size/type) limit file-based attacks.
 
-```json
-{
-  "success": false,
-  "message": "Error description"
-}
-```
+**Usability:**
+- Mobile-first responsive UI, clear report status (unverified vs validated), and real-time updates improve situational awareness.
+- Offline/degraded mode provides essential info during connectivity loss.
 
-**Common HTTP Status Codes:**
-- `200 OK` - Successful request
-- `201 Created` - Resource created successfully
-- `400 Bad Request` - Invalid request parameters
-- `401 Unauthorized` - Authentication required
-- `403 Forbidden` - Insufficient permissions
-- `404 Not Found` - Resource not found
-- `429 Too Many Requests` - Rate limit exceeded
-- `500 Internal Server Error` - Server error
-
-### Data Validation Rules:
-
-| Field | Rules |
-|-------|-------|
-| Email | Valid email format, unique |
-| Password | Minimum 6 characters |
-| Coordinates | Latitude: -90 to 90, Longitude: -180 to 180 |
-| Severity | Enum: `minor`, `moderate`, `severe`, `critical` |
-| Water Level | Number, 0-500 cm |
-| Photo | Max 5MB, JPEG/PNG/GIF/WebP only |
-| Sensor ID | Alphanumeric, unique, 3-20 characters |
-| Distance | Number, 25-450 cm (JSN-SR04T range) |
-
-## F. NETWORK REQUIREMENTS
-
-| Component | Requirements |
-|-----------|-------------|
-| **IoT Sensor Deployment** | **Temperature Range:** -10°C to 50°C (14°F to 122°F)<br>**Humidity:** Up to 95% non-condensing (with proper enclosure)<br>**Water Resistance:** IP65 rated enclosure minimum<br>**Mounting Height:** Fixed position, height recorded in system database<br>**Power:** Continuous 5V DC power supply or battery backup system<br>**Accessibility:** Secure location to prevent tampering |
-| **Server Environment** | **Temperature:** 15°C to 25°C (59°F to 77°F) optimal<br>**Humidity:** 20% to 80% non-condensing<br>**Power:** Uninterruptible Power Supply (UPS) recommended<br>**Ventilation:** Adequate cooling for 24/7 operation<br>**Security:** Physical and network security measures |
-| **Network Infrastructure** | **Router/Switch:** Gigabit Ethernet support<br>**WiFi Access Points:** WPA2/WPA3 encryption<br>**Backup:** Redundant internet connection recommended for critical deployments<br>**Firewall:** Properly configured for security while allowing required traffic |
-
-## E. MEASUREMENT SPECIFICATIONS
-
-| Parameter | Value |
-|-----------|-------|
-| **Distance Measurement Range** | 25 cm to 450 cm |
-| **Measurement Accuracy** | ±2 mm (JSN-SR04T sensor specification) |
-| **Sampling Rate** | Every 10 seconds (configurable in firmware) |
-| **Data Smoothing** | 5-point rolling average filter |
-| **Timeout** | 30ms pulse timeout |
-| **Flood Thresholds** | Passable: > 60 cm clearance<br>Heavy Vehicles Only: 40-60 cm clearance<br>Not Passable: < 40 cm clearance |
-
-## F. MINIMUM USER REQUIREMENTS
-
-| User Type | Requirements |
-|-----------|-------------|
-| **General Public** | Modern web browser (Chrome, Firefox, Safari, Edge)<br>Internet connection (3 Mbps minimum)<br>Device: Smartphone, tablet, or computer<br>GPS-enabled device for location-based reporting |
-| **Report Submitters** | Registered account on FloodSense platform<br>Camera-equipped device for photo uploads<br>Basic understanding of flood severity levels |
-| **Barangay Officials/Admins** | Verified admin account with validation privileges<br>Reliable computer or laptop with 1920x1080 display<br>Stable internet connection for real-time monitoring<br>Training on report validation procedures |
-| **System Administrators** | Full admin credentials (super admin role)<br>Knowledge of Node.js, MongoDB, and React<br>Server access and management capabilities<br>Understanding of IoT sensor deployment and maintenance |
-
-## G. SCALABILITY CONSIDERATIONS
-
-| Aspect | Specification |
-|--------|--------------|
-| **Maximum Concurrent Users** | 1,000+ (with recommended server specs)<br>10,000+ (with cloud deployment and load balancing) |
-| **Sensor Capacity** | Up to 100 active sensors per deployment<br>Unlimited with proper database indexing and server scaling |
-| **Data Retention** | Minimum 1 year of sensor data history<br>Unlimited report history with archival system |
-| **Geographic Coverage** | Scalable to multiple cities/regions<br>Barangay-based filtering and organization |
-| **API Rate Limiting** | 100 requests per 15 minutes per IP<br>Report submission: 1 report per 3 minutes per user |
+**Rationale:**
+- These principles keep FloodSense maintainable, resilient during emergencies, and safe for public-facing deployment.
