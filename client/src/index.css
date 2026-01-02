@@ -20,6 +20,21 @@
   --color-space-black: #0a0a12;
 }
 
+@font-face {
+  font-family: "Goodly";
+  src: url("fonts/goodly-bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Goodly";
+  src: url("fonts/goodly-regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+
 body {
   margin: 0;
   min-width: 320px;
@@ -100,9 +115,13 @@ body {
 
 /* Custom Utility Classes */
 .bg-dot-pattern {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-image: radial-gradient(
+    var(--color-light-orange) 1px,
+    transparent 1.8px
+  );
+  background-size: 18px 18px;
 }
+
 
 /* Glassmorphism Effect */
 .glass {

@@ -57,29 +57,29 @@ export const Layout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-space-950 text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#f0f0f0] text-white overflow-x-hidden">
       {/* Glassmorphism Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-[2000] bg-transparent backdrop-blur-xl border-b border-white/5 shadow-2xl">
+      <header className="fixed top-0 left-0 right-0 z-[2000] bg-[#c54914] backdrop-blur-xl border-b border-white/5 shadow-2xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-0">
           <div className="flex items-center justify-between h-[4.5rem]">
             <Link to="/" className="flex items-center space-x-3 group">
               <img
                 src="/logo.png"
                 alt="FloodSense Logo"
-                className="w-9 h-9 rounded-lg object-contain shadow-md group-hover:shadow-lg transition-shadow"
+                className="w-9 h-9 rounded-lg object-contain shadow-md group-hover:shadow-lg transition-shadow bg-gray-100"
               />
-              <h1 className="text-2xl font-black bg-gradient-to-r from-white to-accent-500 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-semibold [font-family:Goodly] text-gray-100">
                   FloodSense
               </h1>
             </Link>
 
             {/* Centered navigation */}
             <nav className="hidden md:flex flex-1 justify-center items-center gap-1">
-              <NavLink to="/">Home</NavLink>
-              <NavLink to="/feed">Feed</NavLink>
-              <NavLink to="/learn">Learn</NavLink>
-              <NavLink to="/about">About</NavLink>
-              <NavLink to="/contact">Contact Us</NavLink>
+              <NavLink to="/" className='tracking-widest'>HOME</NavLink>
+              <NavLink to="/feed" className='tracking-widest'>FEED</NavLink>
+              <NavLink to="/learn" className='tracking-widest'>LEARN</NavLink>
+              <NavLink to="/about" className='tracking-widest'>ABOUT</NavLink>
+              <NavLink to="/contact" className='tracking-widest'>CONTACT US</NavLink>
             </nav>
 
             <div className="flex items-center">
@@ -178,15 +178,15 @@ export const Layout = () => {
                   <div className="hidden md:flex items-center space-x-2">
                     <Link
                       to="/auth/login"
-                      className="px-4 py-2 text-sm font-medium rounded-xl bg-accent-orange text-space-black hover:bg-bright-orange transition-colors"
+                      className="px-4 py-2 text-sm font-medium rounded-xl bg-accent-orange text-space-black hover:bg-bright-orange transition-colors tracking-widest"
                     >
-                      Login
+                      LOGIN
                     </Link>
                     <Link
                       to="/auth/register"
-                      className="px-4 py-2 text-sm font-medium rounded-xl border border-white/10 text-white/90 hover:bg-white/10 transition-colors"
+                      className="px-4 py-2 text-sm font-medium rounded-xl border border-white/10 text-white/90 hover:bg-white/10 transition-colors tracking-widest"
                     >
-                      Register
+                      REGISTER
                     </Link>
                   </div>
                 </div>
@@ -242,7 +242,8 @@ export const Layout = () => {
 
           {/* Nav links */}
           <nav className="py-1">
-            <RouterLink to="/" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Home</RouterLink>
+            <RouterLink to="/" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5 
+            ">Home</RouterLink>
             <RouterLink to="/feed" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Feed</RouterLink>
             <RouterLink to="/learn" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">Learn</RouterLink>
             <RouterLink to="/about" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/5">About</RouterLink>

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
-    <footer className="bg-space-900/50 border-t border-white/10 py-12 px-4 sm:px-6 lg:px-8">
+    <footer className="bg-[#c54914] border-t border-white/10 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
@@ -24,13 +24,13 @@ const Footer = () => {
           <div>
             <h4 className="text-white font-bold mb-4">Quick Links</h4>
             <div className="space-y-2">
-              <Link to="/feed" className="block text-white/60 hover:text-accent-500 transition-colors text-sm">
+              <Link to="/feed" className="block text-white/60 hover:text-gray-950 transition-colors text-sm">
                 Live Feed
               </Link>
-              <Link to="/map" className="block text-white/60 hover:text-accent-500 transition-colors text-sm">
+              <Link to="/map" className="block text-white/60 hover:text-gray-950 transition-colors text-sm">
                 Flood Map
               </Link>
-              <Link to="/report" className="block text-white/60 hover:text-accent-500 transition-colors text-sm">
+              <Link to="/report" className="block text-white/60 hover:text-gray-950 transition-colors text-sm">
                 Submit Report
               </Link>
             </div>
@@ -39,13 +39,13 @@ const Footer = () => {
           <div>
             <h4 className="text-white font-bold mb-4">Resources</h4>
             <div className="space-y-2">
-              <Link to="/learn" className="block text-white/60 hover:text-accent-500 transition-colors text-sm">
+              <Link to="/learn" className="block text-white/60 hover:text-gray-950 transition-colors text-sm">
                 Safety Tips
               </Link>
-              <Link to="/about" className="block text-white/60 hover:text-accent-500 transition-colors text-sm">
+              <Link to="/about" className="block text-white/60 hover:text-gray-950 transition-colors text-sm">
                 About Us
               </Link>
-              <Link to="/contact" className="block text-white/60 hover:text-accent-500 transition-colors text-sm">
+              <Link to="/contact" className="block text-white/60 hover:text-gray-950 transition-colors text-sm">
                 Contact
               </Link>
             </div>
