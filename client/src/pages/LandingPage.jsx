@@ -19,7 +19,10 @@ import {
   Car,
   Home,
   Building,
-  Sparkles, Droplet
+  Sparkles, 
+  Droplet,
+  Landmark,
+  Briefcase
 } from 'lucide-react';
 
 export const LandingPage = () => {
@@ -69,6 +72,29 @@ export const LandingPage = () => {
       icon: <ShieldCheck className="w-6 h-6" />,
       title: 'Barangay Validation',
       description: 'Officially confirmed flood data'
+    }
+  ];
+
+  const impactFeatures = [
+    {
+      id: 1,
+      title: "For Commuters",
+      icon: <MapPin size={64} />
+    },
+    {
+      id: 2,
+      title: "For Residents",
+      icon: <Home size={64} />
+    },
+    {
+      id: 3,
+      title: "For Government",
+      icon: <Landmark size={64} />
+    },
+    {
+      id: 4,
+      title: "For Business Owners",
+      icon: <Briefcase size={64} />
     }
   ];
 
@@ -128,18 +154,16 @@ export const LandingPage = () => {
         }, '-=0.4');
       }
 
-      // 5. Buttons Elastic Slide Up
-      // Using autoAlpha ensures they are visible only when opacity > 0
-      // clearProps ensures no inline styles remain that could hide the buttons
+      // 5. Buttons Slide Up - Adjusted for snappier performance feel
       if (buttonsRef.current && buttonsRef.current.children) {
         tl.from(buttonsRef.current.children, {
-          y: 60,
+          y: 40,
           autoAlpha: 0,
-          duration: 1.2,
-          stagger: 0.15,
-          ease: 'elastic.out(1, 0.5)',
+          duration: 0.8,
+          stagger: 0.1,
+          ease: 'back.out(1.7)',
           clearProps: 'all' 
-        }, '-=0.2');
+        }, '-=0.5');
       }
 
       // Continuous floating animation for droplet
@@ -211,7 +235,7 @@ export const LandingPage = () => {
       </nav>
 
       {/* Hero Section - Split Layout */}
-      <section ref={heroRef} className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-transparent">
+      <section ref={heroRef} className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-transparent ">
         {/* Gradient Orbs - Why: Luma's signature background effect */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#ff8c42]/30 rounded-full blur-3xl animate-pulse"></div>
@@ -260,7 +284,7 @@ export const LandingPage = () => {
           <div ref={buttonsRef} className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
             <button
               onClick={() => document.getElementById('live-map')?.scrollIntoView({ behavior: 'smooth' })}
-              className="group px-8 py-4 bg-[#ff5e1a] text-gray-50 text-sm font-semibold rounded-full hover:bg-[#ff5e1a]/50 transition-all duration-300 flex items-center justify-center space-x-2 shadow-2xl shadow-white/20"
+              className="group px-8 py-4 flex items-center bg-accent-500 hover:bg-accent-400 text-gray-100 font-bold rounded-full transition-all duration-300 shadow-lg hover:shadow-accent-500/25 hover:scale-105 justify-center space-x-2 shadow-white/20"
             >
               <span>View Live Map</span>
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
@@ -276,7 +300,7 @@ export const LandingPage = () => {
                 try { window.sessionStorage.setItem('openReportAfterLogin', '1'); } catch (_) {}
                 navigate('/feed', { state: { openReport: true } });
               }}
-              className="px-8 py-4 bg-white/50 hover:bg-white/10 text-gray-900 text-sm font-semibold rounded-full border border-white/10 transition-all duration-300 flex items-center justify-center space-x-2 backdrop-blur-xl"
+              className="px-8 py-4  bg-black/5 hover:bg-black/10 text-gray-900 font-bold rounded-full border border-white/10 transition-all duration-300 flex items-center justify-center space-x-2 backdrop-blur-xl"
             >
               <Plus className="w-4 h-4" />
               <span>Submit Report</span>
@@ -298,7 +322,7 @@ export const LandingPage = () => {
           <div className="text-center mb-12">
             <h2 className="text-4xl sm:text-5xl font-black mb-4">
               <span className="text-gray-900">Live Flood</span>{' '}
-              <span className="bg-gradient-to-r from-[#c54914] to-[#c54914] bg-clip-text text-transparent">
+              <span className="bg-accent-500 bg-clip-text text-transparent">
                 Monitoring
               </span>
             </h2>
@@ -316,81 +340,54 @@ export const LandingPage = () => {
       </section>
 
       {/* Value Proposition */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 border-b border-black/10">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl sm:text-5xl font-black mb-6">
                 <span className="text-gray-900">Why</span>{' '}
-                <span className="bg-gradient-to-r from-[#c54914] to-[#c54914]  bg-clip-text text-transparent">
+                <span className="bg-accent-500  bg-clip-text text-transparent">
                   FloodSense?
                 </span>
               </h2>
-              <p className="text-lg text-black/70 font-medium mb-8 leading-relaxed">
-                Traditional flood monitoring systems are often slow and centralized. FloodSense brings real-time, 
-                hyperlocal intelligence directly to the people who need it most.
-              </p>
-              
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4 p-4 bg-black/5 rounded-xl border border-black/5 hover:border-accent-500/30 transition-all duration-300">
-                  <div className="w-12 h-12 bg-accent-500/10 rounded-lg flex items-center justify-center">
-                    <Activity className="w-6 h-6 text-accent-500" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-black">Real-time Alerts</h3>
-              
-                    <p className="text-black/60 text-sm">Get instant notifications when flood levels rise</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-4 p-4 bg-black/5 rounded-xl border border-black/5 hover:border-accent-500/30 transition-all duration-300">
-                  <div className="w-12 h-12 bg-accent-500/10 rounded-lg flex items-center justify-center">
-                    <MapPin className="w-6 h-6 text-accent-500" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-black">Hyperlocal Data</h3>
-                    <p className="text-black/60 text-sm">Street-level precision for accurate decision making</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-4 p-4 bg-black/5 rounded-xl border border-black/5 hover:border-accent-500/30 transition-all duration-300">
-                  <div className="w-12 h-12 bg-accent-500/10 rounded-lg flex items-center justify-center">
-                    <Users className="w-6 h-6 text-accent-500" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-black">Community Powered</h3>
-                    <p className="text-black/60 text-sm">Verified reports from residents and officials</p>
-                  </div>
-                </div>
+              <div className="space-y-6">
+                <p className="text-xl text-black/70 font-normal leading-relaxed">
+                  Traditional systems are often too slow. FloodSense uses IoT sensors to provide real-time, street-level data, enabling proactive safety decisions when they matter most.
+                </p>
+                <p className="text-xl text-black/70 font-normal leading-relaxed">
+                  We bridge technology and community. By merging sensor precision with verified resident reports, we create a resilient network that protects North Caloocan together.
+                </p>
               </div>
             </div>
             
             <div className="relative">
-              <div className="bg-black/5 backdrop-blur-sm rounded-2xl p-8 border border-black/10">
-                <div className="space-y-6">
-                  <div className="text-center">
-                    <Car className="w-12 h-12 mx-auto mb-4 text-accent-500" />
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">For Commuters</h3>
-                    <p className="text-900/70">Plan safer routes with real-time flood data</p>
+              <div className="relative z-10">
+                <img 
+                  src="/FS1.png" 
+                  alt="FloodSense Platform Preview" 
+                  className="w-full h-auto rounded-2xl transform hover:scale-[1.02] transition-transform duration-700 ease-out"
+                />
+              </div>
+              {/* Decorative element behind image */}
+              <div className="absolute -z-10 -bottom-6 -right-6 w-64 h-64 bg-accent-500/10 rounded-full blur-3xl"></div>
+            </div>
+          </div>
+
+          {/* The FloodSense Impact Section */}
+          <div className="mb-20">
+            <h2 className="text-3xl sm:text-4xl font-black text-center mb-16 text-gray-900">The FloodSense Impact</h2>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+              {impactFeatures.map((feature) => (
+                <div key={feature.id} className="flex items-center space-x-4 group">
+                  <div className="flex-shrink-0 text-accent-500 group-hover:scale-110 transition-transform duration-300">
+                    {feature.icon}
                   </div>
-                  
-                  <div className="h-px bg-black/10"></div>
-                  
-                  <div className="text-center">
-                    <Home className="w-12 h-12 mx-auto mb-4 text-accent-500" />
-                    <h3 className="text-2xl font-bold text-black mb-2">For Residents</h3>
-                    <p className="text-black/70">Stay informed and protect your property</p>
-                  </div>
-                  
-                  <div className="h-px bg-black/10"></div>
-                  
-                  <div className="text-center">
-                    <Building className="w-12 h-12 mx-auto mb-4 text-accent-500" />
-                    <h3 className="text-2xl font-bold text-black mb-2">For Government</h3>
-                    <p className="text-black/70">Make data-driven emergency decisions</p>
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-lg">{feature.title}</h3>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -401,7 +398,7 @@ export const LandingPage = () => {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl sm:text-5xl font-black mb-6">
             <span className="text-gray-900">Ready to Stay</span>{' '}
-            <span className="bg-gradient-to-r from-[#c54914] to-accent-600 bg-clip-text text-transparent">
+            <span className="bg-accent-500 bg-clip-text text-transparent">
               Flood-Safe?
             </span>
           </h2>
@@ -412,13 +409,13 @@ export const LandingPage = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/feed"
-              className="px-8 py-4 bg-[#c54914] hover:bg-accent-600 text-gray-100 font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-accent-500/25   hover:scale-105"
+              className="px-8 py-4 bg-accent-500 hover:bg-accent-600 text-gray-100 font-bold rounded-full transition-all duration-300 shadow-lg hover:shadow-accent-500/25   hover:scale-105"
             >
               Explore Live Data
             </Link>
             <Link
               to="/learn"
-              className="px-8 py-4 bg-black/5 hover:bg-black/10 text-gray-900 font-bold rounded-xl border border-black/10 transition-all duration-300 backdrop-blur-sm"
+              className="px-8 py-4 bg-black/5 hover:bg-black/10 text-gray-900 font-bold rounded-full border border-black/10 transition-all duration-300 backdrop-blur-sm"
             >
               Learn More
             </Link>

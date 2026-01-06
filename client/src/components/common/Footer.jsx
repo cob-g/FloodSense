@@ -10,7 +10,7 @@ const Footer = () => {
               <img
                 src="/logo.png"
                 alt="FloodSense Logo"
-                className="w-8 h-8 rounded-lg object-contain shadow-md group-hover:shadow-lg transition-all duration-300"
+                className="w-8 h-8 rounded-lg bg-gray-50 object-contain shadow-md group-hover:shadow-lg transition-all duration-300"
               />
               <span className="text-xl font-black bg-gradient-to-r from-white to-accent-500 bg-clip-text text-transparent">
                 FloodSense

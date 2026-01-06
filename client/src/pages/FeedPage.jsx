@@ -502,6 +502,7 @@ const FeedPage = () => {
         {/* Interactive Navigation Tabs */}
         <div className="mb-10">
           <div className="flex flex-wrap gap-3 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-3">
+          
             {[
               { id: 'map', label: 'Live Map', icon: Map, color: 'from-orange-500 to-red-500' },
               { id: 'sensors', label: 'Sensor Network', icon: Radio, color: 'from-orange-500 to-red-500' },
