@@ -247,7 +247,7 @@ export const LandingPage = () => {
           <h1 ref={headlineRef} className="text-6xl sm:text-7xl lg:text-8xl font-black relative inline-block origin-bottom">
             {/* Status Badge positioned relative to the headline */}
             <div ref={dropletRef} className="hidden lg:block absolute -top-6 -left-16">
-              <Droplet className="w-12 h-12 text-[#ff5e1a]/60" />
+              <Sparkles className="w-12 h-12 text-[#ff5e1a]/60" />
             </div>
             Flood Intelligence
             <br />

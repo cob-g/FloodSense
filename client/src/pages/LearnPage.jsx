@@ -12,7 +12,7 @@ const FAQItem = ({ question, answer }) => {
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-6 py-5 flex items-center justify-between text-left"
       >
-        <span className="text-lg font-bold text-white pr-4">{question}</span>
+        <span className="text-lg font-bold text-gray-900 pr-4">{question}</span>
         <ChevronDown 
           className={`w-5 h-5 text-orange-500 flex-shrink-0 transition-transform duration-300 ${
             isOpen ? 'rotate-180' : ''
@@ -107,7 +107,7 @@ const LearnPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-transparent text-white overflow-hidden">
+    <div className="min-h-screen bg-transparent text-gray-900 overflow-hidden">
       {/* Starfield Background */}
       {/* <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0a0a0a] to-black">
         <div className="absolute inset-0" style={{
@@ -141,7 +141,7 @@ const LearnPage = () => {
                 Stay Informed.
               </span>
               <br />
-              <span className="text-white">Stay Safe. Stay Ready.</span>
+              <span className="text-gray-900">Stay Safe. Stay Ready.</span>
             </h1>
             
             <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
@@ -159,7 +159,7 @@ const LearnPage = () => {
             
             <div className="relative flex flex-col lg:flex-row items-start gap-8">
               <div className="flex-shrink-0">
-                <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white">
+                <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-gray-900">
                   <HelpCircle className="w-14 h-14" />
                 </div>
               </div>
@@ -195,8 +195,8 @@ const LearnPage = () => {
                 key={tab}
                 className={`px-6 py-3 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 ${
                   activeTab === tab
-                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25 scale-105'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/10'
+                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-gray-900 shadow-lg shadow-orange-500/25 scale-105'
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-900 border border-white/10'
                 }`}
                 onClick={() => setActiveTab(tab)}
               >
@@ -234,7 +234,7 @@ const LearnPage = () => {
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-2xl`}></div>
                 
                 <div className="relative flex gap-6">
-                  <div className={`flex-shrink-0 w-16 h-16 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300`}>
+                  <div className={`flex-shrink-0 w-16 h-16 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-gray-900 group-hover:scale-110 transition-transform duration-300`}>
                     {feature.icon}
                   </div>
                   <div>
@@ -263,7 +263,7 @@ const LearnPage = () => {
                 className="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-orange-500/50 transition-all duration-300 hover:-translate-y-2"
               >
                 <div className="flex items-start justify-between mb-6">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white text-2xl group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-gray-900 text-2xl group-hover:scale-110 transition-transform duration-300">
                     <FileText className="w-7 h-7" />
                   </div>
                   <span className="bg-orange-500/20 text-orange-400 text-xs font-semibold px-3 py-1 rounded-full border border-orange-500/30">
@@ -271,14 +271,14 @@ const LearnPage = () => {
                   </span>
                 </div>
                 
-                <h3 className="text-lg font-bold text-white mb-3">{resource.title}</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">{resource.title}</h3>
                 <p className="text-sm text-gray-400 mb-6 leading-relaxed">{resource.description}</p>
                 
                 <div className="flex items-center justify-between pt-4 border-t border-white/10">
                   <span className="text-gray-500 text-sm">{resource.size}</span>
                   <a 
                     href={resource.link} 
-                    className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 group-hover:scale-105"
+                    className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 group-hover:scale-105"
                     download
                   >
                     <Download className="w-4 h-4" />
@@ -304,7 +304,7 @@ const LearnPage = () => {
                 Join the FloodSense community and help make North Caloocan safer during flood events. 
                 Your participation matters—every report helps build a more resilient community.
               </p>
-              <div className="flex items-center gap-3 text-white/80">
+              <div className="flex items-center gap-3 text-gray-900/80">
                 <BookOpen className="w-5 h-5" />
                 <span className="text-sm font-semibold">Learn • Report • Stay Safe</span>
               </div>
@@ -314,7 +314,7 @@ const LearnPage = () => {
               <button className="bg-white text-orange-600 hover:bg-white/90 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 shadow-2xl w-full">
                 Report Flood Incident
               </button>
-              <button className="border-2 border-white text-white hover:bg-white/10 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 w-full">
+              <button className="border-2 border-white text-gray-900 hover:bg-white/10 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 w-full">
                 View Live Dashboard
               </button>
             </div>
@@ -364,7 +364,7 @@ const LearnPage = () => {
           <div className="text-center mt-12">
             <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 inline-block">
               <p className="text-gray-300 mb-4">Still have questions?</p>
-              <Link to="/contact" className="inline-block bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-3 rounded-xl font-bold transition-all duration-300 hover:scale-105">
+              <Link to="/contact" className="inline-block bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-gray-900 px-8 py-3 rounded-xl font-bold transition-all duration-300 hover:scale-105">
                 Contact Us
               </Link>
             </div>

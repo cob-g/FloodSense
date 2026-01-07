@@ -83,7 +83,7 @@ const AboutPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-transparent text-white overflow-hidden">
+    <div className="min-h-screen bg-transparent text-gray-900 overflow-hidden">
       {/* Starfield Background */}
       {/* <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0a0a0a] to-black">
         <div className="absolute inset-0" style={{
@@ -132,7 +132,7 @@ const AboutPage = () => {
               <div className="text-orange-500 mb-3">
                 <Users className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Student-Built</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Student-Built</h3>
               <p className="text-sm text-gray-400">Developed by passionate computer science students as a capstone thesis project</p>
             </div>
             
@@ -140,7 +140,7 @@ const AboutPage = () => {
               <div className="text-orange-500 mb-3">
                 <Target className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Community-Focused</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Community-Focused</h3>
               <p className="text-sm text-gray-400">Designed with direct input from North Caloocan residents and local officials</p>
             </div>
             
@@ -148,7 +148,7 @@ const AboutPage = () => {
               <div className="text-orange-500 mb-3">
                 <Award className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Open Innovation</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Open Innovation</h3>
               <p className="text-sm text-gray-400">Committed to transparency and continuous improvement through collaboration</p>
             </div>
           </div>
@@ -209,7 +209,7 @@ const AboutPage = () => {
                 <div className={`absolute inset-0 bg-gradient-to-br ${milestone.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}></div>
                 
                 <div className="relative">
-                  <div className="text-6xl font-black text-white/10 mb-4">0{index + 1}</div>
+                  <div className="text-6xl font-black text-gray-900/10 mb-4">0{index + 1}</div>
                   <div className="text-orange-500 text-sm font-bold mb-2 tracking-wide uppercase">{milestone.phase}</div>
                   <h3 className="text-2xl font-bold mb-4 group-hover:text-orange-400 transition-colors">{milestone.title}</h3>
                   <p className="text-gray-400 leading-relaxed">{milestone.description}</p>
@@ -239,7 +239,7 @@ const AboutPage = () => {
                 <div className={`absolute inset-0 bg-gradient-to-br ${value.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-2xl`}></div>
                 
                 <div className="relative flex gap-6">
-                  <div className={`flex-shrink-0 w-16 h-16 rounded-xl bg-gradient-to-br ${value.gradient} flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300`}>
+                  <div className={`flex-shrink-0 w-16 h-16 rounded-xl bg-gradient-to-br ${value.gradient} flex items-center justify-center text-gray-900 group-hover:scale-110 transition-transform duration-300`}>
                     {value.icon}
                   </div>
                   <div>
@@ -267,7 +267,7 @@ const AboutPage = () => {
                 key={index}
                 className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-orange-500/50 transition-all duration-300 hover:-translate-y-2"
               >
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white mb-4">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-gray-900 mb-4">
                   {tech.icon}
                 </div>
                 <h3 className="text-lg font-bold mb-4">{tech.category}</h3>
@@ -317,7 +317,7 @@ const AboutPage = () => {
                 Whether you report floods, validate data, or spread awareness—you're helping 
                 build a safer North Caloocan.
               </p>
-              <div className="flex items-center gap-3 text-white/80">
+              <div className="flex items-center gap-3 text-gray-900/80">
                 <Users className="w-5 h-5" />
                 <span className="text-sm font-semibold">Join 1000+ Active Community Members</span>
               </div>
@@ -327,7 +327,7 @@ const AboutPage = () => {
               <button className="bg-white text-orange-600 hover:bg-white/90 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 shadow-2xl w-full">
                 Report a Flood
               </button>
-              <button className="border-2 border-white text-white hover:bg-white/10 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 w-full">
+              <button className="border-2 border-white text-gray-900 hover:bg-white/10 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 w-full">
                 View Dashboard
               </button>
             </div>

@@ -60,15 +60,15 @@ export const Layout = () => {
     <div className="min-h-screen bg-[#f0f0f0] text-white overflow-x-hidden">
       {/* Enhanced Navigation */}
       <header className="fixed top-0 left-0 right-0 z-[2000] bg-[#c54914]/95 backdrop-blur-xl border-b border-white/10 shadow-2xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-[4.5rem]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-2 py-1">
+          <div className="flex items-center justify-betweens h-[4.5rem]">
             {/* Logo with animation */}
             <Link to="/" className="flex items-center space-x-3 group">
               <div className="relative">
                 <img
                   src="/logo.png"
                   alt="FloodSense Logo"
-                  className="w-20 h-20 "
+                  className="w-16 h-16 "
                 />
                 <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-accent-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
@@ -80,11 +80,11 @@ export const Layout = () => {
             {/* Centered Navigation Pills */}
             <nav className="hidden md:flex flex-1 justify-center items-center">
               <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-sm px-2 py-2 rounded-full border border-white/10 shadow-inner">
-                <NavLink to="/">HOME</NavLink>
-                <NavLink to="/feed">FEED</NavLink>
-                <NavLink to="/learn">LEARN</NavLink>
-                <NavLink to="/about">ABOUT</NavLink>
-                <NavLink to="/contact">CONTACT</NavLink>
+                <NavLink to="/">Home</NavLink>
+                <NavLink to="/feed">Feed</NavLink>
+                <NavLink to="/learn">Learn</NavLink>
+                <NavLink to="/about">About</NavLink>
+                <NavLink to="/contact">Contact</NavLink>
               </div>
             </nav>
 

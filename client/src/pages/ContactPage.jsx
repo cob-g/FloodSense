@@ -91,7 +91,7 @@ const ContactPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-transparent text-white overflow-hidden">
+    <div className="min-h-screen bg-transparent text-gray-900 overflow-hidden">
       {/* Gradient Orbs */}
       <div className="fixed top-20 right-1/4 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl animate-pulse"></div>
       <div className="fixed bottom-20 left-1/4 w-96 h-96 bg-red-500/20 rounded-full blur-3xl animate-pulse delay-700"></div>
@@ -139,7 +139,7 @@ const ContactPage = () => {
                 <div className={`absolute inset-0 bg-gradient-to-br ${reason.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-2xl`}></div>
                 
                 <div className="relative flex gap-6">
-                  <div className={`flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br ${reason.gradient} flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300`}>
+                  <div className={`flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br ${reason.gradient} flex items-center justify-center text-gray-900 group-hover:scale-110 transition-transform duration-300`}>
                     {reason.icon}
                   </div>
                   <div>
@@ -174,17 +174,17 @@ const ContactPage = () => {
                     key={index}
                     className="flex gap-4 p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-orange-500/30 transition-all duration-300"
                   >
-                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-gray-900">
                       {info.icon}
                     </div>
                     <div className="flex-1">
                       <div className="text-sm text-gray-400 mb-1">{info.label}</div>
                       {info.link ? (
-                        <a href={info.link} className="text-white font-semibold hover:text-orange-400 transition-colors">
+                        <a href={info.link} className="text-gray-900 font-semibold hover:text-orange-400 transition-colors">
                           {info.value}
                         </a>
                       ) : (
-                        <div className="text-white font-semibold">{info.value}</div>
+                        <div className="text-gray-900 font-semibold">{info.value}</div>
                       )}
                     </div>
                   </div>
@@ -222,7 +222,7 @@ const ContactPage = () => {
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors"
                         placeholder="Juan Dela Cruz"
                       />
                     </div>
@@ -236,7 +236,7 @@ const ContactPage = () => {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors"
                         placeholder="juan@example.com"
                       />
                     </div>
@@ -251,7 +251,7 @@ const ContactPage = () => {
                         name="category"
                         value={formData.category}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-orange-500/50 transition-colors"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-900 focus:outline-none focus:border-orange-500/50 transition-colors"
                       >
                         <option value="" className="bg-gray-900">Select a category</option>
                         <option value="partnership" className="bg-gray-900">Partnership Inquiry</option>
@@ -271,7 +271,7 @@ const ContactPage = () => {
                         name="subject"
                         value={formData.subject}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors"
                         placeholder="Brief subject line"
                       />
                     </div>
@@ -286,7 +286,7 @@ const ContactPage = () => {
                       value={formData.message}
                       onChange={handleChange}
                       rows="6"
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors resize-none"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors resize-none"
                       placeholder="Tell us more about your inquiry..."
                     ></textarea>
                   </div>
@@ -294,7 +294,7 @@ const ContactPage = () => {
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-orange-500/25 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-gray-900 px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-orange-500/25 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     {isSubmitting ? (
                       <>
@@ -325,7 +325,7 @@ const ContactPage = () => {
               Many common questions are already answered in our Learn section. 
               Check out our comprehensive guides and documentation before reaching out.
             </p>
-            <button className="bg-white/10 hover:bg-white/20 border border-white/20 hover:border-orange-500/50 text-white px-8 py-4 rounded-xl font-bold transition-all duration-300 hover:scale-105">
+            <button className="bg-white/10 hover:bg-white/20 border border-white/20 hover:border-orange-500/50 text-gray-900 px-8 py-4 rounded-xl font-bold transition-all duration-300 hover:scale-105">
               Visit Learning Resources
             </button>
           </div>

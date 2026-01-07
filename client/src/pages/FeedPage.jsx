@@ -147,7 +147,7 @@ const FeedPage = () => {
     };
 
     return (
-<div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white font-sans overflow-hidden">
+<div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-gray-900 font-sans overflow-hidden">
   {/* Background decorative elements */}
   <div className="absolute inset-0 overflow-hidden">
     <div className="absolute top-0 left-1/4 w-72 h-72 bg-gradient-to-r from-cyan-600/10 to-blue-500/10 rounded-full blur-3xl"></div>
@@ -174,7 +174,7 @@ const FeedPage = () => {
             <h1 className="text-3xl lg:text-4xl font-light bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
               Flood Zone Archive
             </h1>
-            <p className="text-white/40 text-sm">Locally stored flood data</p>
+            <p className="text-gray-900/40 text-sm">Locally stored flood data</p>
           </div>
         </div>
       </div>
@@ -188,8 +188,8 @@ const FeedPage = () => {
               <div className="absolute inset-0 bg-cyan-400 rounded-full animate-ping opacity-20"></div>
             </div>
             <div>
-              <div className="text-white/90 font-medium">Local Cache</div>
-              <div className="text-white/40 text-sm">Offline Mode</div>
+              <div className="text-gray-900/90 font-medium">Local Cache</div>
+              <div className="text-gray-900/40 text-sm">Offline Mode</div>
             </div>
           </div>
         </div>
@@ -214,7 +214,7 @@ const FeedPage = () => {
         
         {/* Stats Cards - Vertical Stack */}
         <div className="bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-          <h2 className="text-white font-medium mb-6 flex items-center gap-2">
+          <h2 className="text-gray-900 font-medium mb-6 flex items-center gap-2">
             <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
@@ -224,7 +224,7 @@ const FeedPage = () => {
           <div className="space-y-4">
             <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/5 rounded-2xl p-5 border border-cyan-500/20 backdrop-blur-sm">
               <div className="text-3xl font-light text-cyan-300 mb-1">{offlineItems.length}</div>
-              <div className="text-white/60 text-sm">Active Zones</div>
+              <div className="text-gray-900/60 text-sm">Active Zones</div>
               <div className="mt-2 w-full h-1 bg-slate-800/50 rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"
@@ -235,7 +235,7 @@ const FeedPage = () => {
             
             <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-2xl p-5 border border-emerald-500/20 backdrop-blur-sm">
               <div className="text-3xl font-light text-emerald-300 mb-1">100%</div>
-              <div className="text-white/60 text-sm">Verification Rate</div>
+              <div className="text-gray-900/60 text-sm">Verification Rate</div>
               <div className="mt-2 w-full h-1 bg-slate-800/50 rounded-full">
                 <div className="w-full h-full bg-gradient-to-r from-emerald-500 to-green-500 rounded-full"></div>
               </div>
@@ -245,11 +245,11 @@ const FeedPage = () => {
 
         {/* Cache Info */}
         <div className="bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-          <h3 className="text-white font-medium mb-4">Cache Information</h3>
+          <h3 className="text-gray-900 font-medium mb-4">Cache Information</h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-white/40 text-sm">Last Updated</span>
-              <span className="text-white/90 font-medium">
+              <span className="text-gray-900/40 text-sm">Last Updated</span>
+              <span className="text-gray-900/90 font-medium">
                 {(() => {
                   const ms = Array.isArray(offlineItems)
                     ? offlineItems.reduce((acc, item) => {
@@ -269,13 +269,13 @@ const FeedPage = () => {
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-white/40 text-sm">Storage Mode</span>
+              <span className="text-gray-900/40 text-sm">Storage Mode</span>
               <span className="px-3 py-1 bg-white/5 rounded-full text-cyan-300 text-sm border border-white/10">
                 Offline
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-white/40 text-sm">Data Integrity</span>
+              <span className="text-gray-900/40 text-sm">Data Integrity</span>
               <span className="text-emerald-400 font-medium">Verified</span>
             </div>
           </div>
@@ -286,19 +286,19 @@ const FeedPage = () => {
       <div className="lg:col-span-2">
         <div className="bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm rounded-2xl p-6 border border-white/10 h-full">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-white font-medium text-lg flex items-center gap-2">
+            <h2 className="text-gray-900 font-medium text-lg flex items-center gap-2">
               <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
               Cached Flood Zones
-              <span className="text-white/40 font-normal text-sm ml-2">
+              <span className="text-gray-900/40 font-normal text-sm ml-2">
                 ({offlineItems.length} items)
               </span>
             </h2>
             
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-pulse"></div>
-              <span className="text-white/40 text-sm">Live Cache</span>
+              <span className="text-gray-900/40 text-sm">Live Cache</span>
             </div>
           </div>
 
@@ -308,14 +308,14 @@ const FeedPage = () => {
               <div className="flex flex-col items-center justify-center h-full py-12">
                 <div className="relative">
                   <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-white/10 to-transparent border border-white/10 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-8 h-8 text-gray-900/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 12H4" />
                     </svg>
                   </div>
                   <div className="absolute inset-0 bg-cyan-500/20 blur-xl rounded-full -z-10"></div>
                 </div>
-                <h3 className="text-xl font-light text-white mb-2">No Cache Available</h3>
-                <p className="text-white/40 text-sm mb-6 max-w-sm text-center">
+                <h3 className="text-xl font-light text-gray-900 mb-2">No Cache Available</h3>
+                <p className="text-gray-900/40 text-sm mb-6 max-w-sm text-center">
                   Connect to sync the latest flood zone data
                 </p>
                 <button
@@ -344,25 +344,25 @@ const FeedPage = () => {
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between mb-3">
-                          <h3 className="text-white font-medium">
+                          <h3 className="text-gray-900 font-medium">
                             {item.name || 'Flood Area'}
                           </h3>
-                          <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full">
+                          <span className="text-xs text-gray-900/30 bg-white/5 px-2 py-1 rounded-full">
                             CACHED
                           </span>
                         </div>
 
                         <div className="space-y-2">
                           {item.barangay && (
-                            <div className="flex items-center gap-2 text-white/70 text-sm">
-                              <span className="text-white/50">◉</span>
+                            <div className="flex items-center gap-2 text-gray-900/70 text-sm">
+                              <span className="text-gray-900/50">●</span>
                               <span className="truncate">Barangay {item.barangay}</span>
                             </div>
                           )}
 
                           {(item.address || item.notes) && (
-                            <div className="flex items-center gap-2 text-white/60 text-sm">
-                              <span className="text-white/50">📍</span>
+                            <div className="flex items-center gap-2 text-gray-900/60 text-sm">
+                              <span className="text-gray-900/50">📍</span>
                               <span className="truncate">{item.address || item.notes}</span>
                             </div>
                           )}
@@ -370,8 +370,8 @@ const FeedPage = () => {
                           {Array.isArray(item.location?.coordinates) && (
                             <div className="mt-3 pt-3 border-t border-white/10">
                               <div className="flex items-center justify-between text-xs">
-                                <span className="text-white/40">Coordinates:</span>
-                                <div className="text-white/40 font-mono">
+                                <span className="text-gray-900/40">Coordinates:</span>
+                                <div className="text-gray-900/40 font-mono">
                                   {item.location.coordinates[1].toFixed(4)}, {item.location.coordinates[0].toFixed(4)}
                                 </div>
                               </div>
@@ -388,7 +388,7 @@ const FeedPage = () => {
                           <div className="w-2 h-2 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-pulse"></div>
                           <span className="text-cyan-300 text-sm font-medium">Verified Flood</span>
                         </div>
-                        <span className="text-xs text-white/30">
+                        <span className="text-xs text-gray-900/30">
                           {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : 'No date'}
                         </span>
                       </div>
@@ -405,16 +405,16 @@ const FeedPage = () => {
     {/* Footer */}
     <div className="mt-8 pt-6 border-t border-white/10">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="text-white/30 text-sm">
+        <div className="text-gray-900/30 text-sm">
           Flood Zone Archive • Offline Data Repository
         </div>
         
         <div className="flex items-center gap-4">
-          <div className="text-white/40 text-sm">
+          <div className="text-gray-900/40 text-sm">
             <span className="text-cyan-300">{offlineItems.length}</span> zones cached
           </div>
           <div className="w-1 h-1 bg-white/20 rounded-full"></div>
-          <div className="text-white/30 text-sm">
+          <div className="text-gray-900/30 text-sm">
             Last sync: {(() => {
               const ms = Array.isArray(offlineItems)
                 ? offlineItems.reduce((acc, item) => {
@@ -457,7 +457,7 @@ const FeedPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-white overflow-x-hidden">
+    <div className="min-h-screen bg-transparent text-gray-900 overflow-x-hidden">
       {/* Gradient Orbs Background */}
       <div className="fixed top-20 right-1/4 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-pulse pointer-events-none"></div>
       <div className="fixed bottom-0 left-1/4 w-96 h-96 bg-red-500/10 rounded-full blur-3xl animate-pulse delay-700 pointer-events-none"></div>
@@ -472,13 +472,13 @@ const FeedPage = () => {
                 <span className="text-sm font-bold text-orange-400 tracking-wide">LIVE MONITORING</span>
               </div>
               <h1 className="text-4xl lg:text-5xl font-black leading-tight">
-                <span className="text-white">Flood Intelligence</span>
+                <span className="text-gray-900">Flood Intelligence</span>
                 <br />
                 <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
                   Dashboard
                 </span>
               </h1>
-              <p className="text-lg text-white/70 max-w-2xl">
+              <p className="text-lg text-gray-900/70 max-w-2xl">
                 Monitor real-time flood conditions, sensor data, and community reports across North Caloocan in one unified dashboard.
               </p>
             </div>
@@ -491,7 +491,7 @@ const FeedPage = () => {
                 }
                 setShowReportForm(true);
               }}
-              className="group px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl transition-all duration-300 shadow-lg shadow-orange-500/25 hover:scale-105 flex items-center space-x-3"
+              className="group px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-gray-900 font-bold rounded-xl transition-all duration-300 shadow-lg shadow-orange-500/25 hover:scale-105 flex items-center space-x-3"
             >
               <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
               <span>Submit Report</span>
@@ -512,8 +512,8 @@ const FeedPage = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`relative px-6 py-3 rounded-xl transition-all duration-300 flex items-center space-x-3 font-semibold ${activeTab === tab.id
-                  ? 'text-white scale-105 shadow-xl'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
+                  ? 'text-gray-900 scale-105 shadow-xl'
+                  : 'text-gray-900/60 hover:text-gray-900 hover:bg-white/5'
                   }`}
               >
                 {activeTab === tab.id && (
@@ -538,11 +538,11 @@ const FeedPage = () => {
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-4">
                       <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
-                        <Map className="w-7 h-7 text-white" />
+                        <Map className="w-7 h-7 text-gray-900" />
                       </div>
                       <div>
-                        <h2 className="text-2xl font-black text-white">Live Flood Map</h2>
-                        <p className="text-white/60 text-sm">Interactive map showing validated flood zones and sensor locations</p>
+                        <h2 className="text-2xl font-black text-gray-900">Live Flood Map</h2>
+                        <p className="text-gray-900/60 text-sm">Interactive map showing validated flood zones and sensor locations</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2 px-4 py-2 bg-green-500/10 rounded-full border border-green-500/20">
@@ -558,12 +558,12 @@ const FeedPage = () => {
                           <div className="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
                             <AlertTriangle className="w-10 h-10 text-amber-500" />
                           </div>
-                          <h3 className="text-2xl font-bold text-white">Slow Connection Detected</h3>
-                          <p className="text-white/70">
+                          <h3 className="text-2xl font-bold text-gray-900">Slow Connection Detected</h3>
+                          <p className="text-gray-900/70">
                             The live map is temporarily hidden to improve performance. You can still view it, but loading may be slow.
                           </p>
                           <button
-                            className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold transition-all duration-300 hover:scale-105"
+                            className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-gray-900 font-bold transition-all duration-300 hover:scale-105"
                             onClick={() => setForceShowMap(true)}
                           >
                             Load Map Anyway
@@ -589,11 +589,11 @@ const FeedPage = () => {
                 <div className="p-6 lg:p-8">
                   <div className="flex items-center space-x-4 mb-6">
                     <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
-                      <Radio className="w-7 h-7 text-white" />
+                      <Radio className="w-7 h-7 text-gray-900" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-black text-white">Sensor Network</h2>
-                      <p className="text-white/60 text-sm">Real-time water level data from IoT sensors across the city</p>
+                      <h2 className="text-2xl font-black text-gray-900">Sensor Network</h2>
+                      <p className="text-gray-900/60 text-sm">Real-time water level data from IoT sensors across the city</p>
                     </div>
                   </div>
 
@@ -608,11 +608,11 @@ const FeedPage = () => {
                 <div className="p-6 lg:p-8">
                   <div className="flex items-center space-x-4 mb-6">
                     <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
-                      <Users className="w-7 h-7 text-white" />
+                      <Users className="w-7 h-7 text-gray-900" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-black text-white">Community Reports</h2>
-                      <p className="text-white/60 text-sm">Barangay-validated flood reports submitted by local residents</p>
+                      <h2 className="text-2xl font-black text-gray-900">Community Reports</h2>
+                      <p className="text-gray-900/60 text-sm">Barangay-validated flood reports submitted by local residents</p>
                     </div>
                   </div>
 
@@ -635,9 +635,9 @@ const FeedPage = () => {
             <div className="bg-gradient-to-br from-orange-500/10 via-red-500/10 to-orange-500/5 backdrop-blur-md rounded-3xl border border-orange-500/20 p-6 lg:p-8 transform transition-all duration-300 hover:scale-[1.02] hover:border-orange-500/40">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-white" />
+                  <TrendingUp className="w-6 h-6 text-gray-900" />
                 </div>
-                <h3 className="text-xl font-black text-white">Quick Stats</h3>
+                <h3 className="text-xl font-black text-gray-900">Quick Stats</h3>
               </div>
 
               <div className="space-y-4">
@@ -648,8 +648,8 @@ const FeedPage = () => {
                         <CheckCircle className="w-6 h-6 text-green-500" />
                       </div>
                       <div>
-                        <div className="text-white font-bold">Verified Reports</div>
-                        <div className="text-white/60 text-sm">Today</div>
+                        <div className="text-gray-900 font-bold">Verified Reports</div>
+                        <div className="text-gray-900/60 text-sm">Today</div>
                       </div>
                     </div>
                     <div className="text-3xl font-black text-green-400">{validatedReports.length}</div>
@@ -663,8 +663,8 @@ const FeedPage = () => {
                         <AlertTriangle className="w-6 h-6 text-amber-500" />
                       </div>
                       <div>
-                        <div className="text-white font-bold">Active Alerts</div>
-                        <div className="text-white/60 text-sm">Needs attention</div>
+                        <div className="text-gray-900 font-bold">Active Alerts</div>
+                        <div className="text-gray-900/60 text-sm">Needs attention</div>
                       </div>
                     </div>
                     <div className="text-3xl font-black text-amber-400">
@@ -680,8 +680,8 @@ const FeedPage = () => {
                         <Droplets className="w-6 h-6 text-blue-500" />
                       </div>
                       <div>
-                        <div className="text-white font-bold">Sensors Online</div>
-                        <div className="text-white/60 text-sm">24/7 monitoring</div>
+                        <div className="text-gray-900 font-bold">Sensors Online</div>
+                        <div className="text-gray-900/60 text-sm">24/7 monitoring</div>
                       </div>
                     </div>
                     <div className="text-3xl font-black text-blue-400">{sensorReadings.length}</div>
@@ -694,9 +694,9 @@ const FeedPage = () => {
             <div className="bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 p-6 lg:p-8 transform transition-all duration-300 hover:border-red-500/30">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-500 rounded-xl flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-white" />
+                  <Shield className="w-6 h-6 text-gray-900" />
                 </div>
-                <h3 className="text-xl font-black text-white">Emergency Contacts</h3>
+                <h3 className="text-xl font-black text-gray-900">Emergency Contacts</h3>
               </div>
 
               <div className="space-y-3">
@@ -711,10 +711,10 @@ const FeedPage = () => {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <contact.icon className="w-5 h-5 text-white/70" />
+                        <contact.icon className="w-5 h-5 text-gray-900/70" />
                         <div>
-                          <div className="text-white font-bold text-sm">{contact.name}</div>
-                          <div className="text-white/60 text-xs">{contact.number}</div>
+                          <div className="text-gray-900 font-bold text-sm">{contact.name}</div>
+                          <div className="text-gray-900/60 text-xs">{contact.number}</div>
                         </div>
                       </div>
                       <div className="w-10 h-10 bg-red-500/10 group-hover:bg-red-500/20 rounded-lg flex items-center justify-center transition-colors">
