@@ -61,7 +61,7 @@ export const Layout = () => {
       {/* Enhanced Navigation */}
       <header className="fixed top-0 left-0 right-0 z-[2000] bg-[#c54914]/95 backdrop-blur-xl border-b border-white/10 shadow-2xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-2 py-1">
-          <div className="flex items-center justify-betweens h-[4.5rem]">
+          <div className="flex items-center justify-between h-[4.5rem]">
             {/* Logo with animation */}
             <Link to="/" className="flex items-center space-x-3 group">
               <div className="relative">
@@ -78,7 +78,7 @@ export const Layout = () => {
             </Link>
 
             {/* Centered Navigation Pills */}
-            <nav className="hidden md:flex flex-1 justify-center items-center">
+            <nav className="hidden lg:flex flex-1 justify-center items-center">
               <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-sm px-2 py-2 rounded-full border border-white/10 shadow-inner">
                 <NavLink to="/">Home</NavLink>
                 <NavLink to="/feed">Feed</NavLink>
@@ -90,7 +90,7 @@ export const Layout = () => {
 
             <div className="flex items-center gap-4">
               {/* Refined Connection Status */}
-              <div className="hidden md:flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-full border border-white/10 shadow-inner">
+              <div className="hidden lg:flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-full border border-white/10 shadow-inner">
                 <div className="relative">
                   <div
                     className={`w-2 h-2 rounded-full transition-colors duration-300 ${
@@ -121,7 +121,7 @@ export const Layout = () => {
                 <div className="flex items-center gap-2">
                   {/* Mobile menu button */}
                   <button
-                    className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl hover:bg-white/10 transition-all duration-300 active:scale-95"
+                    className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl hover:bg-white/10 transition-all duration-300 active:scale-95"
                     onClick={() => setMenuOpen((v) => !v)}
                     aria-label="Toggle menu"
                   >
@@ -182,7 +182,7 @@ export const Layout = () => {
                 <div className="flex items-center gap-2">
                   {/* Mobile menu button for guests */}
                   <button
-                    className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl hover:bg-white/10 transition-all duration-300 active:scale-95"
+                    className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl hover:bg-white/10 transition-all duration-300 active:scale-95"
                     onClick={() => setMenuOpen((v) => !v)}
                     aria-label="Toggle menu"
                   >
@@ -191,7 +191,7 @@ export const Layout = () => {
                     </svg>
                   </button>
                   
-                  <div className="hidden md:flex items-center gap-2">
+                  <div className="hidden lg:flex items-center gap-2">
                     <Link
                       to="/auth/register"
                       className="px-6 py-2.5 text-sm font-semibold rounded-full bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-400 hover:to-accent-500 text-white shadow-lg shadow-accent-500/25 transition-all duration-300 tracking-wide hover:scale-105 active:scale-95"
@@ -207,7 +207,7 @@ export const Layout = () => {
       </header>
 
       {/* Mobile Menu */}
-      <div className={`md:hidden fixed top-[4.5rem] left-0 right-0 z-[1900] transition-all duration-300 ${menuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'}`}>
+      <div className={`lg:hidden fixed top-[4.5rem] left-0 right-0 z-[1900] transition-all duration-300 ${menuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'}`}>
         <div className="mx-4 rounded-2xl bg-space-900/98 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden">
           {/* Accent bar */}
           <div className="h-1 w-full bg-gradient-to-r from-accent-500 via-accent-400 to-accent-500"></div>

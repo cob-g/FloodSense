@@ -25,7 +25,7 @@ const FAQItem = ({ question, answer }) => {
           isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="px-6 pb-5 text-gray-400 leading-relaxed">
+        <div className="px-6 pb-5 text-gray-900 leading-relaxed">
           {answer}
         </div>
       </div>
@@ -144,8 +144,8 @@ const LearnPage = () => {
               <span className="text-gray-900">Stay Safe. Stay Ready.</span>
             </h1>
             
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
-              FloodSense helps you not just track floods — but understand them. Learn how floods develop, 
+            <p className="text-lg text-gray-900 max-w-3xl font-normal mx-auto leading-relaxed">
+              FloodSense helps you not just track flood but understand them. Learn how floods develop, 
               how to respond safely, and how your community can stay resilient through knowledge and preparedness.
             </p>
           </div>
@@ -168,7 +168,7 @@ const LearnPage = () => {
                 <h2 className="text-3xl lg:text-4xl font-black mb-4">
                   What Causes <span className="text-orange-500">Flooding?</span>
                 </h2>
-                <p className="text-lg text-gray-300 leading-relaxed">
+                <p className="text-lg text-gray-900 leading-relaxed">
                   Floods occur when rainfall, drainage, and terrain combine in ways that overwhelm natural or 
                   man-made water channels. In North Caloocan and other urban areas, floods often result from 
                   heavy rain, clogged drainage systems, or rising river levels. FloodSense's IoT sensors monitor 
@@ -185,7 +185,7 @@ const LearnPage = () => {
             <h2 className="text-4xl lg:text-5xl font-black mb-4">
               Deep Dive into <span className="text-orange-500">FloodSense</span>
             </h2>
-            <p className="text-gray-400 text-lg">Explore how our system works and its impact</p>
+            <p className="text-gray-900 text-lg">Explore how our system works and its impact</p>
           </div>
 
           {/* Tab Navigation */}
@@ -195,8 +195,8 @@ const LearnPage = () => {
                 key={tab}
                 className={`px-6 py-3 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 ${
                   activeTab === tab
-                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-gray-900 shadow-lg shadow-orange-500/25 scale-105'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-900 border border-white/10'
+                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-gray-50 shadow-lg shadow-orange-500/25 scale-105'
+                    : 'bg-gray-900 text-gray-400 hover:bg-gray-950 hover:text-gray-300 border border-white/10'
                 }`}
                 onClick={() => setActiveTab(tab)}
               >
@@ -206,11 +206,11 @@ const LearnPage = () => {
           </div>
 
           {/* Tab Content */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 lg:p-12 border border-white/10 hover:border-orange-500/30 transition-all duration-300">
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 lg:p-12 border border-gray-900/30 hover:border-orange-500/30 transition-all duration-300">
             <h3 className="text-2xl lg:text-3xl font-bold text-orange-400 mb-6">
               {content[activeTab].title}
             </h3>
-            <p className="text-lg text-gray-300 leading-relaxed">
+            <p className="text-lg text-gray-900 leading-relaxed">
               {content[activeTab].description}
             </p>
           </div>
@@ -222,24 +222,24 @@ const LearnPage = () => {
             <h2 className="text-4xl lg:text-5xl font-black mb-4">
               Key System <span className="text-orange-500">Features</span>
             </h2>
-            <p className="text-gray-400 text-lg">How FloodSense combines technology and community</p>
+            <p className="text-gray-900 text-lg">How FloodSense combines technology and community</p>
           </div>
           
           <div className="grid md:grid-cols-2 gap-6">
             {features.map((feature, index) => (
               <div 
                 key={index}
-                className="group relative bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:border-orange-500/50 transition-all duration-300"
+                className="group relative bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-gray-900/30 hover:border-orange-500/50 transition-all duration-300"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-2xl`}></div>
                 
                 <div className="relative flex gap-6">
-                  <div className={`flex-shrink-0 w-16 h-16 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-gray-900 group-hover:scale-110 transition-transform duration-300`}>
+                  <div className={`flex-shrink-0 w-16 h-16 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-gray-50 group-hover:scale-110 transition-transform duration-300`}>
                     {feature.icon}
                   </div>
                   <div>
                     <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                    <p className="text-gray-400 leading-relaxed">{feature.description}</p>
+                    <p className="text-gray-900 leading-relaxed">{feature.description}</p>
                   </div>
                 </div>
               </div>
@@ -253,17 +253,17 @@ const LearnPage = () => {
             <h2 className="text-4xl lg:text-5xl font-black mb-4">
               Educational <span className="text-orange-500">Resources</span>
             </h2>
-            <p className="text-gray-400 text-lg">Download comprehensive guides and documentation</p>
+            <p className="text-gray-900 text-lg">Download comprehensive guides and documentation</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-6">
             {resources.map((resource, index) => (
               <div 
                 key={index}
-                className="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-orange-500/50 transition-all duration-300 hover:-translate-y-2"
+                className="group bg-gray-900 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-orange-500/50 transition-all duration-300 hover:-translate-y-2"
               >
                 <div className="flex items-start justify-between mb-6">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-gray-900 text-2xl group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-gray-50 text-2xl group-hover:scale-110 transition-transform duration-300">
                     <FileText className="w-7 h-7" />
                   </div>
                   <span className="bg-orange-500/20 text-orange-400 text-xs font-semibold px-3 py-1 rounded-full border border-orange-500/30">
@@ -271,7 +271,7 @@ const LearnPage = () => {
                   </span>
                 </div>
                 
-                <h3 className="text-lg font-bold text-gray-900 mb-3">{resource.title}</h3>
+                <h3 className="text-lg font-bold text-gray-50 mb-3">{resource.title}</h3>
                 <p className="text-sm text-gray-400 mb-6 leading-relaxed">{resource.description}</p>
                 
                 <div className="flex items-center justify-between pt-4 border-t border-white/10">
@@ -304,7 +304,7 @@ const LearnPage = () => {
                 Join the FloodSense community and help make North Caloocan safer during flood events. 
                 Your participation matters—every report helps build a more resilient community.
               </p>
-              <div className="flex items-center gap-3 text-gray-900/80">
+              <div className="flex items-center gap-3 text-white/80">
                 <BookOpen className="w-5 h-5" />
                 <span className="text-sm font-semibold">Learn • Report • Stay Safe</span>
               </div>
@@ -326,7 +326,7 @@ const LearnPage = () => {
             <h2 className="text-4xl lg:text-5xl font-black mb-4">
               Frequently Asked <span className="text-orange-500">Questions</span>
             </h2>
-            <p className="text-gray-400 text-lg">Common questions about FloodSense and how it works</p>
+            <p className="text-gray-900 text-lg">Common questions about FloodSense and how it works</p>
           </div>
 
           <div className="space-y-4 max-w-4xl mx-auto">

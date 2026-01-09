@@ -186,8 +186,8 @@ function SensorDashboard() {
           })
         ) : (
           <div className="text-center py-12">
-            <p className="text-white/60 text-sm">No sensors available</p>
-            <p className="text-white/40 text-xs mt-2">Waiting for sensor data...</p>
+            <p className="text-gray-900 text-sm">No sensors available</p>
+            <p className="text-gray-900 text-xs mt-2">Waiting for sensor data...</p>
           </div>
         )}
       </div>
