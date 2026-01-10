@@ -120,7 +120,7 @@ const AboutPage = () => {
               </span>
             </h1>
             
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed mb-8">
+            <p className="text-lg text-gray-900 max-w-3xl mx-auto leading-relaxed mb-8">
               FloodSense is a pioneering IoT-based flood monitoring system born from the desire 
               to protect communities through intelligent technology and collective action.
             </p>
@@ -128,28 +128,28 @@ const AboutPage = () => {
 
           {/* Stats Row */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-orange-500/50 transition-all duration-300">
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-gray-900/30 hover:border-orange-500/50 transition-all duration-300">
               <div className="text-orange-500 mb-3">
                 <Users className="w-8 h-8" />
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Student-Built</h3>
-              <p className="text-sm text-gray-400">Developed by passionate computer science students as a capstone thesis project</p>
+              <p className="text-sm text-gray-700">Developed by passionate computer science students as a capstone thesis project</p>
             </div>
             
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-orange-500/50 transition-all duration-300">
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-gray-900/30 hover:border-orange-500/50 transition-all duration-300">
               <div className="text-orange-500 mb-3">
                 <Target className="w-8 h-8" />
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Community-Focused</h3>
-              <p className="text-sm text-gray-400">Designed with direct input from North Caloocan residents and local officials</p>
+              <p className="text-sm text-gray-700">Designed with direct input from North Caloocan residents and local officials</p>
             </div>
             
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-orange-500/50 transition-all duration-300">
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-gray-900/30 hover:border-orange-500/50 transition-all duration-300">
               <div className="text-orange-500 mb-3">
                 <Award className="w-8 h-8" />
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Open Innovation</h3>
-              <p className="text-sm text-gray-400">Committed to transparency and continuous improvement through collaboration</p>
+              <p className="text-sm text-gray-700">Committed to transparency and continuous improvement through collaboration</p>
             </div>
           </div>
         </section>
@@ -165,7 +165,7 @@ const AboutPage = () => {
                 <h2 className="text-4xl lg:text-5xl font-black mb-6">
                   Our <span className="text-orange-500">Mission</span>
                 </h2>
-                <p className="text-lg text-gray-300 leading-relaxed mb-6">
+                <p className="text-lg text-gray-800 leading-relaxed mb-6">
                   To revolutionize flood disaster management in Caloocan City by combining 
                   IoT sensor networks with community-driven reporting—creating a transparent, 
                   reliable, and real-time flood intelligence system that empowers residents 
@@ -180,11 +180,11 @@ const AboutPage = () => {
               <div className="lg:col-span-2 space-y-4">
                 <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-orange-500/20">
                   <div className="text-orange-500 font-bold mb-1">Vision</div>
-                  <p className="text-sm text-gray-400">A flood-resilient community where technology and people work together.</p>
+                  <p className="text-sm text-gray-700">A flood-resilient community where technology and people work together.</p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-red-500/20">
                   <div className="text-red-500 font-bold mb-1">Goal</div>
-                  <p className="text-sm text-gray-400">Zero casualties through proactive flood intelligence and rapid response.</p>
+                  <p className="text-sm text-gray-700">Zero casualties through proactive flood intelligence and rapid response.</p>
                 </div>
               </div>
             </div>
@@ -197,22 +197,22 @@ const AboutPage = () => {
             <h2 className="text-4xl lg:text-5xl font-black mb-4">
               The <span className="text-orange-500">FloodSense</span> Journey
             </h2>
-            <p className="text-gray-400 text-lg">From concept to community impact</p>
+            <p className="text-gray-900 text-lg">From concept to community impact</p>
           </div>
           
           <div className="grid lg:grid-cols-3 gap-6">
             {milestones.map((milestone, index) => (
               <div 
                 key={index}
-                className="group relative bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:border-orange-500/50 transition-all duration-500 overflow-hidden"
+                className="group relative bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-gray-900/30 hover:border-orange-500/50 transition-all duration-500 overflow-hidden"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${milestone.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}></div>
                 
                 <div className="relative">
-                  <div className="text-6xl font-black text-gray-900/10 mb-4">0{index + 1}</div>
+                  <div className="text-6xl font-black text-orange-500 mb-4">0{index + 1}</div>
                   <div className="text-orange-500 text-sm font-bold mb-2 tracking-wide uppercase">{milestone.phase}</div>
                   <h3 className="text-2xl font-bold mb-4 group-hover:text-orange-400 transition-colors">{milestone.title}</h3>
-                  <p className="text-gray-400 leading-relaxed">{milestone.description}</p>
+                  <p className="text-gray-900 leading-relaxed">{milestone.description}</p>
                 </div>
               </div>
             ))}
@@ -225,26 +225,26 @@ const AboutPage = () => {
             <h2 className="text-4xl lg:text-5xl font-black mb-4">
               Our <span className="text-orange-500">Core Values</span>
             </h2>
-            <p className="text-gray-400 text-lg">Principles that guide every decision we make</p>
+            <p className="text-gray-900 text-lg">Principles that guide every decision we make</p>
           </div>
           
           <div className="grid md:grid-cols-2 gap-6">
             {values.map((value, index) => (
               <div 
                 key={index}
-                className="group relative bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:border-orange-500/50 transition-all duration-300"
+                className="group relative bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-gray-900/30 hover:border-orange-500/50 transition-all duration-300"
                 onMouseEnter={() => setHoveredValue(index)}
                 onMouseLeave={() => setHoveredValue(null)}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${value.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-2xl`}></div>
                 
                 <div className="relative flex gap-6">
-                  <div className={`flex-shrink-0 w-16 h-16 rounded-xl bg-gradient-to-br ${value.gradient} flex items-center justify-center text-gray-900 group-hover:scale-110 transition-transform duration-300`}>
+                  <div className={`flex-shrink-0 w-16 h-16 rounded-xl bg-gradient-to-br ${value.gradient} flex items-center justify-center text-gray-50 group-hover:scale-110 transition-transform duration-300`}>
                     {value.icon}
                   </div>
                   <div>
                     <h3 className="text-xl font-bold mb-3">{value.title}</h3>
-                    <p className="text-gray-400 leading-relaxed">{value.description}</p>
+                    <p className="text-gray-900 leading-relaxed">{value.description}</p>
                   </div>
                 </div>
               </div>
@@ -258,22 +258,22 @@ const AboutPage = () => {
             <h2 className="text-4xl lg:text-5xl font-black mb-4">
               Built with <span className="text-orange-500">Modern Tech</span>
             </h2>
-            <p className="text-gray-400 text-lg">A full-stack solution from sensors to screen</p>
+            <p className="text-gray-900 text-lg">A full-stack solution from sensors to screen</p>
           </div>
           
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {techStack.map((tech, index) => (
               <div 
                 key={index}
-                className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-orange-500/50 transition-all duration-300 hover:-translate-y-2"
+                className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-gray-900/30 hover:border-orange-500/50 transition-all duration-300 hover:-translate-y-2"
               >
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-gray-900 mb-4">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-gray-50 mb-4">
                   {tech.icon}
                 </div>
                 <h3 className="text-lg font-bold mb-4">{tech.category}</h3>
                 <ul className="space-y-2">
                   {tech.items.map((item, i) => (
-                    <li key={i} className="text-sm text-gray-400 flex items-center gap-2">
+                    <li key={i} className="text-sm text-gray-900 flex items-center gap-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
                       {item}
                     </li>
@@ -291,7 +291,7 @@ const AboutPage = () => {
             <h2 className="text-3xl lg:text-4xl font-black mb-4">
               A <span className="text-orange-500">Student-Led</span> Innovation
             </h2>
-            <p className="text-lg text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8">
+            <p className="text-lg text-gray-900 max-w-3xl mx-auto leading-relaxed mb-8">
               FloodSense was developed as a capstone thesis project by passionate computer science 
               students who saw technology not just as code and circuits—but as a tool to protect 
               their community and save lives.

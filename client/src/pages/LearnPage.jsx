@@ -7,7 +7,7 @@ const FAQItem = ({ question, answer }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-orange-500/30 transition-all duration-300 overflow-hidden">
+    <div className="bg-white/5 backdrop-blur-sm rounded-xl border shadow-xl hover:border-orange-500/30 transition-all duration-300 overflow-hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-6 py-5 flex items-center justify-between text-left"
@@ -362,8 +362,8 @@ const LearnPage = () => {
           </div>
 
           <div className="text-center mt-12">
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 inline-block">
-              <p className="text-gray-300 mb-4">Still have questions?</p>
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-gray-900/30 inline-block">
+              <p className="text-gray-900 mb-4">Still have questions?</p>
               <Link to="/contact" className="inline-block bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-gray-900 px-8 py-3 rounded-xl font-bold transition-all duration-300 hover:scale-105">
                 Contact Us
               </Link>
