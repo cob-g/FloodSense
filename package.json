@@ -9,12 +9,19 @@
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "build": "cd client && npm run build",
     "start": "cd server && npm start"
-    
   },
-  "keywords": ["flood", "monitoring", "reporting", "community"],
+  "keywords": [
+    "flood",
+    "monitoring",
+    "reporting",
+    "community"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "recharts": "^3.6.0"
   }
 }

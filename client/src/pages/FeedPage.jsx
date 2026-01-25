@@ -12,13 +12,15 @@ import { useFallbacks } from '../hooks/useFallbacks';
 import { getFallbacks } from '../lib/idb';
 import { useToast } from '../contexts/ToastContext';
 import { Map, Radio, Users, Plus, Activity, AlertTriangle, Droplets, Phone, Home, Ambulance, Shield, TrendingUp, CheckCircle } from 'lucide-react';
+import { ReportsChart } from '../components/analytics/ReportsChart';
+import { SensorChart } from '../components/analytics/SensorChart';
 
 const FeedPage = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
   const [showReportForm, setShowReportForm] = useState(false);
-  const [activeTab, setActiveTab] = useState('map'); // 'map', 'sensors', 'reports'
+  const [activeTab, setActiveTab] = useState('map'); // Add 'analytics' option
 
   // Fetch all reports (auto-refresh every 30s) - matching LandingPage
   const { data: reportsData, isLoading: reportsLoading, error: reportsError } = useReports({}, {
@@ -505,6 +507,7 @@ const FeedPage = () => {
           
             {[
               { id: 'map', label: 'Live Map', icon: Map, color: 'from-orange-500 to-red-500' },
+              { id: 'analytics', label: 'Analytics', icon: TrendingUp, color: 'from-orange-500 to-red-500' }, // NEW TAB
               { id: 'sensors', label: 'Sensor Network', icon: Radio, color: 'from-orange-500 to-red-500' },
               { id: 'reports', label: 'Community Reports', icon: Users, color: 'from-orange-500 to-red-500' }
             ].map((tab) => (
@@ -580,6 +583,14 @@ const FeedPage = () => {
                     )}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Analytics Section - NEW */}
+            {activeTab === 'analytics' && (
+              <div className="space-y-6">
+                <ReportsChart reports={reports} />
+                <SensorChart sensorData={sensorReadings} />
               </div>
             )}
 
