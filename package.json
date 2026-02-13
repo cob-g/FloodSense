@@ -20,8 +20,5 @@
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
-  },
-  "dependencies": {
-    "recharts": "^3.6.0"
   }
 }

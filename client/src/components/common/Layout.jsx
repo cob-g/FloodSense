@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useSocket } from '../../hooks/useSocket';
 import Footer from './Footer';
+import ChatBubble from '../chatbot/ChatBubble';
 
 // Custom NavLink component with active state styling
 const NavLink = ({ to, children, className = '' }) => {
@@ -266,6 +267,9 @@ export const Layout = () => {
       </main>
 
       <Footer />
+
+      {/* AI Chatbot */}
+      <ChatBubble />
 
       {/* Background Effects */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
