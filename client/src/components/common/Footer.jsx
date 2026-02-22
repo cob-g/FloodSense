@@ -8,13 +8,13 @@ const Footer = () => {
           <div>
             <div className="flex items-center space-x-3 mb-4 group">
               <img
-                src="/logo.svg"
+                src="/logo.png"
                 alt="FloodSense Logo"
-                className="w-8 h-8 rounded-lg bg-gray-50 object-contain shadow-md group-hover:shadow-lg transition-all duration-300"
+                className="w-8 h-8 bg-transparent object-contain shadow-md group-hover:shadow-lg transition-all duration-300"
               />
-              <span className="text-xl font-black bg-gradient-to-r from-white to-accent-500 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-semibold [font-family:Goodly] text-gray-100 group-hover:text-white transition-colors duration-300">
                 FloodSense
-              </span>
+              </h1>
             </div>
             <p className="text-white/60 text-sm">
               Real-time flood monitoring for North Caloocan

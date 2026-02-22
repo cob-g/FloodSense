@@ -1,6 +1,7 @@
 import { useState, useContext } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthContext';
+import { AlertTriangle, Droplets } from 'lucide-react';
 
 export const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -19,8 +20,6 @@ export const LoginPage = () => {
     try {
       const response = await login(formData);
       if (response.success) {
-        const role = response?.data?.user?.role;
-        // Redirect to the intended page or home
         navigate(from, { replace: true });
       } else {
         setError(response.message || 'Login failed');
@@ -33,82 +32,119 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-space-black bg-dot-pattern text-white flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
-        {/* Hero Section */}
-        <div className="text-center mb-12 relative">
-          <div className="relative z-10">
-            {/* <div className="inline-flex items-center justify-center w-20 h-20 bg-accent-orange rounded-2xl mb-6 shadow-lg">
-              <span className="text-space-black font-bold text-4xl">F</span>
-            </div> */}
-            <h1 className="text-5xl font-black mb-4 bg-gradient-to-r from-white to-light-orange bg-clip-text text-transparent">
-              FloodSense
-            </h1>
+    <div
+      className="min-h-screen bg-dot-pattern flex items-center justify-center px-4 sm:px-6 py-10 relative"
+      style={{ backgroundColor: '#fdf8f4' }}
+    >
+      {/* Soft radial gradient overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse 80% 70% at 15% 20%, rgba(197,73,20,0.09) 0%, transparent 60%), radial-gradient(ellipse 60% 55% at 90% 85%, rgba(255,94,26,0.07) 0%, transparent 60%)',
+        }}
+      />
 
-            
-            <p className="text-medium-gray text-xl">Community Flood Monitoring</p>
+      <div className="max-w-4xl w-full relative z-10 grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-5 items-stretch">
+
+        {/* ── Left: Brand Panel ── */}
+        <div
+          className="hidden lg:flex flex-col justify-between rounded-[2.5rem] p-10 relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, #c54914 0%, #7a2200 55%, #3a0e00 100%)',
+            boxShadow: '0 24px 60px rgba(197,73,20,0.30)',
+          }}
+        >
+          {/* White dot pattern overlay */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: 'radial-gradient(rgba(255,255,255,0.13) 1px, transparent 1.8px)',
+              backgroundSize: '18px 18px',
+            }}
+          />
+          {/* Decorative blobs */}
+          <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '220px', height: '220px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', bottom: '-40px', left: '-40px', width: '160px', height: '160px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+          {/* Watermark */}
+          <div style={{ position: 'absolute', bottom: '30px', right: '-30px', opacity: 0.07, pointerEvents: 'none' }}>
+            <Droplets size={240} strokeWidth={0.7} color="white" />
           </div>
-          
-          {/* Background effects */}
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full h-full">
-            <div className="absolute top-20 left-20 w-40 h-40 bg-accent-orange/10 rounded-full blur-3xl"></div>
-            <div className="absolute top-10 right-20 w-32 h-32 bg-accent-orange/5 rounded-full blur-3xl"></div>
+
+          {/* Top: Logo + Brand */}
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-10">
+              <img src="/logo.png" alt="FloodSense" className="w-14 h-14 drop-shadow-lg" />
+              <h1 className="text-3xl font-black text-white" style={{ fontFamily: 'Goodly, sans-serif' }}>FloodSense</h1>
+            </div>
+            <h2 className="text-[38px] font-black text-white leading-tight mb-4">
+              Welcome<br />back.
+            </h2>
+            <p className="text-white/55 text-[15px] leading-relaxed max-w-xs">
+              Sign in to access real-time flood data, live sensor readings, and your community's safety network.
+            </p>
+          </div>
+
+          {/* Bottom: Feature Pills */}
+          <div className="relative z-10 space-y-2.5 mt-10">
+            {[
+              { emoji: '🛰️', text: 'Live sensor data' },
+              { emoji: '🗺️', text: 'Interactive flood maps' },
+              { emoji: '🔔', text: 'Early warning alerts' },
+            ].map(({ emoji, text }) => (
+              <div
+                key={text}
+                className="flex items-center gap-3 rounded-2xl px-4 py-3 border border-white/15"
+                style={{ background: 'rgba(255,255,255,0.09)' }}
+              >
+                <span className="text-xl leading-none">{emoji}</span>
+                <span className="text-white/80 text-sm font-semibold">{text}</span>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Stats Cards */}
-        {/* <div className="grid grid-cols-2 gap-4 mb-10">
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 text-center border-l-4 border-accent-orange border border-white/10 hover:border-accent-orange transition-all duration-300 hover:transform hover:-translate-y-1">
-            <div className="text-3xl font-black text-white mb-1">12</div>
-            <div className="text-sm text-medium-gray uppercase tracking-wide">ACTIVE ALERTS</div>
-          </div>
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 text-center border-l-4 border-bright-orange border border-white/10 hover:border-bright-orange transition-all duration-300 hover:transform hover:-translate-y-1">
-            <div className="text-3xl font-black text-white mb-1">47mm</div>
-            <div className="text-sm text-medium-gray uppercase tracking-wide">PRECIPITATION</div>
-          </div>
-        </div> */}
+        {/* ── Right: Login Form ── */}
+        <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 flex flex-col shadow-[0_4px_40px_rgba(0,0,0,0.07)] border border-gray-100/80">
 
-        {/* Login Form */}
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:border-white/20 transition-all duration-300">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-black text-white mb-3">Sign In</h2>
-            <p className="text-medium-gray">Access your flood monitoring dashboard</p>
+          {/* Mobile header */}
+          <div className="lg:hidden flex items-center gap-3 mb-7">
+            <img src="/logo.png" alt="FloodSense" className="w-10 h-10" />
+            <span className="text-xl font-black text-gray-900" style={{ fontFamily: 'Goodly, sans-serif' }}>FloodSense</span>
           </div>
+
+          {/* Orange accent bar */}
+          <div className="w-10 h-1.5 rounded-full mb-5" style={{ background: 'linear-gradient(90deg, #c54914, #ff5e1a)' }} />
+          <h2 className="text-[28px] font-black text-gray-900 leading-tight mb-1">Sign in</h2>
+          <p className="text-gray-400 text-sm font-medium mb-8">Access your flood monitoring dashboard</p>
 
           {error && (
-            <div className="mb-6 p-4 bg-danger-red/20 border border-danger-red/30 rounded-xl text-red-200 text-sm">
-              <div className="flex items-center gap-2">
-                <i className="fas fa-exclamation-circle"></i>
-                <span>{error}</span>
-              </div>
+            <div className="mb-5 p-3.5 bg-red-50 border border-red-100 rounded-2xl text-red-500 text-sm font-semibold flex items-center gap-2">
+              <AlertTriangle size={15} />
+              <span>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 flex-1">
             <div>
-              <label className="block text-sm font-semibold text-white mb-3">
-                Email Address
-              </label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-0.5">Email Address</label>
               <input
                 type="email"
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-orange focus:border-transparent transition-all text-white placeholder-medium-gray"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#c54914]/30 focus:border-[#c54914] transition-all text-gray-900 font-medium placeholder-gray-400 text-[15px]"
                 placeholder="your@email.com"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-white mb-3">
-                Password
-              </label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-0.5">Password</label>
               <input
                 type="password"
                 required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-orange focus:border-transparent transition-all text-white placeholder-medium-gray"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#c54914]/30 focus:border-[#c54914] transition-all text-gray-900 font-medium placeholder-gray-400 text-[15px]"
                 placeholder="••••••••"
               />
             </div>
@@ -116,40 +152,30 @@ export const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-accent-orange hover:bg-bright-orange text-space-black font-semibold py-4 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:transform hover:-translate-y-1"
+              className="w-full text-white font-bold py-4 rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-2 text-[15px] hover:-translate-y-0.5"
+              style={{
+                background: 'linear-gradient(135deg, #c54914 0%, #ff5e1a 100%)',
+                boxShadow: '0 8px 24px rgba(197,73,20,0.30)',
+              }}
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
-                  <i className="fas fa-spinner fa-spin"></i>
-                  <span>Signing In...</span>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Signing In...
                 </div>
-              ) : (
-                'Sign In'
-              )}
+              ) : 'Sign In'}
             </button>
           </form>
 
-          <div className="mt-8 text-center">
-            <p className="text-medium-gray">
-              Don't have an account?{' '}
-              <Link 
-                to="/auth/register" 
-                className="text-accent-orange hover:text-bright-orange font-semibold transition-colors"
-              >
-                Create Account
-              </Link>
-            </p>
-          </div>
+          <p className="mt-8 text-center text-sm text-gray-400 font-medium">
+            Don't have an account?{' '}
+            <Link to="/auth/register" className="text-[#c54914] hover:text-[#ff5e1a] font-bold transition-colors">
+              Create Account
+            </Link>
+          </p>
         </div>
 
-        {/* Additional Info */}
-        {/* <div className="text-center mt-8">
-          <p className="text-medium-gray text-sm">
-            Essential Flood Intelligence • Clear, concise flood data when you need it most
-          </p>
-        </div> */}
       </div>
-
     </div>
   );
 };

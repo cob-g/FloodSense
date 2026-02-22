@@ -2,6 +2,7 @@ import { Outlet, Link, useNavigate, useLocation, NavLink as RouterLink, Navigate
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useSocket } from '../../hooks/useSocket';
+import { Droplets } from 'lucide-react';
 import Footer from './Footer';
 import ChatBubble from '../chatbot/ChatBubble';
 
@@ -60,14 +61,42 @@ export const Layout = () => {
   return (
     <div className="min-h-screen bg-[#f0f0f0] text-white overflow-x-hidden">
       {/* Enhanced Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-[2000] bg-[#c54914]/95 backdrop-blur-xl border-b border-white/10 shadow-2xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-2 py-1">
+      <header className="fixed top-0 left-0 right-0 z-[2000] border-b border-white/10 shadow-2xl">
+        
+        {/* Background container with overflow-hidden to clip blobs/watermark */}
+        <div 
+          className="absolute inset-0 overflow-hidden pointer-events-none"
+          style={{
+            background: 'linear-gradient(135deg, #c54914 0%, #7a2200 55%, #3a0e00 100%)',
+          }}
+        >
+          {/* Decorative blobs */}
+          <div style={{
+            position: 'absolute', top: '-40px', right: '-40px',
+            width: '180px', height: '180px', borderRadius: '50%',
+            background: 'rgba(255,255,255,0.06)',
+          }} />
+          <div style={{
+            position: 'absolute', bottom: '-30px', left: '-30px',
+            width: '130px', height: '130px', borderRadius: '50%',
+            background: 'rgba(255,255,255,0.04)',
+          }} />
+          {/* Watermark icon */}
+          <div style={{
+            position: 'absolute', top: '50%', right: '28px', transform: 'translateY(-50%)',
+            opacity: 0.08,
+          }}>
+            <Droplets size={96} strokeWidth={1} color="white" />
+          </div>
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-2 py-1">
           <div className="flex items-center justify-between h-[4.5rem]">
             {/* Logo with animation */}
             <Link to="/" className="flex items-center space-x-3 group">
               <div className="relative">
                 <img
-                  src="/logo.svg"
+                  src="/logo.png"
                   alt="FloodSense Logo"
                   className="w-16 h-16 "
                 />
@@ -131,50 +160,113 @@ export const Layout = () => {
                     </svg>
                   </button>
 
-                  {/* Enhanced User Dropdown */}
+                  {/* User Dropdown */}
                   <div className="relative group hidden md:block">
-                    <button className="flex items-center gap-2 bg-white/5 hover:bg-white/10 px-3 py-2 rounded-full transition-all duration-300 border border-white/10 hover:border-white/20 hover:scale-105 active:scale-95">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center text-white font-bold shadow-md ring-2 ring-white/20">
+                    {/* Trigger button */}
+                    <button className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-full transition-all duration-200 hover:bg-white/10 active:scale-95 border border-transparent hover:border-white/10">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
                         {user.name.charAt(0).toUpperCase()}
                       </div>
                       <span className="font-medium text-sm hidden lg:inline-block text-white/90">
                         {user.name.split(' ')[0]}
                       </span>
-                      <svg 
-                        className="w-4 h-4 text-white/60 group-hover:text-white transition-all duration-300 group-hover:rotate-180" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
+                      <svg
+                        className="w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-transform duration-300 group-hover:rotate-180"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
-                    
-                    <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-space-900/98 backdrop-blur-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 overflow-hidden border border-white/10 shadow-2xl">
-                      <div className="p-2">
-                        <div className="px-4 py-3 text-sm text-white/90 border-b border-white/10">
-                          <div className="font-semibold truncate">{user.name}</div>
-                          <div className="text-xs text-white/60 truncate mt-1">{user.email}</div>
-                          {user.barangay && (
-                            <div className="text-xs text-accent-400 mt-2 font-medium bg-accent-500/10 px-2 py-1 rounded-full inline-block">
-                              {user.barangay}
+
+                    {/* Dropdown panel — split card design */}
+                    <div className="absolute right-0 mt-2.5 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 rounded-2xl overflow-hidden"
+                      style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.35), 0 4px 16px rgba(0,0,0,0.2)' }}
+                    >
+                      {/* ── TOP: profile card with brand gradient ── */}
+                      <div style={{
+                        background: 'linear-gradient(135deg, #b84010 0%, #7a2200 100%)',
+                        padding: '20px 20px 18px',
+                        position: 'relative',
+                        overflow: 'hidden',
+                      }}>
+                        {/* Decorative circle blobs */}
+                        <div style={{
+                          position: 'absolute', top: '-24px', right: '-24px',
+                          width: '90px', height: '90px', borderRadius: '50%',
+                          background: 'rgba(255,255,255,0.07)',
+                        }} />
+                        <div style={{
+                          position: 'absolute', bottom: '-16px', left: '-16px',
+                          width: '60px', height: '60px', borderRadius: '50%',
+                          background: 'rgba(255,255,255,0.05)',
+                        }} />
+
+                        <div className="relative flex items-center gap-3.5">
+                          {/* Big avatar */}
+                          <div style={{
+                            width: '46px', height: '46px', borderRadius: '50%',
+                            background: 'rgba(255,255,255,0.18)',
+                            border: '2px solid rgba(255,255,255,0.4)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '18px', fontWeight: '800', color: '#fff',
+                            flexShrink: 0,
+                          }}>
+                            {user.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <div style={{ color: '#fff', fontWeight: 700, fontSize: '14px', lineHeight: 1.3 }} className="truncate">
+                              {user.name}
                             </div>
-                          )}
+                            <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11px', marginTop: '2px' }} className="truncate">
+                              {user.email}
+                            </div>
+                            {user.barangay && (
+                              <div style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                                marginTop: '7px', padding: '2px 9px',
+                                background: 'rgba(255,255,255,0.15)',
+                                borderRadius: '99px', fontSize: '11px',
+                                color: 'rgba(255,255,255,0.9)', fontWeight: 600,
+                              }}>
+                                <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 2C8.134 2 5 5.134 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.866-3.134-7-7-7z" />
+                                </svg>
+                                {user.barangay}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div className="space-y-1 mt-2">
-                          <Link 
-                            to="/profile" 
-                            className="block w-full text-left px-4 py-2.5 text-sm text-white/80 hover:bg-white/10 rounded-xl transition-all duration-200 hover:text-white"
-                          >
-                            My Profile
-                          </Link>
-                          <button
-                            onClick={handleLogout}
-                            className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-200 hover:text-red-300"
-                          >
-                            Sign out
-                          </button>
-                        </div>
+                      </div>
+
+                      {/* ── BOTTOM: clean white menu ── */}
+                      <div style={{ background: '#ffffff' }}>
+                        {/* My Profile */}
+                        <Link
+                          to="/profile"
+                          className="flex items-center gap-3 w-full px-5 py-3.5 text-sm font-medium transition-all duration-150"
+                          style={{ color: '#2a2a2a', borderBottom: '1px solid #f0f0f0' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#fff5f0'; e.currentTarget.style.color = '#c54914'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#2a2a2a'; }}
+                        >
+                          <svg className="w-4 h-4 shrink-0" style={{ color: '#c54914' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          <span>My Profile</span>
+                        </Link>
+
+                        {/* Sign out */}
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-3 w-full px-5 py-3.5 text-sm font-medium transition-all duration-150"
+                          style={{ color: '#cc3333' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#fff5f5'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                          <span>Sign out</span>
+                        </button>
                       </div>
                     </div>
                   </div>
