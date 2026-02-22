@@ -68,7 +68,15 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/floods
 // CORS configuration
 const allowedOrigins = process.env.NODE_ENV === 'production' 
   ? [process.env.CLIENT_URL].filter(Boolean)
-  : ["http://localhost:5173", "http://localhost:3000", "http://localhost:3001", "http://localhost:5174"];
+  : [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://localhost:5175",
+      "http://localhost:5176",
+      "http://localhost:3000",
+      "http://localhost:3001",
+      process.env.CLIENT_URL
+    ].filter(Boolean);
 
 // Middleware
 app.use(helmet({
@@ -235,6 +243,17 @@ mongoose.connect(MONGODB_URI)
       }
     }
     
+    // Handle port-in-use error before attempting to listen
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`\n❌ Port ${PORT} is already in use by another process.`);
+        console.error(`   Kill it with: Get-NetTCPConnection -LocalPort ${PORT} | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force }`);
+        console.error(`   Or change PORT in server/.env`);
+        process.exit(1);
+      }
+      throw error;
+    });
+
     // Start server
     server.listen(PORT, () => {
       console.log(`🚀 FloodSense server running on port ${PORT}`);

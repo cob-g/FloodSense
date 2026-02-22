@@ -79,8 +79,8 @@ export const toolDefinitions = [
         type: 'object',
         properties: {
           sensorId: {
-            type: 'string',
-            description: 'Specific sensor ID to check (optional). If not provided, returns all active sensors with latest readings.'
+            anyOf: [{ type: 'string' }, { type: 'null' }],
+            description: 'Specific sensor ID to check (optional). If not provided or null, returns all active sensors with latest readings.'
           }
         },
         required: []
@@ -108,6 +108,40 @@ export const toolDefinitions = [
         required: []
       }
     }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'queryUserReports',
+      description: 'Get the status of the current logged-in user\'s own flood reports. ALWAYS call this tool when the user asks about their report status, their submissions, or "what happened to my report". Shows submission date, current status (UNVERIFIED/VALIDATED/REJECTED), and admin feedback.',
+      parameters: {
+        type: 'object',
+        properties: {
+          limit: {
+            type: 'number',
+            description: 'Maximum number of reports to return (default: 5, max: 10).'
+          }
+        },
+        required: []
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'queryAreaRisk',
+      description: 'Assess current flood risk level in a barangay based on recent validated reports and sensor readings. Returns risk level (SAFE/LOW/MEDIUM/HIGH/CRITICAL) with explanation.',
+      parameters: {
+        type: 'object',
+        properties: {
+          barangay: {
+            type: 'string',
+            description: 'The barangay name to assess flood risk for.'
+          }
+        },
+        required: ['barangay']
+      }
+    }
   }
 ];
 
@@ -115,9 +149,10 @@ export const toolDefinitions = [
  * Execute a tool call and return the result.
  * @param {string} toolName - The name of the tool to execute
  * @param {object} args - The arguments from the AI model
+ * @param {object|null} user - The authenticated user object (for user-specific queries)
  * @returns {string} JSON string of the result
  */
-export async function executeTool(toolName, args) {
+export async function executeTool(toolName, args, user = null) {
   try {
     switch (toolName) {
       case 'queryEvacuationCenters':
@@ -130,6 +165,10 @@ export async function executeTool(toolName, args) {
         return await handleQuerySensorStatus(args);
       case 'queryFallbackPlaces':
         return await handleQueryFallbackPlaces(args);
+      case 'queryUserReports':
+        return await handleQueryUserReports(args, user);
+      case 'queryAreaRisk':
+        return await handleQueryAreaRisk(args);
       default:
         return JSON.stringify({ error: `Unknown tool: ${toolName}` });
     }
@@ -143,6 +182,23 @@ export async function executeTool(toolName, args) {
 }
 
 // ─── Tool Handlers ──────────────────────────────────────────────
+
+/**
+ * Format a date to Philippine Standard Time (UTC+8) in a human-readable format.
+ * e.g. "Feb 22, 2026, 11:11 AM"
+ */
+function toPST(date) {
+  if (!date) return null;
+  return new Date(date).toLocaleString('en-PH', {
+    timeZone: 'Asia/Manila',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+}
 
 async function handleQueryEvacuationCenters({ barangay }) {
   const query = { category: 'evacuation_center', isActive: true };
@@ -167,14 +223,9 @@ async function handleQueryEvacuationCenters({ barangay }) {
     evacuationCenters: centers.map(c => ({
       name: c.name,
       barangay: c.barangay,
-      capacity: c.capacity || 'Not specified',
-      contact: c.contactInfo?.phone || 'Not available',
-      email: c.contactInfo?.email || null,
-      operatingHours: c.operatingHours || 'Not specified',
-      notes: c.notes || null,
-      coordinates: c.location?.coordinates
-        ? { lat: c.location.coordinates[1], lng: c.location.coordinates[0] }
-        : null
+      capacity: c.capacity || 'N/A',
+      contact: c.contactInfo?.phone || 'N/A',
+      notes: c.notes || null
     }))
   });
 }
@@ -206,12 +257,7 @@ async function handleQueryEmergencyFacilities({ barangay }) {
       name: f.name,
       category: f.category.replace('_', ' '),
       barangay: f.barangay,
-      contact: f.contactInfo?.phone || 'Not available',
-      operatingHours: f.operatingHours || 'Not specified',
-      notes: f.notes || null,
-      coordinates: f.location?.coordinates
-        ? { lat: f.location.coordinates[1], lng: f.location.coordinates[0] }
-        : null
+      contact: f.contactInfo?.phone || 'N/A'
     }))
   });
 }
@@ -225,7 +271,6 @@ async function handleQueryRecentReports({ barangay, limit = 5 }) {
   const reports = await Report.find(query)
     .sort({ createdAt: -1 })
     .limit(safeLimit)
-    .populate('reporter', 'name')
     .lean();
 
   if (reports.length === 0) {
@@ -243,13 +288,8 @@ async function handleQueryRecentReports({ barangay, limit = 5 }) {
       barangay: r.barangay,
       depth: r.depth,
       passability: r.passability,
-      description: r.description || 'No description',
-      address: r.location?.address || 'Not specified',
-      reportedBy: r.reporter?.name || 'Community member',
-      reportedAt: r.createdAt,
-      coordinates: r.location?.coordinates
-        ? { lat: r.location.coordinates[1], lng: r.location.coordinates[0] }
-        : null
+      description: r.description || '',
+      reportedAt: toPST(r.createdAt)
     }))
   });
 }
@@ -289,7 +329,7 @@ async function handleQuerySensorStatus({ sensorId }) {
               waterLevel: sensor.mountHeight
                 ? `${Math.max(0, sensor.mountHeight - latest.distance)} cm`
                 : 'Mount height not configured',
-              timestamp: latest.timestamp,
+              timestamp: toPST(latest.timestamp),
               minutesAgo: Math.round((Date.now() - new Date(latest.timestamp).getTime()) / 60000)
             }
           : { message: 'No readings available' },
@@ -329,11 +369,170 @@ async function handleQueryFallbackPlaces({ barangay, category }) {
       name: p.name,
       category: p.category.replace('_', ' '),
       barangay: p.barangay,
-      contact: p.contactInfo?.phone || null,
-      notes: p.notes || null,
-      coordinates: p.location?.coordinates
-        ? { lat: p.location.coordinates[1], lng: p.location.coordinates[0] }
-        : null
+      contact: p.contactInfo?.phone || null
     }))
+  });
+}
+
+async function handleQueryUserReports({ limit = 5 }, user) {
+  if (!user) {
+    return JSON.stringify({
+      error: 'Authentication required',
+      message: 'You need to be logged in to check your report status. Please log in to see your flood reports.'
+    });
+  }
+
+  const safeLimit = Math.min(Math.max(1, limit), 10);
+
+  const reports = await Report.find({ reporter: user._id })
+    .sort({ createdAt: -1 })
+    .limit(safeLimit)
+    .lean();
+
+  if (reports.length === 0) {
+    return JSON.stringify({
+      found: 0,
+      message: 'You haven\'t submitted any flood reports yet. You can submit one from the Feed page!'
+    });
+  }
+
+  return JSON.stringify({
+    found: reports.length,
+    reports: reports.map(r => ({
+      barangay: r.barangay,
+      depth: r.depth,
+      passability: r.passability,
+      description: r.description || 'No description',
+      status: r.status,
+      submittedAt: toPST(r.createdAt),
+      lastUpdated: toPST(r.updatedAt),
+      validationNotes: r.validationNotes || null,
+      validatedAt: r.validatedAt ? toPST(r.validatedAt) : null,
+      address: r.location?.address || 'Not specified'
+    }))
+  });
+}
+
+async function handleQueryAreaRisk({ barangay }) {
+  if (!barangay) {
+    return JSON.stringify({
+      error: 'Barangay required',
+      message: 'Please specify which barangay you want to check.'
+    });
+  }
+
+  // Get recent validated reports (last 24 hours)
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const recentReports = await Report.find({
+    barangay: new RegExp(barangay, 'i'),
+    status: 'VALIDATED',
+    createdAt: { $gte: oneDayAgo }
+  })
+  .sort({ createdAt: -1 })
+  .limit(20)
+  .lean();
+
+  // Get sensor readings in the area (last 30 minutes)
+  const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000);
+  const sensors = await Sensor.find({
+    locationName: new RegExp(barangay, 'i')
+  }).lean();
+
+  let highestWaterLevel = 0;
+  let activeSensors = 0;
+
+  for (const sensor of sensors) {
+    const latestReading = await SensorData.findOne({
+      sensorId: sensor.sensorId,
+      timestamp: { $gte: thirtyMinsAgo }
+    })
+    .sort({ timestamp: -1 })
+    .lean();
+
+    if (latestReading && sensor.mountHeight) {
+      activeSensors++;
+      const waterLevel = Math.max(0, sensor.mountHeight - latestReading.distance);
+      if (waterLevel > highestWaterLevel) {
+        highestWaterLevel = waterLevel;
+      }
+    }
+  }
+
+  // Risk assessment logic
+  let riskLevel = 'SAFE';
+  let explanation = '';
+  let recommendations = [];
+
+  // Count reports by severity
+  const criticalReports = recentReports.filter(r => 
+    r.depth === 'CHEST_DEEP' || r.depth === 'WAIST_DEEP'
+  ).length;
+  const moderateReports = recentReports.filter(r => 
+    r.depth === 'KNEE_DEEP'
+  ).length;
+  const minorReports = recentReports.filter(r => 
+    r.depth === 'ANKLE_DEEP'
+  ).length;
+
+  // Determine risk level
+  if (criticalReports >= 2 || highestWaterLevel >= 80) {
+    riskLevel = 'CRITICAL';
+    explanation = `${barangay} has CRITICAL flood risk right now. ${criticalReports} severe flood reports in the last 24 hours${highestWaterLevel >= 80 ? ` and water sensors show ${highestWaterLevel}cm (chest-deep)` : ''}.`;
+    recommendations = [
+      'EVACUATE IMMEDIATELY if you\'re in a flood-prone area',
+      'Go to higher ground or upper floors',
+      'Call 911 if you need emergency assistance',
+      'Bring your emergency kit and important documents'
+    ];
+  } else if (criticalReports >= 1 || moderateReports >= 3 || highestWaterLevel >= 50) {
+    riskLevel = 'HIGH';
+    explanation = `${barangay} has HIGH flood risk. ${criticalReports + moderateReports} significant flood reports in the last 24 hours${highestWaterLevel >= 50 ? ` and sensors show ${highestWaterLevel}cm water level` : ''}.`;
+    recommendations = [
+      'Prepare to evacuate - pack your emergency kit',
+      'Monitor updates closely',
+      'Avoid going out unless necessary',
+      'Stay away from low-lying areas'
+    ];
+  } else if (moderateReports >= 1 || minorReports >= 3 || highestWaterLevel >= 20) {
+    riskLevel = 'MEDIUM';
+    explanation = `${barangay} has MEDIUM flood risk. ${recentReports.length} flood reports in the last 24 hours${highestWaterLevel >= 20 ? ` and water levels at ${highestWaterLevel}cm` : ''}.`;
+    recommendations = [
+      'Stay alert and monitor conditions',
+      'Keep your emergency kit ready',
+      'Avoid unnecessary travel',
+      'Check the Feed page for updates'
+    ];
+  } else if (minorReports >= 1 || highestWaterLevel >= 10) {
+    riskLevel = 'LOW';
+    explanation = `${barangay} has LOW flood risk. Minor flooding detected${highestWaterLevel >= 10 ? ` with sensors showing ${highestWaterLevel}cm` : ''}.`;
+    recommendations = [
+      'Be cautious when traveling',
+      'Avoid flood-prone streets',
+      'Keep monitoring updates'
+    ];
+  } else {
+    riskLevel = 'SAFE';
+    explanation = `${barangay} appears SAFE currently. No recent flood reports in the last 24 hours${activeSensors > 0 ? ` and sensors show normal water levels (${highestWaterLevel}cm)` : ''}.`;
+    recommendations = [
+      'Stay prepared - always keep an emergency kit ready',
+      'Monitor weather forecasts',
+      'Report any flooding you see on the Feed page'
+    ];
+  }
+
+  return JSON.stringify({
+    barangay,
+    riskLevel,
+    explanation,
+    recommendations,
+    dataPoints: {
+      reportsLast24h: recentReports.length,
+      criticalReports,
+      moderateReports,
+      minorReports,
+      activeSensors,
+      highestWaterLevel: highestWaterLevel > 0 ? `${highestWaterLevel} cm` : 'None',
+      lastChecked: toPST(new Date())
+    }
   });
 }

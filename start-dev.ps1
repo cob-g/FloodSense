@@ -40,6 +40,16 @@ try {
     exit 1
 }
 
+# Free up ports before starting
+Write-Host "🔌 Freeing ports 5000 and 5173..." -ForegroundColor Cyan
+@(5000, 5173, 5174, 5175, 5176) | ForEach-Object {
+    $procs = Get-NetTCPConnection -LocalPort $_ -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique
+    if ($procs) {
+        $procs | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }
+        Write-Host "  ✓ Freed port $_" -ForegroundColor Green
+    }
+}
+Start-Sleep -Seconds 1
 Write-Host ""
 Write-Host "🚀 Starting FloodSense servers..." -ForegroundColor Cyan
 Write-Host ""

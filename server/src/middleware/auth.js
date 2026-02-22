@@ -1,11 +1,16 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key';
+/**
+ * Get JWT_SECRET at runtime (not import time) to avoid dotenv race condition.
+ * email.service.js calls dotenv.config() during its import, so process.env
+ * may or may not be populated depending on import order in index.js.
+ */
+const getJwtSecret = () => process.env.JWT_SECRET || 'fallback_secret_key';
 
 // Generate JWT token
 export const generateToken = (userId) => {
-  return jwt.sign({ userId }, JWT_SECRET, {
+  return jwt.sign({ userId }, getJwtSecret(), {
     expiresIn: '7d', // Token expires in 7 days
     issuer: 'floodsense-api'
   });
@@ -14,7 +19,7 @@ export const generateToken = (userId) => {
 // Verify JWT token
 export const verifyToken = (token) => {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, getJwtSecret());
   } catch (error) {
     throw new Error('Invalid token');
   }

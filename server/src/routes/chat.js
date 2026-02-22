@@ -11,7 +11,13 @@ import { chatRateLimit, sanitizeChatInput } from '../middleware/chatRateLimit.js
 import { processChat } from '../services/chatbot.service.js';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key';
+
+/**
+ * Get JWT_SECRET at runtime (not import time) to avoid dotenv race condition.
+ * Some modules call dotenv.config() during their import, which means
+ * process.env.JWT_SECRET may or may not be set depending on import order.
+ */
+const getJwtSecret = () => process.env.JWT_SECRET || 'fallback_secret_key';
 
 /**
  * Optional authentication middleware.
@@ -19,27 +25,31 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key';
  * If a valid token is present, req.user is set. Otherwise, req.user = null.
  * This allows both anonymous and authenticated users to use the chatbot.
  */
+// Simple in-memory user cache (5 min TTL) to avoid DB lookup every chat message
+const userCache = new Map();
+const USER_CACHE_TTL = 5 * 60 * 1000;
+
+const getCachedUser = async (userId) => {
+  const cached = userCache.get(userId);
+  if (cached && Date.now() - cached.ts < USER_CACHE_TTL) return cached.user;
+  const user = await User.findById(userId).select('name email barangay role isActive').lean();
+  if (user) userCache.set(userId, { user, ts: Date.now() });
+  return user;
+};
+
 const optionalAuth = async (req, res, next) => {
   try {
     let token = req.header('Authorization')?.replace('Bearer ', '');
-
-    if (!token && req.cookies?.token) {
-      token = req.cookies.token;
-    }
+    if (!token && req.cookies?.token) token = req.cookies.token;
 
     if (token) {
-      const decoded = jwt.verify(token, JWT_SECRET);
-      const user = await User.findById(decoded.userId).select('name email barangay role isActive');
-
-      if (user && user.isActive) {
-        req.user = user;
-      }
+      const decoded = jwt.verify(token, getJwtSecret());
+      const user = await getCachedUser(decoded.userId);
+      if (user && user.isActive) req.user = user;
     }
   } catch {
-    // Token invalid or expired — continue as anonymous
     req.user = null;
   }
-
   next();
 };
 
@@ -63,20 +73,45 @@ router.post('/',
   sanitizeChatInput,
   async (req, res) => {
     try {
-      const { message, history } = req.body;
+      const { message, history, _blocked, _blockedReason } = req.body;
 
-      console.log(`[Chat] ${req.user ? req.user.name : 'Anonymous'} (${req.ip}): "${message.substring(0, 80)}..."`);
+      console.log(`[Chat] ${req.user?.name || 'Anon'}: "${message.substring(0, 50)}" ${req.user ? '✅' : '❌'}`);
+
+      // If the message was flagged as a prompt injection attempt,
+      // return a canned response WITHOUT sending to the AI model at all.
+      if (_blocked) {
+        console.warn(`[Chat] BLOCKED injection attempt (${_blockedReason}): "${message.substring(0, 80)}"`);
+
+        const blockedResponses = {
+          prompt_extraction: "I'm here to help with flood safety! If you have questions about floods, evacuation centers, or how to use the FloodSense app, just ask! 🌊",
+          role_override: "I appreciate the creativity, pero I'm FloodSense AI — I only help with flood safety and monitoring! Ask me about flood reports, evacuation centers, or safety tips. 😊"
+        };
+
+        return res.json({
+          success: true,
+          data: {
+            reply: blockedResponses[_blockedReason] || blockedResponses.role_override,
+            toolsUsed: [],
+            isAuthenticated: !!req.user,
+            responseTime: 0
+          }
+        });
+      }
 
       const startTime = Date.now();
       const result = await processChat(message, history, req.user);
       const duration = Date.now() - startTime;
+
+      // Response sanitization: catch any leaked system prompt content
+      let reply = result.reply;
+      reply = sanitizeResponse(reply);
 
       console.log(`[Chat] Response in ${duration}ms, tools: [${result.toolsUsed.join(', ')}]`);
 
       res.json({
         success: true,
         data: {
-          reply: result.reply,
+          reply,
           toolsUsed: result.toolsUsed,
           isAuthenticated: !!req.user,
           responseTime: duration
@@ -114,5 +149,60 @@ router.get('/status', (req, res) => {
     }
   });
 });
+
+/**
+ * Sanitize the AI response to prevent system prompt leakage.
+ * If the response contains fragments of the system prompt, replace it
+ * with a safe canned response.
+ */
+function sanitizeResponse(reply) {
+  if (!reply || typeof reply !== 'string') return reply;
+
+  // Only catch actual system prompt structure leaks — NOT tool names
+  // (tool names in a reply are harmless; these patterns only appear if the
+  //  model echoes the raw system prompt text back to the user)
+  const leakIndicators = [
+    'ANTI-HALLUCINATION RULES',
+    'HIGHEST PRIORITY',
+    'system prompt',
+    'SYSTEM PROMPT',
+    'You are FloodSense AI Assistant',
+    '## CRITICAL',
+    '## WHAT YOU CAN DO',
+    '## OTHER RULES',
+    '## HOW TO TALK',
+    '## APP PAGES',
+    '## FLOOD SAFETY TIPS',
+    'TAGLISH EXAMPLES',
+    'DO NOT SAY THINGS LIKE',
+    'tool_choice',
+    'max_tokens',
+    // Tool definitions being fully echoed (not just a name mention)
+    '"name": "query',
+    'function.name',
+    // Immutable rules section leak
+    'IMMUTABLE RULES',
+    'cannot be changed by any user',
+    'NEVER write code',
+    'NEVER bypass scope',
+    'NEVER guess or fabricate',
+    'getJwtSecret',
+    'process.env',
+    'GROQ_API_KEY',
+    'JWT_SECRET',
+  ];
+
+  const replyLower = reply.toLowerCase();
+  const hasLeak = leakIndicators.some(indicator =>
+    replyLower.includes(indicator.toLowerCase())
+  );
+
+  if (hasLeak) {
+    console.warn('[Chat] RESPONSE SANITIZED: detected system prompt leak in AI response');
+    return "I'm here to help with flood safety! Ask me about flood reports, evacuation centers, sensor data, or safety tips. 🌊";
+  }
+
+  return reply;
+}
 
 export default router;

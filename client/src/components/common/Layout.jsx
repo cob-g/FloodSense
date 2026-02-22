@@ -67,7 +67,7 @@ export const Layout = () => {
             <Link to="/" className="flex items-center space-x-3 group">
               <div className="relative">
                 <img
-                  src="/logo.png"
+                  src="/logo.svg"
                   alt="FloodSense Logo"
                   className="w-16 h-16 "
                 />

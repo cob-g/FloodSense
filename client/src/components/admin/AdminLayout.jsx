@@ -34,7 +34,7 @@ export const AdminLayout = () => {
       <aside className="fixed inset-y-0 left-0 w-64 bg-space-900/90 backdrop-blur-xl border-r border-white/10 z-[1300] hidden md:flex flex-col">
         <div className="px-5 py-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="FloodSense" className="w-8 h-8 rounded-lg" />
+            <img src="/logo.svg" alt="FloodSense" className="w-8 h-8 rounded-lg" />
             <div>
               <div className="text-lg font-black">FloodSense</div>
               <div className="text-xs text-white/60">Admin Panel</div>
@@ -86,7 +86,7 @@ export const AdminLayout = () => {
         <aside className={`absolute inset-y-0 left-0 w-64 bg-space-900/95 backdrop-blur-xl border-r border-white/10 transform transition-transform ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="FloodSense" className="w-8 h-8 rounded-lg" />
+              <img src="/logo.svg" alt="FloodSense" className="w-8 h-8 rounded-lg" />
               <div>
                 <div className="text-lg font-black">FloodSense</div>
                 <div className="text-xs text-white/60">Admin Panel</div>
@@ -114,7 +114,7 @@ export const AdminLayout = () => {
       <header className="md:hidden fixed top-0 left-0 right-0 z-[1200] bg-space-900/90 backdrop-blur-xl border-b border-white/10">
         <div className="h-14 px-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" className="w-8 h-8 rounded-lg" />
+            <img src="/logo.svg" className="w-8 h-8 rounded-lg" />
             <div className="font-black">Admin</div>
           </div>
           <div className="flex items-center gap-2">

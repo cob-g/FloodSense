@@ -8,7 +8,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center space-x-3 mb-4 group">
               <img
-                src="/logo.png"
+                src="/logo.svg"
                 alt="FloodSense Logo"
                 className="w-8 h-8 rounded-lg bg-gray-50 object-contain shadow-md group-hover:shadow-lg transition-all duration-300"
               />

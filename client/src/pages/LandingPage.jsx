@@ -363,7 +363,7 @@ export const LandingPage = () => {
             <div className="relative">
               <div className="relative z-10">
                 <img 
-                  src="/FS1.png" 
+                  src="/FS1.svg" 
                   alt="FloodSense Platform Preview" 
                   className="w-full h-auto rounded-2xl transform hover:scale-[1.02] transition-transform duration-700 ease-out"
                 />

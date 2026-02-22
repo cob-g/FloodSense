@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --no-deprecation node_modules/nodemon/bin/nodemon.js src/index.js",
+    "predev": "powershell -Command \"Get-NetTCPConnection -LocalPort 5000 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }\"",
     "seed": "node src/utils/seed.js",
     "seed:admin": "node src/utils/seed.js admin",
     "seed:fallbacks": "node src/utils/seed.js fallbacks",
