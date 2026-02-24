@@ -17,6 +17,7 @@ const ChatMessage = memo(({ message }) => {
 
     return text.split('\n').map((line, i) => {
       // Bold text: **text**
+      
       const parts = line.split(/(\*\*[^*]+\*\*)/g);
       const formatted = parts.map((part, j) => {
         if (part.startsWith('**') && part.endsWith('**')) {

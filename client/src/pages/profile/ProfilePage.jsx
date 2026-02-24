@@ -1,5 +1,5 @@
 import { useAuth } from '../../hooks/useAuth';
-import { User, Mail, MapPin, Shield, Droplets, Clock, LogOut } from 'lucide-react';
+import { User, Mail, MapPin, Shield, Droplets, Clock, LogOut, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const ROLE_META = {

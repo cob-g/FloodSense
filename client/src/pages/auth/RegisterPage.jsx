@@ -103,14 +103,13 @@ export const RegisterPage = () => {
         }}
       />
 
-      <div className="max-w-5xl w-full relative z-10 grid grid-cols-1 lg:grid-cols-[1fr_1.15fr] gap-5 items-stretch">
+      <div className="max-w-5xl w-full relative z-10 flex flex-col lg:flex-row items-stretch bg-[#fafaf9] rounded-[2.5rem] shadow-[0_24px_60px_rgba(197,73,20,0.15)] overflow-hidden border border-[#e2d5cc]/60">
 
         {/* ── Left: Brand Panel ── */}
         <div
-          className="hidden lg:flex flex-col justify-between rounded-[2.5rem] p-10 relative overflow-hidden"
+          className="hidden lg:flex lg:w-[45%] flex-col justify-between p-10 relative overflow-hidden"
           style={{
             background: 'linear-gradient(135deg, #c54914 0%, #7a2200 55%, #3a0e00 100%)',
-            boxShadow: '0 24px 60px rgba(197,73,20,0.30)',
           }}
         >
           {/* Dot pattern overlay — white dots on the dark panel */}
@@ -163,131 +162,131 @@ export const RegisterPage = () => {
         </div>
 
         {/* ── Right: Form Panel ── */}
-        <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 flex flex-col shadow-[0_4px_40px_rgba(0,0,0,0.07)] border border-gray-100/80">
+        <div className="flex-1 p-8 sm:p-12 flex flex-col justify-center bg-[#fafaf9]">
 
           {/* Mobile header */}
           <div className="lg:hidden flex items-center gap-3 mb-7">
             <img src="/logo.png" alt="FloodSense" className="w-10 h-10" />
-            <span className="text-xl font-black text-gray-900" style={{ fontFamily: 'Goodly, sans-serif' }}>FloodSense</span>
+            <span className="text-xl font-black text-[#7a2200]" style={{ fontFamily: 'Goodly, sans-serif' }}>FloodSense</span>
           </div>
 
           {/* Orange accent bar */}
           <div className="w-10 h-1.5 rounded-full mb-5" style={{ background: 'linear-gradient(90deg, #c54914, #ff5e1a)' }} />
-          <h2 className="text-[28px] font-black text-gray-900 leading-tight mb-1">Create account</h2>
-          <p className="text-gray-400 text-sm font-medium mb-7">Join our flood safety community</p>
+          <h2 className="text-[32px] font-black text-[#1a0a00] leading-tight mb-1.5">Create account</h2>
+          <p className="text-[#6b5c52] text-[15px] font-medium mb-8">Join our flood safety community</p>
 
           {error && (
-            <div className="mb-5 p-3.5 bg-red-50 border border-red-100 rounded-2xl text-red-500 text-sm font-semibold flex items-center gap-2">
+            <div className="mb-6 p-3.5 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm font-bold flex items-center gap-2">
               <AlertTriangle size={15} />
               <span>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 flex-1">
-            {/* Name */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-0.5">Full Name</label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#c54914]/30 focus:border-[#c54914] transition-all text-gray-900 font-medium placeholder-gray-400 text-[15px]"
-                placeholder="Juan Dela Cruz"
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-0.5">Email</label>
-              <input
-                type="email"
-                required
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#c54914]/30 focus:border-[#c54914] transition-all text-gray-900 font-medium placeholder-gray-400 text-[15px]"
-                placeholder="your@email.com"
-              />
-            </div>
-
-            {/* Barangay */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-0.5">Barangay</label>
-              <div className="relative" ref={brgyRef}>
-                <button
-                  type="button"
-                  onClick={() => setBrgyOpen((v) => !v)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-left focus:outline-none focus:ring-2 focus:ring-[#c54914]/30 focus:border-[#c54914] transition-all flex items-center justify-between text-[15px]"
-                  aria-haspopup="listbox"
-                  aria-expanded={brgyOpen}
-                >
-                  <span className={formData.barangay ? 'text-gray-900 font-medium' : 'text-gray-400'}>
-                    {formData.barangay || 'Select Barangay'}
-                  </span>
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {brgyOpen && (
-                  <ul
-                    role="listbox"
-                    className="absolute z-[2200] mt-2 w-full bg-white border border-gray-200 rounded-2xl shadow-xl max-h-56 overflow-y-auto py-1.5"
-                  >
-                    {BARANGAYS.map((barangay) => (
-                      <li key={barangay}>
-                        <button
-                          type="button"
-                          onClick={() => { setFormData({ ...formData, barangay }); setBrgyOpen(false); }}
-                          className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${
-                            formData.barangay === barangay ? 'text-[#c54914] bg-orange-50' : 'text-gray-700 hover:bg-gray-50'
-                          }`}
-                          role="option"
-                          aria-selected={formData.barangay === barangay}
-                        >
-                          {barangay}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+          <form onSubmit={handleSubmit} className="space-y-5 flex-1">
+            {/* Name & Email Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-[13px] font-bold text-[#3d2010] mb-1.5 ml-0.5 tracking-wide">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-3.5 bg-white border border-[#e2d5cc] rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#c54914]/10 focus:border-[#c54914] transition-all text-[#1a0a00] font-medium placeholder-[#a08070] text-[15px]"
+                  placeholder="Juan Dela Cruz"
+                />
+              </div>
+              <div>
+                <label className="block text-[13px] font-bold text-[#3d2010] mb-1.5 ml-0.5 tracking-wide">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full px-4 py-3.5 bg-white border border-[#e2d5cc] rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#c54914]/10 focus:border-[#c54914] transition-all text-[#1a0a00] font-medium placeholder-[#a08070] text-[15px]"
+                  placeholder="your@email.com"
+                />
               </div>
             </div>
 
-            {/* Phone */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-0.5">
-                Phone <span className="text-gray-400 font-normal">(Optional)</span>
-              </label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#c54914]/30 focus:border-[#c54914] transition-all text-gray-900 font-medium placeholder-gray-400 text-[15px]"
-                placeholder="09123456789"
-              />
+            {/* Barangay & Phone Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-[13px] font-bold text-[#3d2010] mb-1.5 ml-0.5 tracking-wide">Barangay</label>
+                <div className="relative" ref={brgyRef}>
+                  <button
+                    type="button"
+                    onClick={() => setBrgyOpen((v) => !v)}
+                    className="w-full px-4 py-3.5 bg-white border border-[#e2d5cc] rounded-2xl text-left focus:outline-none focus:ring-4 focus:ring-[#c54914]/10 focus:border-[#c54914] transition-all flex items-center justify-between text-[15px]"
+                    aria-haspopup="listbox"
+                    aria-expanded={brgyOpen}
+                  >
+                    <span className={formData.barangay ? 'text-[#1a0a00] font-medium' : 'text-[#a08070]'}>
+                      {formData.barangay || 'Select Barangay'}
+                    </span>
+                    <svg className="w-4 h-4 text-[#a08070]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {brgyOpen && (
+                    <ul
+                      role="listbox"
+                      className="absolute z-[2200] mt-2 w-full bg-white border border-[#e2d5cc] rounded-2xl shadow-xl max-h-56 overflow-y-auto py-1.5"
+                    >
+                      {BARANGAYS.map((barangay) => (
+                        <li key={barangay}>
+                          <button
+                            type="button"
+                            onClick={() => { setFormData({ ...formData, barangay }); setBrgyOpen(false); }}
+                            className={`w-full text-left px-4 py-2.5 text-[14px] font-medium transition-colors ${
+                              formData.barangay === barangay ? 'text-[#c54914] bg-[#fff5f0]' : 'text-[#3d2010] hover:bg-[#fafaf9]'
+                            }`}
+                            role="option"
+                            aria-selected={formData.barangay === barangay}
+                          >
+                            {barangay}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="block text-[13px] font-bold text-[#3d2010] mb-1.5 ml-0.5 tracking-wide">
+                  Phone <span className="text-[#a08070] font-normal">(Optional)</span>
+                </label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full px-4 py-3.5 bg-white border border-[#e2d5cc] rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#c54914]/10 focus:border-[#c54914] transition-all text-[#1a0a00] font-medium placeholder-[#a08070] text-[15px]"
+                  placeholder="09123456789"
+                />
+              </div>
             </div>
 
             {/* Password */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-0.5">Password</label>
+                <label className="block text-[13px] font-bold text-[#3d2010] mb-1.5 ml-0.5 tracking-wide">Password</label>
                 <input
                   type="password"
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#c54914]/30 focus:border-[#c54914] transition-all text-gray-900 font-medium placeholder-gray-400 text-[15px]"
+                  className="w-full px-4 py-3.5 bg-white border border-[#e2d5cc] rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#c54914]/10 focus:border-[#c54914] transition-all text-[#1a0a00] font-medium placeholder-[#a08070] text-[15px]"
                   placeholder="••••••••"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5 ml-0.5">Confirm</label>
+                <label className="block text-[13px] font-bold text-[#3d2010] mb-1.5 ml-0.5 tracking-wide">Confirm Password</label>
                 <input
                   type="password"
                   required
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#c54914]/30 focus:border-[#c54914] transition-all text-gray-900 font-medium placeholder-gray-400 text-[15px]"
+                  className="w-full px-4 py-3.5 bg-white border border-[#e2d5cc] rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#c54914]/10 focus:border-[#c54914] transition-all text-[#1a0a00] font-medium placeholder-[#a08070] text-[15px]"
                   placeholder="••••••••"
                 />
               </div>
@@ -296,29 +295,30 @@ export const RegisterPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full text-white font-bold py-4 rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-2 text-[15px] hover:-translate-y-0.5"
+              className="w-full text-white font-bold py-4 rounded-2xl transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed mt-4 text-[15px] hover:-translate-y-0.5 active:translate-y-0"
               style={{
-                background: 'linear-gradient(135deg, #c54914 0%, #ff5e1a 100%)',
-                boxShadow: '0 8px 24px rgba(197,73,20,0.30)',
+                background: 'linear-gradient(135deg, #c54914 0%, #7a2200 100%)',
+                boxShadow: '0 8px 24px rgba(197,73,20,0.25)',
               }}
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-orange-200 border-t-white rounded-full animate-spin" />
                   Creating Account...
                 </div>
               ) : 'Create Account'}
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-gray-400 font-medium">
+          <p className="mt-8 text-center text-[14px] text-[#6b5c52] font-medium">
             Already have an account?{' '}
-            <Link to="/auth/login" className="text-[#c54914] hover:text-[#ff5e1a] font-bold transition-colors">
+            <Link to="/auth/login" className="font-bold transition-colors" style={{ color: '#c54914' }}
+              onMouseEnter={e => e.target.style.color = '#7a2200'}
+              onMouseLeave={e => e.target.style.color = '#c54914'}>
               Sign in
             </Link>
           </p>
         </div>
-
       </div>
     </div>
   );
