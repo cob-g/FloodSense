@@ -158,6 +158,18 @@ router.get('/status', (req, res) => {
 function sanitizeResponse(reply) {
   if (!reply || typeof reply !== 'string') return reply;
 
+  // Strip leaked internal tool/function names from plain text replies
+  // e.g. "using the querySensorStatus function"
+  const toolNamePattern = /\bquery(?:EvacuationCenters|EmergencyFacilities|RecentReports|SensorStatus|FallbackPlaces|UserReports|AreaRisk)\b/gi;
+  if (toolNamePattern.test(reply)) {
+    console.warn('[Chat] Stripped internal tool/function name leak from response');
+    reply = reply
+      .replace(/\b(using|by using|through)\s+the\s+["'`]?query\w+["'`]?\s+(tool|function)\b/gi, 'using live system data')
+      .replace(/["'`]?\bquery(?:EvacuationCenters|EmergencyFacilities|RecentReports|SensorStatus|FallbackPlaces|UserReports|AreaRisk)\b["'`]?(\s+(tool|function))?/gi, 'internal data lookup')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
   // Strip any raw text-format function calls the model leaked (Llama fallback format)
   // e.g. <function=queryRecentReports>{"limit": 5}</function>
   if (/<function=\w+>[\s\S]*?<\/function>/.test(reply)) {
@@ -168,9 +180,7 @@ function sanitizeResponse(reply) {
     }
   }
 
-  // Only catch actual system prompt structure leaks — NOT tool names
-  // (tool names in a reply are harmless; these patterns only appear if the
-  //  model echoes the raw system prompt text back to the user)
+  // Catch actual system prompt structure leaks and tool-definition echoes.
   const leakIndicators = [
     'ANTI-HALLUCINATION RULES',
     'HIGHEST PRIORITY',
@@ -200,6 +210,13 @@ function sanitizeResponse(reply) {
     'process.env',
     'GROQ_API_KEY',
     'JWT_SECRET',
+    'queryevacuationcenters',
+    'queryemergencyfacilities',
+    'queryrecentreports',
+    'querysensorstatus',
+    'queryfallbackplaces',
+    'queryuserreports',
+    'queryarearisk',
   ];
 
   const replyLower = reply.toLowerCase();

@@ -53,7 +53,7 @@ export const toolDefinitions = [
     type: 'function',
     function: {
       name: 'queryRecentReports',
-      description: 'Get recent validated flood reports from the live map. Can filter by barangay. Returns flood depth, road passability, location, time AND two counts: totalValidatedReports (GLOBAL total across ALL barangays on the live map — always use this when user asks how many reports total) and filteredCount (count for the filtered barangay only). When user asks for total/overall count, ALWAYS use totalValidatedReports.',
+      description: 'Get recent validated flood reports from the live map. Can filter by barangay. Returns flood depth, road passability, location, time, riskScore/riskLevel per report, AND two counts: totalValidatedReports (GLOBAL total across ALL barangays on the live map — always use this when user asks how many reports total) and filteredCount (count for the filtered barangay only). When user asks for total/overall count, ALWAYS use totalValidatedReports. For riskiest/safest on the list, use riskScore/riskLevel from this tool output. IMPORTANT: If user says "my area" or "my barangay", use the logged-in user barangay filter only (never global total). If there are zero reports for that barangay, return no-data honestly. When the user refers to "that list", "those N reports", "among the recent validated", "which one on the list" — call this tool with NO barangay argument. Never inject a barangay from conversation history unless the user explicitly types the barangay name in their current message.',
       parameters: {
         type: 'object',
         properties: {
@@ -220,6 +220,29 @@ function passabilityLabel(passability) {
   return labels[passability] || passability;
 }
 
+function reportRiskScore(report) {
+  const depthScores = {
+    Ankle: 1,
+    Knee: 2,
+    Waist: 3,
+    Chest: 4
+  };
+  const passabilityScores = {
+    Passable: 0,
+    HeavyOnly: 1,
+    NotPassable: 2
+  };
+
+  return (depthScores[report.depth] || 0) + (passabilityScores[report.passability] || 0);
+}
+
+function reportRiskLevel(score) {
+  if (score >= 6) return 'CRITICAL';
+  if (score >= 4) return 'HIGH';
+  if (score >= 3) return 'MEDIUM';
+  return 'LOW';
+}
+
 async function handleQueryEvacuationCenters({ barangay }) {
   const query = { category: 'evacuation_center', isActive: true };
   if (barangay) query.barangay = new RegExp(barangay, 'i');
@@ -298,6 +321,8 @@ async function handleQueryRecentReports({ barangay, limit = 5 }) {
   if (reports.length === 0) {
     return JSON.stringify({
       found: 0,
+      queryScope: barangay ? 'barangay' : 'global',
+      scopeBarangay: barangay || null,
       filteredCount: 0,
       totalValidatedReports: globalTotal,
       message: barangay
@@ -308,11 +333,16 @@ async function handleQueryRecentReports({ barangay, limit = 5 }) {
 
   return JSON.stringify({
     found: reports.length,
+    queryScope: barangay ? 'barangay' : 'global',
+    scopeBarangay: barangay || null,
     filteredCount,
     totalValidatedReports: globalTotal,
     note: barangay ? `filteredCount is for ${barangay} only. totalValidatedReports is the GLOBAL total across ALL barangays on the live flood map.` : undefined,
     reports: reports.map(r => ({
+      riskScore: reportRiskScore(r),
+      riskLevel: reportRiskLevel(reportRiskScore(r)),
       barangay: r.barangay,
+      address: r.location?.address || null,
       depth: r.depth,
       depthLabel: depthLabel(r.depth),
       passability: r.passability,
