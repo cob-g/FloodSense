@@ -53,7 +53,7 @@ export const toolDefinitions = [
     type: 'function',
     function: {
       name: 'queryRecentReports',
-      description: 'Get recent validated flood reports. Can filter by barangay. Returns flood depth, road passability, location, and time.',
+      description: 'Get recent validated flood reports from the live map. Can filter by barangay. Returns flood depth, road passability, location, time AND two counts: totalValidatedReports (GLOBAL total across ALL barangays on the live map — always use this when user asks how many reports total) and filteredCount (count for the filtered barangay only). When user asks for total/overall count, ALWAYS use totalValidatedReports.',
       parameters: {
         type: 'object',
         properties: {
@@ -200,6 +200,26 @@ function toPST(date) {
   });
 }
 
+
+function depthLabel(depth) {
+  const labels = {
+    Ankle: 'Ankle-deep (CAUTION: slippery, strong currents possible)',
+    Knee: 'Knee-deep (DANGEROUS: difficult to walk, avoid if possible)',
+    Waist: 'Waist-deep (VERY DANGEROUS: high risk of being swept away)',
+    Chest: 'Chest-deep (LIFE-THREATENING: evacuate immediately)'
+  };
+  return labels[depth] || depth;
+}
+
+function passabilityLabel(passability) {
+  const labels = {
+    Passable: 'Passable - road can be used with caution',
+    HeavyOnly: 'Heavy vehicles only - unsuitable for regular vehicles',
+    NotPassable: 'NOT PASSABLE - road is too dangerous to cross'
+  };
+  return labels[passability] || passability;
+}
+
 async function handleQueryEvacuationCenters({ barangay }) {
   const query = { category: 'evacuation_center', isActive: true };
   if (barangay) query.barangay = new RegExp(barangay, 'i');
@@ -268,14 +288,18 @@ async function handleQueryRecentReports({ barangay, limit = 5 }) {
   const query = { status: 'VALIDATED' };
   if (barangay) query.barangay = new RegExp(barangay, 'i');
 
-  const reports = await Report.find(query)
-    .sort({ createdAt: -1 })
-    .limit(safeLimit)
-    .lean();
+  // Always fetch global total separately — never filter it by barangay
+  const [reports, filteredCount, globalTotal] = await Promise.all([
+    Report.find(query).sort({ createdAt: -1 }).limit(safeLimit).lean(),
+    Report.countDocuments(query),
+    Report.countDocuments({ status: 'VALIDATED' })
+  ]);
 
   if (reports.length === 0) {
     return JSON.stringify({
       found: 0,
+      filteredCount: 0,
+      totalValidatedReports: globalTotal,
       message: barangay
         ? `No validated flood reports found in ${barangay} recently.`
         : 'No validated flood reports found recently.'
@@ -284,10 +308,15 @@ async function handleQueryRecentReports({ barangay, limit = 5 }) {
 
   return JSON.stringify({
     found: reports.length,
+    filteredCount,
+    totalValidatedReports: globalTotal,
+    note: barangay ? `filteredCount is for ${barangay} only. totalValidatedReports is the GLOBAL total across ALL barangays on the live flood map.` : undefined,
     reports: reports.map(r => ({
       barangay: r.barangay,
       depth: r.depth,
+      depthLabel: depthLabel(r.depth),
       passability: r.passability,
+      passabilityLabel: passabilityLabel(r.passability),
       description: r.description || '',
       reportedAt: toPST(r.createdAt)
     }))
@@ -340,9 +369,25 @@ async function handleQuerySensorStatus({ sensorId }) {
     })
   );
 
+  // If every sensor has no readings, return a clear no-data message
+  const allNoReadings = sensorData.every(s => !s.latestReading || s.latestReading.message === 'No readings available');
+  if (allNoReadings) {
+    return JSON.stringify({
+      found: 0,
+      message: sensorData.length === 1
+        ? `Sensor "${sensorData[0].location}" is registered but has no readings yet. No live water level data is available.`
+        : `${sensorData.length} sensors are registered but none have any readings yet. No live water level data is available at this time.`
+    });
+  }
+
+  // Only return sensors that actually have readings
+  const sensorsWithReadings = sensorData.filter(s => s.latestReading && s.latestReading.message !== 'No readings available');
+  const noReadingCount = sensorData.length - sensorsWithReadings.length;
+
   return JSON.stringify({
-    found: sensorData.length,
-    sensors: sensorData
+    found: sensorsWithReadings.length,
+    sensors: sensorsWithReadings,
+    ...(noReadingCount > 0 && { note: `${noReadingCount} sensor(s) have no readings yet.` })
   });
 }
 
@@ -401,7 +446,9 @@ async function handleQueryUserReports({ limit = 5 }, user) {
     reports: reports.map(r => ({
       barangay: r.barangay,
       depth: r.depth,
+      depthLabel: depthLabel(r.depth),
       passability: r.passability,
+      passabilityLabel: passabilityLabel(r.passability),
       description: r.description || 'No description',
       status: r.status,
       submittedAt: toPST(r.createdAt),
@@ -463,15 +510,15 @@ async function handleQueryAreaRisk({ barangay }) {
   let explanation = '';
   let recommendations = [];
 
-  // Count reports by severity
-  const criticalReports = recentReports.filter(r => 
-    r.depth === 'CHEST_DEEP' || r.depth === 'WAIST_DEEP'
+  // Count reports by severity (depth enum values: 'Chest', 'Waist', 'Knee', 'Ankle')
+  const criticalReports = recentReports.filter(r =>
+    r.depth === 'Chest' || r.depth === 'Waist'
   ).length;
-  const moderateReports = recentReports.filter(r => 
-    r.depth === 'KNEE_DEEP'
+  const moderateReports = recentReports.filter(r =>
+    r.depth === 'Knee'
   ).length;
-  const minorReports = recentReports.filter(r => 
-    r.depth === 'ANKLE_DEEP'
+  const minorReports = recentReports.filter(r =>
+    r.depth === 'Ankle'
   ).length;
 
   // Determine risk level

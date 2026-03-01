@@ -1,9 +1,37 @@
 import { Link } from 'react-router-dom';
+import { Droplets } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="bg-[#c54914] border-t border-white/10 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <footer className="relative border-t border-white/10 py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      {/* Background matching navbar */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(135deg, #c54914 0%, #7a2200 55%, #3a0e00 100%)',
+        }}
+      >
+        {/* Decorative blobs */}
+        <div style={{
+          position: 'absolute', top: '-60px', right: '-60px',
+          width: '260px', height: '260px', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.06)',
+        }} />
+        <div style={{
+          position: 'absolute', bottom: '-50px', left: '-50px',
+          width: '200px', height: '200px', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.04)',
+        }} />
+        {/* Watermark droplet icon */}
+        <div style={{
+          position: 'absolute', bottom: '24px', right: '32px',
+          opacity: 0.08,
+        }}>
+          <Droplets size={120} strokeWidth={1} color="white" />
+        </div>
+      </div>
+
+      <div className="relative max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center space-x-3 mb-4 group">

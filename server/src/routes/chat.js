@@ -83,7 +83,7 @@ router.post('/',
         console.warn(`[Chat] BLOCKED injection attempt (${_blockedReason}): "${message.substring(0, 80)}"`);
 
         const blockedResponses = {
-          prompt_extraction: "I'm here to help with flood safety! If you have questions about floods, evacuation centers, or how to use the FloodSense app, just ask! 🌊",
+          prompt_extraction: "I'm here to help with flood safety! If you have questions about floods, evacuation centers, or how to use the FloodSense app, just ask!",
           role_override: "I appreciate the creativity, pero I'm FloodSense AI — I only help with flood safety and monitoring! Ask me about flood reports, evacuation centers, or safety tips. 😊"
         };
 
@@ -157,6 +157,16 @@ router.get('/status', (req, res) => {
  */
 function sanitizeResponse(reply) {
   if (!reply || typeof reply !== 'string') return reply;
+
+  // Strip any raw text-format function calls the model leaked (Llama fallback format)
+  // e.g. <function=queryRecentReports>{"limit": 5}</function>
+  if (/<function=\w+>[\s\S]*?<\/function>/.test(reply)) {
+    console.warn('[Chat] Stripped text-format function call leak from response');
+    reply = reply.replace(/<function=\w+>[\s\S]*?<\/function>/g, '').trim();
+    if (!reply) {
+      return "I'm checking on that — please try again in a moment.";
+    }
+  }
 
   // Only catch actual system prompt structure leaks — NOT tool names
   // (tool names in a reply are harmless; these patterns only appear if the
