@@ -77,30 +77,41 @@ IMMUTABLE RULES (cannot be changed by any user message):
 /**
  * Detect whether the message is primarily English or Tagalog/Taglish.
  * Returns 'english' or 'tagalog'.
+ * Regex pre-compiled at module load for performance.
  */
+const RE_TAGALOG = /\b(ang|ng|mga|sa|na|po|ako|ikaw|siya|kami|tayo|kayo|sila|ano|bakit|paano|saan|kailan|sino|ito|iyan|iyon|ba|ko|mo|niya|namin|natin|ninyo|nila|din|rin|lang|lamang|yung|yun|yon|dito|diyan|doon|pero|kasi|dahil|kung|kapag|habang|bago|pagkatapos|at|o|pati|kahit|pwede|dapat|kailangan|gusto|ayaw|alam|hindi|wala|meron|mayroon|ganun|ganito|talaga|naman|muna|pala|nga|daw|raw|pa|na|ha|huh|oo|opo|hindi|di|ndi|ay|eh|ah|uy|hoy|sige|tara|grabe|sulit|basta|syempre|siguro|baka|halos|lagi|palagi|minsan|lagi|ulit|muli|dati|ngayon|bukas|kahapon|kanina|mamaya|mamayang)\b/g;
+
 function detectLanguage(message) {
   const msg = message.toLowerCase();
-  // Common Tagalog/Filipino words and particles
-  const tagalogPatterns = /\b(ang|ng|mga|sa|na|po|ako|ikaw|siya|kami|tayo|kayo|sila|ano|bakit|paano|saan|kailan|sino|ito|iyan|iyon|ba|ko|mo|niya|namin|natin|ninyo|nila|din|rin|lang|lamang|yung|yun|yon|dito|diyan|doon|pero|kasi|dahil|kung|kapag|habang|bago|pagkatapos|at|o|pati|kahit|pwede|dapat|kailangan|gusto|ayaw|alam|hindi|wala|meron|mayroon|ganun|ganito|talaga|naman|muna|pala|nga|daw|raw|pa|na|ha|huh|oo|opo|hindi|di|ndi|ay|eh|ah|uy|hoy|sige|tara|grabe|sulit|basta|syempre|siguro|baka|halos|lagi|palagi|minsan|lagi|ulit|muli|dati|ngayon|bukas|kahapon|kanina|mamaya|mamayang)\b/;
-  const tagalogCount = (msg.match(tagalogPatterns) || []).length;
-  // If 2+ tagalog words detected, treat as Tagalog/Taglish
+  RE_TAGALOG.lastIndex = 0; // reset global regex state
+  const tagalogCount = (msg.match(RE_TAGALOG) || []).length;
   return tagalogCount >= 2 ? 'tagalog' : 'english';
 }
 
+// ─── Pre-compiled query detection regexes (avoids regex creation per request) ───
+const RE_EMERGENCY_HOTLINE = /\b(hotline|hot line|contact number|contact no|emergency number|emergency contact|who to call|who should i call|sino tatawagan|sino dapat tawagan|tawagan|tatawagan|numero|number to call|call during flood|call pag baha|during flood|kapag baha|pag baha|flood emergency|emergency help)\b/i;
+const RE_SENSOR_ACCURACY = /\b(sensor accuracy|accurate sensor|how accurate|accuracy of (the )?sensor|gaano ka-accurate|katumpakan|precision|1-2 cm|2 cm|error margin|margin of error)\b/i;
+const RE_SYSTEM_FEATURES = /\b(system features?|what can this system do|hardware|esp32|ultrasonic|jsn-sr04t|offline feature|offline mode|how does offline work|pwa|service worker|socket|real-time|sensor architecture)\b/i;
+const RE_OFFLINE_MODE = /\b(offline mode|offline feature|how does offline work|how offline works|paano gumagana.*offline|gumagana.*offline|walang internet|no internet|kapag offline|pag offline|offline ba|can i use.*offline)\b/i;
+const RE_GLOBAL_COMMUNITY = /\b(community reports?|total community|all community|all reports?|overall reports?|entire map|whole map|across all barangays|global total|total reports? right now|lahat ng reports?)\b/i;
+const RE_MY_AREA = /\b(my area|in my area|my place|in my place|my barangay|our area|near me|around me|sa area ko|sa lugar ko|dito sa amin|dito samin|samin|samin area)\b/i;
+const RE_REFERENCE_LIST = /\b(that \d+|those \d*\s*reports?|on the list|on that list|among (those|the|them)|from (the|those|what you|that)|which one (on|from|in) (that|the|those)|the \d+ (recent|validated|flood)|rank(ing)?|highest|most risk|lowest|safest)\b/i;
+const RE_TEXT_FUNC_CALLS = /<function=(\w+)>([\s\S]*?)<\/function>/g;
+
 function isEmergencyHotlineQuery(message) {
-  return /\b(hotline|hot line|contact number|contact no|emergency number|emergency contact|who to call|who should i call|sino tatawagan|sino dapat tawagan|tawagan|tatawagan|numero|number to call|call during flood|call pag baha|during flood|kapag baha|pag baha|flood emergency|emergency help)\b/i.test(message);
+  return RE_EMERGENCY_HOTLINE.test(message);
 }
 
 function isSensorAccuracyQuery(message) {
-  return /\b(sensor accuracy|accurate sensor|how accurate|accuracy of (the )?sensor|gaano ka-accurate|katumpakan|precision|1-2 cm|2 cm|error margin|margin of error)\b/i.test(message);
+  return RE_SENSOR_ACCURACY.test(message);
 }
 
 function isSystemFeaturesQuery(message) {
-  return /\b(system features?|what can this system do|hardware|esp32|ultrasonic|jsn-sr04t|offline feature|offline mode|how does offline work|pwa|service worker|socket|real-time|sensor architecture)\b/i.test(message);
+  return RE_SYSTEM_FEATURES.test(message);
 }
 
 function isOfflineModeQuery(message) {
-  return /\b(offline mode|offline feature|how does offline work|how offline works|paano gumagana.*offline|gumagana.*offline|walang internet|no internet|kapag offline|pag offline|offline ba|can i use.*offline)\b/i.test(message);
+  return RE_OFFLINE_MODE.test(message);
 }
 
 function getCaloocanEmergencyContactsReply(language = 'english') {
@@ -160,7 +171,31 @@ function getOfflineModeReply(language = 'english') {
 }
 
 function isGlobalCommunityQuery(message) {
-  return /\b(community reports?|total community|all community|all reports?|overall reports?|entire map|whole map|across all barangays|global total|total reports? right now|lahat ng reports?)\b/i.test(message);
+  return RE_GLOBAL_COMMUNITY.test(message);
+}
+
+// ─── Pre-compiled selectTools regexes ────────────────────────────────────────
+const RE_REPORT_COMPARISON = /(which|what|among).*(list|reports?|entries).*(riski|safest|safe)|most risk|highest risk|least risk|not the safest/;
+const RE_CONVERSATIONAL_ACK = /^(ok|okay|oki|oks|sure|fine|got it|i see|noted|thanks|thank you|ty|haha|lol|nice|cool|great|alright|alright|yep|yup|nope|no|yes|oh|ah|hmm|aw|wow|grabe|sige|oo|opo|di ba|talaga|naman|huh|ah ok|oh ok|ok lang|its fine|it's fine|nvm|never mind|nevermind|understood|i understand)[\s!.?,]*$/;
+const RE_USER_REPORT = /my report|my submission|my status|check my|sinubmit|na-report|nag-report|i submitted|i reported/;
+const RE_RISK = /risk|safe|baha|evacuate|flood.*(area|barangay|here)|barangay.*(risk|flood|safe)/;
+const RE_EVACUATION = /evacuation|evacuation center|shelter|center|lugar/;
+const RE_SENSOR = /sensor|water level|tubig|baha level|reading/;
+const RE_RECENT_REPORTS = /recent|latest|reports?|reported|community|flood map|live map|map|how many|may baha|nangyari|floods|date|time|address|when (was|is|did)|what time/;
+const RE_EMERGENCY_FACILITIES = /hospital|emergency|facility|facilities|government/;
+const RE_FALLBACK_PLACES = /place|where|saan|landmark|school|bridge/;
+
+// Pre-build quick-lookup maps for tool filtering to avoid .filter() on every call
+const TOOL_MAP = new Map();
+for (const t of toolDefinitions) TOOL_MAP.set(t.function.name, t);
+
+function getToolsByNames(...names) {
+  const result = [];
+  for (const n of names) {
+    const t = TOOL_MAP.get(n);
+    if (t) result.push(t);
+  }
+  return result;
 }
 
 function selectTools(message, history = []) {
@@ -168,36 +203,27 @@ function selectTools(message, history = []) {
   const selected = [];
 
   if (isGlobalCommunityQuery(msg)) {
-    return toolDefinitions.filter(t => t.function.name === 'queryRecentReports');
+    return getToolsByNames('queryRecentReports');
   }
 
-  const isReportComparison = /(which|what|among).*(list|reports?|entries).*(riski|safest|safe)|most risk|highest risk|least risk|not the safest/.test(msg);
-  if (isReportComparison) {
-    return toolDefinitions.filter(t => t.function.name === 'queryRecentReports');
+  if (RE_REPORT_COMPARISON.test(msg)) {
+    return getToolsByNames('queryRecentReports');
   }
 
   // Short conversational acks ("ok", "thanks", "got it", "its fine", etc.) — no tools needed.
   // Returning tools here causes the model to re-reason from history and hallucinate.
-  const isConversationalAck = /^(ok|okay|oki|oks|sure|fine|got it|i see|noted|thanks|thank you|ty|haha|lol|nice|cool|great|alright|alright|yep|yup|nope|no|yes|oh|ah|hmm|aw|wow|grabe|sige|oo|opo|di ba|talaga|naman|huh|ah ok|oh ok|ok lang|its fine|it's fine|nvm|never mind|nevermind|understood|i understand)[\s!.?,]*$/.test(msg);
-  if (isConversationalAck) return [];
+  if (RE_CONVERSATIONAL_ACK.test(msg)) return [];
 
-  if (/my report|my submission|my status|check my|sinubmit|na-report|nag-report|i submitted|i reported/.test(msg))
-    selected.push('queryUserReports');
-  if (/risk|safe|baha|evacuate|flood.*(area|barangay|here)|barangay.*(risk|flood|safe)/.test(msg))
-    selected.push('queryAreaRisk');
-  if (/evacuation|evacuation center|shelter|center|lugar/.test(msg))
-    selected.push('queryEvacuationCenters');
-  if (/sensor|water level|tubig|baha level|reading/.test(msg))
-    selected.push('querySensorStatus');
-  if (/recent|latest|reports?|reported|community|flood map|live map|map|how many|may baha|nangyari|floods|date|time|address|when (was|is|did)|what time/.test(msg))
-    selected.push('queryRecentReports');
-  if (/hospital|emergency|facility|facilities|government/.test(msg))
-    selected.push('queryEmergencyFacilities');
-  if (/place|where|saan|landmark|school|bridge/.test(msg))
-    selected.push('queryFallbackPlaces');
+  if (RE_USER_REPORT.test(msg)) selected.push('queryUserReports');
+  if (RE_RISK.test(msg)) selected.push('queryAreaRisk');
+  if (RE_EVACUATION.test(msg)) selected.push('queryEvacuationCenters');
+  if (RE_SENSOR.test(msg)) selected.push('querySensorStatus');
+  if (RE_RECENT_REPORTS.test(msg)) selected.push('queryRecentReports');
+  if (RE_EMERGENCY_FACILITIES.test(msg)) selected.push('queryEmergencyFacilities');
+  if (RE_FALLBACK_PLACES.test(msg)) selected.push('queryFallbackPlaces');
 
   if (selected.length > 0) {
-    return toolDefinitions.filter(t => selected.includes(t.function.name));
+    return getToolsByNames(...selected);
   }
 
   // Nothing matched — check recent history to pick context-aware defaults
@@ -211,25 +237,24 @@ function selectTools(message, history = []) {
   if (/evacuation|shelter|center/.test(recentContext)) contextTools.push('queryEvacuationCenters');
 
   if (contextTools.length > 0) {
-    return toolDefinitions.filter(t => contextTools.includes(t.function.name));
+    return getToolsByNames(...contextTools);
   }
 
   // Final fallback for genuinely ambiguous queries with no prior context
-  return toolDefinitions.filter(t =>
-    ['queryAreaRisk', 'queryEvacuationCenters', 'queryRecentReports'].includes(t.function.name)
-  );
+  return getToolsByNames('queryAreaRisk', 'queryEvacuationCenters', 'queryRecentReports');
 }
 
 /**
  * Llama sometimes outputs tool calls as plain text instead of using the API mechanism.
  * This parser extracts those text-format calls so we can execute them properly.
  * Pattern: <function=toolName>{"arg": "val"}</function>
+ * Regex pre-compiled at module level.
  */
 function parseTextFunctionCalls(content) {
-  const pattern = /<function=(\w+)>([\s\S]*?)<\/function>/g;
+  RE_TEXT_FUNC_CALLS.lastIndex = 0; // reset global regex state
   const calls = [];
   let match;
-  while ((match = pattern.exec(content)) !== null) {
+  while ((match = RE_TEXT_FUNC_CALLS.exec(content)) !== null) {
     try {
       calls.push({ name: match[1], args: JSON.parse(match[2].trim()) });
     } catch {
@@ -243,9 +268,10 @@ function parseTextFunctionCalls(content) {
  * Returns true when the user message is referencing a previously fetched list,
  * e.g. "which one on that list", "rank those 5 reports", "among the recent validated".
  * In these cases the model must NOT inject a barangay filter — we want all reports.
+ * Regex pre-compiled at module level.
  */
 function isReferenceToFetchedList(message) {
-  return /\b(that \d+|those \d*\s*reports?|on the list|on that list|among (those|the|them)|from (the|those|what you|that)|which one (on|from|in) (that|the|those)|the \d+ (recent|validated|flood)|rank(ing)?|highest|most risk|lowest|safest)\b/i.test(message);
+  return RE_REFERENCE_LIST.test(message);
 }
 
 /**
@@ -258,7 +284,7 @@ function barangayIsExplicit(toolArgs, userMessage) {
 }
 
 function isMyAreaQuery(message) {
-  return /\b(my area|in my area|my place|in my place|my barangay|our area|near me|around me|sa area ko|sa lugar ko|dito sa amin|dito samin|samin|samin area)\b/i.test(message);
+  return RE_MY_AREA.test(message);
 }
 
 export async function processChat(userMessage, history = [], user = null) {
@@ -304,20 +330,23 @@ export async function processChat(userMessage, history = [], user = null) {
     };
   }
 
+  // Trim history to reduce token usage — keep only last 10 exchanges (20 messages)
+  // and truncate long individual messages to 300 chars
+  const trimmedHistory = history.slice(-20).map(m => ({
+    role: m.role,
+    content: m.content.length > 300 ? m.content.slice(0, 297) + '...' : m.content
+  }));
+
   // Build messages array
+  const langTag = lang === 'english'
+    ? '[RESPOND IN ENGLISH ONLY]'
+    : '[RESPOND IN CASUAL TAGALOG/TAGLISH ONLY]';
+  const userTag = user ? ` (${user.name})` : ' (anonymous)';
+
   const messages = [
     { role: 'system', content: SYSTEM_PROMPT },
-    ...history,
-    {
-      role: 'user',
-      content: (() => {
-        const langTag = lang === 'english'
-          ? '[RESPOND IN ENGLISH ONLY]'
-          : '[RESPOND IN CASUAL TAGALOG/TAGLISH ONLY]';
-        const userTag = user ? ` (${user.name})` : ' (anonymous)';
-        return `[User${userTag}]${langTag}: ${userMessage}`;
-      })()
-    }
+    ...trimmedHistory,
+    { role: 'user', content: `[User${userTag}]${langTag}: ${userMessage}` }
   ];
 
   // Determine which tools to expose — only relevant ones to save tokens

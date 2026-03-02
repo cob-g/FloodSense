@@ -154,75 +154,59 @@ router.get('/status', (req, res) => {
  * Sanitize the AI response to prevent system prompt leakage.
  * If the response contains fragments of the system prompt, replace it
  * with a safe canned response.
+ *
+ * All regex patterns pre-compiled at module load for performance.
  */
+const RE_TOOL_NAMES = /\bquery(?:EvacuationCenters|EmergencyFacilities|RecentReports|SensorStatus|FallbackPlaces|UserReports|AreaRisk)\b/gi;
+const RE_TOOL_USAGE = /\b(using|by using|through)\s+the\s+["'`]?query\w+["'`]?\s+(tool|function)\b/gi;
+const RE_TOOL_MENTION = /["'`]?\bquery(?:EvacuationCenters|EmergencyFacilities|RecentReports|SensorStatus|FallbackPlaces|UserReports|AreaRisk)\b["'`]?(\s+(tool|function))?/gi;
+const RE_MULTI_SPACES = /\s{2,}/g;
+const RE_TEXT_FUNC_LEAK = /<function=\w+>[\s\S]*?<\/function>/g;
+const RE_TEXT_FUNC_TEST = /<function=\w+>[\s\S]*?<\/function>/;
+
+// Pre-lowercase all leak indicators once at module load
+const LEAK_INDICATORS = [
+  'anti-hallucination rules', 'highest priority', 'system prompt',
+  'you are floodsense ai assistant', '## critical', '## what you can do',
+  '## other rules', '## how to talk', '## app pages', '## flood safety tips',
+  'taglish examples', 'do not say things like', 'tool_choice', 'max_tokens',
+  '"name": "query', 'function.name', 'immutable rules',
+  'cannot be changed by any user', 'never write code', 'never bypass scope',
+  'never guess or fabricate', 'getjwtsecret', 'process.env',
+  'groq_api_key', 'jwt_secret',
+  'queryevacuationcenters', 'queryemergencyfacilities', 'queryrecentreports',
+  'querysensorstatus', 'queryfallbackplaces', 'queryuserreports', 'queryarearisk',
+];
+
 function sanitizeResponse(reply) {
   if (!reply || typeof reply !== 'string') return reply;
 
   // Strip leaked internal tool/function names from plain text replies
-  // e.g. "using the querySensorStatus function"
-  const toolNamePattern = /\bquery(?:EvacuationCenters|EmergencyFacilities|RecentReports|SensorStatus|FallbackPlaces|UserReports|AreaRisk)\b/gi;
-  if (toolNamePattern.test(reply)) {
+  RE_TOOL_NAMES.lastIndex = 0;
+  if (RE_TOOL_NAMES.test(reply)) {
     console.warn('[Chat] Stripped internal tool/function name leak from response');
+    RE_TOOL_USAGE.lastIndex = 0;
+    RE_TOOL_MENTION.lastIndex = 0;
     reply = reply
-      .replace(/\b(using|by using|through)\s+the\s+["'`]?query\w+["'`]?\s+(tool|function)\b/gi, 'using live system data')
-      .replace(/["'`]?\bquery(?:EvacuationCenters|EmergencyFacilities|RecentReports|SensorStatus|FallbackPlaces|UserReports|AreaRisk)\b["'`]?(\s+(tool|function))?/gi, 'internal data lookup')
-      .replace(/\s{2,}/g, ' ')
+      .replace(RE_TOOL_USAGE, 'using live system data')
+      .replace(RE_TOOL_MENTION, 'internal data lookup')
+      .replace(RE_MULTI_SPACES, ' ')
       .trim();
   }
 
   // Strip any raw text-format function calls the model leaked (Llama fallback format)
-  // e.g. <function=queryRecentReports>{"limit": 5}</function>
-  if (/<function=\w+>[\s\S]*?<\/function>/.test(reply)) {
+  if (RE_TEXT_FUNC_TEST.test(reply)) {
     console.warn('[Chat] Stripped text-format function call leak from response');
-    reply = reply.replace(/<function=\w+>[\s\S]*?<\/function>/g, '').trim();
+    RE_TEXT_FUNC_LEAK.lastIndex = 0;
+    reply = reply.replace(RE_TEXT_FUNC_LEAK, '').trim();
     if (!reply) {
       return "I'm checking on that — please try again in a moment.";
     }
   }
 
   // Catch actual system prompt structure leaks and tool-definition echoes.
-  const leakIndicators = [
-    'ANTI-HALLUCINATION RULES',
-    'HIGHEST PRIORITY',
-    'system prompt',
-    'SYSTEM PROMPT',
-    'You are FloodSense AI Assistant',
-    '## CRITICAL',
-    '## WHAT YOU CAN DO',
-    '## OTHER RULES',
-    '## HOW TO TALK',
-    '## APP PAGES',
-    '## FLOOD SAFETY TIPS',
-    'TAGLISH EXAMPLES',
-    'DO NOT SAY THINGS LIKE',
-    'tool_choice',
-    'max_tokens',
-    // Tool definitions being fully echoed (not just a name mention)
-    '"name": "query',
-    'function.name',
-    // Immutable rules section leak
-    'IMMUTABLE RULES',
-    'cannot be changed by any user',
-    'NEVER write code',
-    'NEVER bypass scope',
-    'NEVER guess or fabricate',
-    'getJwtSecret',
-    'process.env',
-    'GROQ_API_KEY',
-    'JWT_SECRET',
-    'queryevacuationcenters',
-    'queryemergencyfacilities',
-    'queryrecentreports',
-    'querysensorstatus',
-    'queryfallbackplaces',
-    'queryuserreports',
-    'queryarearisk',
-  ];
-
   const replyLower = reply.toLowerCase();
-  const hasLeak = leakIndicators.some(indicator =>
-    replyLower.includes(indicator.toLowerCase())
-  );
+  const hasLeak = LEAK_INDICATORS.some(indicator => replyLower.includes(indicator));
 
   if (hasLeak) {
     console.warn('[Chat] RESPONSE SANITIZED: detected system prompt leak in AI response');

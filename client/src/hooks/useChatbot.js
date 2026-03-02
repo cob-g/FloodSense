@@ -9,29 +9,41 @@ import chatService from '../services/chat.service';
 
 const MAX_HISTORY = 20; // Max messages to send as context
 
-const WELCOME_MESSAGE = {
-  role: 'assistant',
-  content: 'Hi! I\'m the FloodSense AI Assistant. I can help you with:\n\n• **Flood safety** tips and guidance\n• **Evacuation centers** and emergency facilities\n• **Current flood reports** in your area\n• **Sensor water levels** from IoT sensors\n• How to **use the FloodSense app**\n\nHow can I help you today?',
-  timestamp: new Date().toISOString()
-};
+// Monotonic ID counter for stable React keys (avoids array-index keys)
+let nextMsgId = 1;
+function createMessage(role, content, extra = {}) {
+  return {
+    id: nextMsgId++,
+    role,
+    content,
+    timestamp: new Date().toISOString(),
+    ...extra
+  };
+}
+
+const WELCOME_MESSAGE = createMessage(
+  'assistant',
+  'Hi! I\'m the FloodSense AI Assistant. I can help you with:\n\n• **Flood safety** tips and guidance\n• **Evacuation centers** and emergency facilities\n• **Current flood reports** in your area\n• **Sensor water levels** from IoT sensors\n• How to **use the FloodSense app**\n\nHow can I help you today?'
+);
 
 export const useChatbot = () => {
   const [messages, setMessages] = useState([WELCOME_MESSAGE]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const abortRef = useRef(false);
+  // Keep a ref to messages so sendMessage doesn't depend on the messages state
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
 
   /**
    * Send a message and receive AI response.
+   * Uses messagesRef instead of messages in the dependency array to avoid
+   * re-creating this callback on every message change (major perf win).
    */
   const sendMessage = useCallback(async (text) => {
     if (!text.trim() || isLoading) return;
 
-    const userMessage = {
-      role: 'user',
-      content: text.trim(),
-      timestamp: new Date().toISOString()
-    };
+    const userMessage = createMessage('user', text.trim());
 
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
@@ -40,7 +52,8 @@ export const useChatbot = () => {
 
     try {
       // Build history for context (exclude welcome message, limit to last N)
-      const history = [...messages, userMessage]
+      const currentMessages = messagesRef.current;
+      const history = [...currentMessages, userMessage]
         .filter(m => m.role === 'user' || (m.role === 'assistant' && m !== WELCOME_MESSAGE))
         .slice(-MAX_HISTORY)
         .map(({ role, content }) => ({ role, content }));
@@ -49,13 +62,10 @@ export const useChatbot = () => {
 
       if (abortRef.current) return; // User cleared chat while waiting
 
-      const assistantMessage = {
-        role: 'assistant',
-        content: result.reply,
-        timestamp: new Date().toISOString(),
+      const assistantMessage = createMessage('assistant', result.reply, {
         toolsUsed: result.toolsUsed || [],
         responseTime: result.responseTime
-      };
+      });
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (err) {
@@ -73,19 +83,17 @@ export const useChatbot = () => {
       // Add error as a system message
       setMessages(prev => [
         ...prev,
-        {
-          role: 'assistant',
-          content: errorMsg.includes('Too many')
+        createMessage('assistant',
+          errorMsg.includes('Too many')
             ? '⚠️ You\'re sending messages too quickly. Please wait a moment before trying again.'
             : '⚠️ Sorry, I encountered an error. Please try again.',
-          timestamp: new Date().toISOString(),
-          isError: true
-        }
+          { isError: true }
+        )
       ]);
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading]);
+  }, [isLoading]); // Only depends on isLoading, not messages
 
   /**
    * Clear conversation and reset to welcome message.

@@ -4,20 +4,20 @@
  * Handles message display, input, auto-scroll, and markdown-like formatting.
  */
 
-import { useState, useRef, useEffect, memo } from 'react';
+import { useState, useRef, useEffect, memo, useMemo, useCallback } from 'react';
 
 // ─── Message Bubble Component ────────────────────────────────────
 const ChatMessage = memo(({ message }) => {
   const isUser = message.role === 'user';
   const isError = message.isError;
 
-  // Simple markdown-like formatting for bold and bullet points
-  const formatContent = (text) => {
-    if (!text) return '';
+  // Memoize formatted content to avoid re-parsing on every render
+  const formattedLines = useMemo(() => {
+    const text = message.content;
+    if (!text) return [];
 
-    return text.split('\n').map((line, i) => {
+    return text.split('\n').map((line, i, arr) => {
       // Bold text: **text**
-      
       const parts = line.split(/(\*\*[^*]+\*\*)/g);
       const formatted = parts.map((part, j) => {
         if (part.startsWith('**') && part.endsWith('**')) {
@@ -43,11 +43,11 @@ const ChatMessage = memo(({ message }) => {
       return (
         <span key={i}>
           {formatted}
-          {i < text.split('\n').length - 1 && <br />}
+          {i < arr.length - 1 && <br />}
         </span>
       );
     });
-  };
+  }, [message.content]);
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3 animate-fade-in`}>
@@ -61,7 +61,7 @@ const ChatMessage = memo(({ message }) => {
         }`}
       >
         <div className="whitespace-pre-wrap break-words">
-          {formatContent(message.content)}
+          {formattedLines}
         </div>
         {message.responseTime && !isUser && (
           <div className="text-[10px] text-gray-500 mt-1.5 text-right">
@@ -125,10 +125,10 @@ const ChatWindow = ({ messages, isLoading, onSend, onClear, onClose }) => {
     }
   };
 
-  const handleQuickAction = (msg) => {
+  const handleQuickAction = useCallback((msg) => {
     if (isLoading) return;
     onSend(msg);
-  };
+  }, [isLoading, onSend]);
 
   const showQuickActions = messages.length <= 1; // Only show on first interaction
 
@@ -174,8 +174,8 @@ const ChatWindow = ({ messages, isLoading, onSend, onClear, onClose }) => {
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1 min-h-[300px] max-h-[400px] scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent bg-[#16161e]">
-        {messages.map((msg, i) => (
-          <ChatMessage key={i} message={msg} />
+        {messages.map((msg) => (
+          <ChatMessage key={msg.id} message={msg} />
         ))}
 
         {isLoading && <TypingIndicator />}

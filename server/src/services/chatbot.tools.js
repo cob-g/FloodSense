@@ -10,6 +10,39 @@ import Report from '../models/Report.js';
 import Sensor from '../models/Sensor.js';
 import SensorData from '../models/SensorData.js';
 
+// ─── Tool Result Cache ──────────────────────────────────────────
+// Short-lived cache (30s TTL) to avoid redundant DB queries within the same
+// conversation turn or rapid repeated questions. Safe because flood data
+// doesn't change second-by-second.
+const toolCache = new Map();
+const TOOL_CACHE_TTL = 30 * 1000; // 30 seconds
+
+function getCacheKey(toolName, args) {
+  return `${toolName}:${JSON.stringify(args)}`;
+}
+
+function getCached(key) {
+  const entry = toolCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > TOOL_CACHE_TTL) {
+    toolCache.delete(key);
+    return null;
+  }
+  return entry.value;
+}
+
+function setCache(key, value) {
+  toolCache.set(key, { value, ts: Date.now() });
+}
+
+// Periodic cleanup every 2 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of toolCache) {
+    if (now - entry.ts > TOOL_CACHE_TTL) toolCache.delete(key);
+  }
+}, 2 * 60 * 1000);
+
 /**
  * Tool definitions for Groq function calling.
  * These are sent to the model so it knows what tools are available.
@@ -154,24 +187,47 @@ export const toolDefinitions = [
  */
 export async function executeTool(toolName, args, user = null) {
   try {
+    // User-specific queries bypass cache (different results per user)
+    const isUserSpecific = toolName === 'queryUserReports';
+    const cacheKey = isUserSpecific ? null : getCacheKey(toolName, args);
+
+    if (cacheKey) {
+      const cached = getCached(cacheKey);
+      if (cached) {
+        console.log(`[ChatTools] Cache hit for ${toolName}`);
+        return cached;
+      }
+    }
+
+    let result;
     switch (toolName) {
       case 'queryEvacuationCenters':
-        return await handleQueryEvacuationCenters(args);
+        result = await handleQueryEvacuationCenters(args);
+        break;
       case 'queryEmergencyFacilities':
-        return await handleQueryEmergencyFacilities(args);
+        result = await handleQueryEmergencyFacilities(args);
+        break;
       case 'queryRecentReports':
-        return await handleQueryRecentReports(args);
+        result = await handleQueryRecentReports(args);
+        break;
       case 'querySensorStatus':
-        return await handleQuerySensorStatus(args);
+        result = await handleQuerySensorStatus(args);
+        break;
       case 'queryFallbackPlaces':
-        return await handleQueryFallbackPlaces(args);
+        result = await handleQueryFallbackPlaces(args);
+        break;
       case 'queryUserReports':
-        return await handleQueryUserReports(args, user);
+        result = await handleQueryUserReports(args, user);
+        break;
       case 'queryAreaRisk':
-        return await handleQueryAreaRisk(args);
+        result = await handleQueryAreaRisk(args);
+        break;
       default:
         return JSON.stringify({ error: `Unknown tool: ${toolName}` });
     }
+
+    if (cacheKey) setCache(cacheKey, result);
+    return result;
   } catch (error) {
     console.error(`[ChatTools] Error executing ${toolName}:`, error);
     return JSON.stringify({
@@ -371,7 +427,7 @@ async function handleQuerySensorStatus({ sensorId }) {
     });
   }
 
-  // Get latest reading for each sensor
+  // Get latest reading for each sensor — all in parallel (not sequential)
   const sensorData = await Promise.all(
     sensors.map(async (sensor) => {
       const latest = await SensorData.findOne({ sensorId: sensor.sensorId })
@@ -509,7 +565,7 @@ async function handleQueryAreaRisk({ barangay }) {
   .limit(20)
   .lean();
 
-  // Get sensor readings in the area (last 30 minutes)
+  // Get sensor readings in the area (last 30 minutes) — parallelized
   const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000);
   const sensors = await Sensor.find({
     locationName: new RegExp(barangay, 'i')
@@ -518,17 +574,23 @@ async function handleQueryAreaRisk({ barangay }) {
   let highestWaterLevel = 0;
   let activeSensors = 0;
 
-  for (const sensor of sensors) {
-    const latestReading = await SensorData.findOne({
-      sensorId: sensor.sensorId,
-      timestamp: { $gte: thirtyMinsAgo }
-    })
-    .sort({ timestamp: -1 })
-    .lean();
+  // Fetch all sensor readings in parallel instead of sequentially
+  const sensorReadings = await Promise.all(
+    sensors.map(sensor =>
+      SensorData.findOne({
+        sensorId: sensor.sensorId,
+        timestamp: { $gte: thirtyMinsAgo }
+      })
+      .sort({ timestamp: -1 })
+      .lean()
+      .then(reading => ({ sensor, reading }))
+    )
+  );
 
-    if (latestReading && sensor.mountHeight) {
+  for (const { sensor, reading } of sensorReadings) {
+    if (reading && sensor.mountHeight) {
       activeSensors++;
-      const waterLevel = Math.max(0, sensor.mountHeight - latestReading.distance);
+      const waterLevel = Math.max(0, sensor.mountHeight - reading.distance);
       if (waterLevel > highestWaterLevel) {
         highestWaterLevel = waterLevel;
       }

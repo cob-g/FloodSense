@@ -145,16 +145,15 @@ export const RegisterPage = () => {
           {/* Bottom: Feature Pills */}
           <div className="relative z-10 space-y-2.5 mt-10">
             {[
-              { emoji: '🛰️', text: 'Live sensor data' },
-              { emoji: '🗺️', text: 'Interactive flood maps' },
-              { emoji: '🔔', text: 'Early warning alerts' },
-            ].map(({ emoji, text }) => (
+              'Live sensor data',
+              'Interactive flood maps',
+              'Early warning alerts',
+            ].map((text) => (
               <div
                 key={text}
                 className="flex items-center gap-3 rounded-2xl px-4 py-3 border border-white/15"
                 style={{ background: 'rgba(255,255,255,0.09)' }}
               >
-                <span className="text-xl leading-none">{emoji}</span>
                 <span className="text-white/80 text-sm font-semibold">{text}</span>
               </div>
             ))}
