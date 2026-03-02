@@ -125,13 +125,14 @@ export const AdminFallbacks = () => {
 
       <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full">   
             <thead className="bg-white/5 border-b border-white/10">
               <tr>
                 <th className="px-4 py-3 text-left text-sm text-white/70">Name</th>
                 <th className="px-4 py-3 text-left text-sm text-white/70">Barangay</th>
                 <th className="px-4 py-3 text-left text-sm text-white/70">Notes / Landmark</th>
                 <th className="px-4 py-3 text-left text-sm text-white/70">Actions</th>
+
               </tr>
             </thead>
             <tbody className="divide-y divide-white/10">
@@ -162,6 +163,8 @@ export const AdminFallbacks = () => {
           </table>
         </div>
       </div>
+
+
 
       {modalOpen && (
         <Modal onClose={()=>setModalOpen(false)}>
@@ -197,7 +200,7 @@ export const AdminFallbacks = () => {
                 <label className="block text-sm text-white/70 mb-1">Longitude</label>
                 <input type="number" step="any" value={form.lng} onChange={(e)=>setForm({...form, lng: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white" required />
               </div>
-              
+
               <div className="sm:col-span-2 flex justify-end gap-2 mt-2">
                 <button type="button" onClick={()=>setModalOpen(false)} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white">Cancel</button>
                 <button type="submit" disabled={createMut.isPending || updateMut.isPending} className="px-4 py-2 bg-accent-orange hover:bg-bright-orange text-space-black font-semibold rounded-lg">

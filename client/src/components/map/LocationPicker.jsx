@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '../../utils/constants';
+import {
+  DEFAULT_MAP_CENTER,
+  DEFAULT_MAP_ZOOM,
+  NORTH_CALOOCAN_BOUNDS,
+  NORTH_CALOOCAN_MIN_ZOOM,
+  NORTH_CALOOCAN_POLYGON,
+  isInNorthCaloocan,
+} from '../../utils/constants';
+import { BARANGAYS } from '../../utils/barangays';
+import { BARANGAY_NUMBERS } from '../../utils/barangay_numbers';
 
 // Fix Leaflet default marker icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -11,12 +20,19 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseMyLocation, showInMapButton = true }) => {
+export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseMyLocation, onLocatingChange, showInMapButton = true }) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
   const [selectedLocation, setSelectedLocation] = useState(initialLocation);
+  const handleUseCurrentLocationRef = useRef(null);
   const [loadingAddress, setLoadingAddress] = useState(false);
+  const [locating, setLocating] = useState(false);
+
+  const setLocatingState = (val) => {
+    setLocating(val);
+    onLocatingChange?.(val);
+  };
 
   useEffect(() => {
     // Initialize map
@@ -25,11 +41,65 @@ export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseM
         ? [initialLocation.lat, initialLocation.lng]
         : DEFAULT_MAP_CENTER;
 
-      mapInstanceRef.current = L.map(mapRef.current).setView(initialCenter, DEFAULT_MAP_ZOOM);
+      const bounds = L.latLngBounds(NORTH_CALOOCAN_BOUNDS);
+
+      mapInstanceRef.current = L.map(mapRef.current, {
+        maxBounds: bounds,
+        maxBoundsViscosity: 1.0, // hard wall — cannot pan outside
+        minZoom: NORTH_CALOOCAN_MIN_ZOOM,
+      }).setView(initialCenter, DEFAULT_MAP_ZOOM);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19,
+      }).addTo(mapInstanceRef.current);
+
+      // Faint overlay outside North Caloocan — uses actual irregular polygon boundary
+      const world = [[-90, -180], [-90, 180], [90, 180], [90, -180]];
+      L.polygon([world, NORTH_CALOOCAN_POLYGON], {
+        color: 'none',
+        fillColor: '#000',
+        fillOpacity: 0.25,
+        interactive: false,
+        pane: 'overlayPane',
+      }).addTo(mapInstanceRef.current);
+
+      // Colored inner barangay boundaries
+      if (BARANGAYS && BARANGAYS.length > 0) {
+        BARANGAYS.forEach(brgy => {
+          brgy.paths.forEach(path => {
+             L.polygon(path, {
+                fillColor: brgy.color,
+                fillOpacity: 0.55,
+                color: '#ffffff',
+                weight: 1.5,
+                opacity: 0.9,
+                interactive: false
+             }).addTo(mapInstanceRef.current);
+          });
+        });
+      }
+
+      // Drawn numbers inside barangays
+      if (BARANGAY_NUMBERS && BARANGAY_NUMBERS.length > 0) {
+        BARANGAY_NUMBERS.forEach(bnum => {
+            const icon = L.divIcon({
+               className: 'leaflet-barangay-number',
+               html: `<div style="font-weight: 700; font-size: 0.7rem; color: #404040; opacity: 0.8; font-style: italic; white-space: nowrap; transform: translate(-50%, -50%); pointer-events: none; font-family: sans-serif;">${bnum.text}</div>`,
+               iconSize: [0, 0] // the CSS translate will center the text exactly
+            });
+            L.marker([bnum.lat, bnum.lng], { icon: icon, interactive: false, zIndexOffset: -100 }).addTo(mapInstanceRef.current);
+        });
+      }
+
+      // Outline border of North Caloocan
+      L.polygon(NORTH_CALOOCAN_POLYGON, {
+        color: '#c54914',
+        weight: 2,
+        opacity: 0.7,
+        fillOpacity: 0,
+        interactive: false,
+        dashArray: '6 4',
       }).addTo(mapInstanceRef.current);
 
       // Add click handler
@@ -49,12 +119,18 @@ export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseM
     };
   }, []);
 
-  // Expose the 'Use My Location' handler to parent (if provided)
+  // Keep the ref up-to-date on every render so the registered callback always calls the latest version
+  useEffect(() => {
+    handleUseCurrentLocationRef.current = handleUseCurrentLocation;
+  });
+
+  // Expose the 'Use My Location' handler to parent — only register ONCE to avoid infinite re-render loop
   useEffect(() => {
     if (typeof registerUseMyLocation === 'function') {
-      registerUseMyLocation(() => handleUseCurrentLocation());
+      registerUseMyLocation(() => handleUseCurrentLocationRef.current?.());
     }
-  }, [registerUseMyLocation]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const addMarker = (lat, lng) => {
     // Remove existing marker
@@ -68,14 +144,20 @@ export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseM
 
   const handleMapClick = async (e) => {
     const { lat, lng } = e.latlng;
+
+    // Guard: reject clicks outside the actual North Caloocan polygon boundary
+    if (!isInNorthCaloocan(lat, lng)) {
+      return; // silently ignore clicks in corners of the bounding box outside the real boundary
+    }
+
     addMarker(lat, lng);
 
     setLoadingAddress(true);
     
-    // Reverse geocoding using Nominatim
+    // Reverse geocoding via backend proxy (avoids CORS block from browser)
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+        `/api/geocode/reverse?lat=${lat}&lng=${lng}`
       );
       const data = await response.json();
       
@@ -122,15 +204,34 @@ export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseM
       return;
     }
 
+    setLocatingState(true);
+
+    // enableHighAccuracy: true  — uses GPS/WiFi triangulation instead of IP-based
+    // maximumAge: 0             — never use a cached position, always fetch fresh
+    // timeout: 15000            — allow up to 15s before giving up (GPS can be slow indoors)
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        mapInstanceRef.current.setView([latitude, longitude], 16);
+        // Check if the user's actual GPS location is within the real North Caloocan polygon
+        if (!isInNorthCaloocan(latitude, longitude)) {
+          setLocatingState(false);
+          alert('Your current location is outside North Caloocan. Please select your location manually on the map.');
+          return;
+        }
+
+        mapInstanceRef.current.setView([latitude, longitude], 17);
         handleMapClick({ latlng: { lat: latitude, lng: longitude } });
+        setLocatingState(false);
       },
       (error) => {
-        alert('Unable to get your location: ' + error.message);
-      }
+        setLocatingState(false);
+        let msg = 'Unable to get your location.';
+        if (error.code === error.PERMISSION_DENIED) msg = 'Location access was denied. Please allow location permission in your browser settings.';
+        else if (error.code === error.POSITION_UNAVAILABLE) msg = 'Your location is currently unavailable. Try again or pick manually on the map.';
+        else if (error.code === error.TIMEOUT) msg = 'Location request timed out. Check your GPS/signal and try again.';
+        alert(msg);
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
     );
   };
 

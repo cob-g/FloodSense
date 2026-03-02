@@ -55,6 +55,8 @@ export const LoginPage = () => {
           <Droplets size={280} strokeWidth={0.6} color="white" />
         </div>
 
+        <div></div>
+
         {/* Top-left logo lockup */}
         <div className="relative z-10 flex items-center gap-2 px-7 pt-7">
           <img src="/logo.png" alt="FloodSense" className="w-14 h-14 drop-shadow-md" />

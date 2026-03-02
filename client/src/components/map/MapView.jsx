@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '../../utils/constants';
+import {
+  DEFAULT_MAP_CENTER,
+  DEFAULT_MAP_ZOOM,
+  NORTH_CALOOCAN_BOUNDS,
+  NORTH_CALOOCAN_MIN_ZOOM,
+  NORTH_CALOOCAN_POLYGON
+} from '../../utils/constants';
+import { BARANGAYS } from '../../utils/barangays';
+import { BARANGAY_NUMBERS } from '../../utils/barangay_numbers';
 import { Check, AlertTriangle, X, Satellite } from 'lucide-react';
 
 // Fix Leaflet default marker icon issue
@@ -37,10 +45,62 @@ export const MapView = ({
   useEffect(() => {
     // Initialize map
     if (!mapInstanceRef.current && mapRef.current) {
+      const bounds = L.latLngBounds(NORTH_CALOOCAN_BOUNDS);
+
       mapInstanceRef.current = L.map(mapRef.current, { 
         zoomControl: false,
-        attributionControl: false
+        attributionControl: false,
+        maxBounds: bounds,
+        maxBoundsViscosity: 0.85,
+        minZoom: NORTH_CALOOCAN_MIN_ZOOM,
       }).setView(center, zoom);
+
+      // Faint overlay outside North Caloocan — uses actual irregular polygon boundary
+      const world = [[-90, -180], [-90, 180], [90, 180], [90, -180]];
+      L.polygon([world, NORTH_CALOOCAN_POLYGON], {
+        color: 'none',
+        fillColor: '#000',
+        fillOpacity: 0.18,
+        interactive: false,
+      }).addTo(mapInstanceRef.current);
+
+      // Colored inner barangay boundaries
+      if (BARANGAYS && BARANGAYS.length > 0) {
+        BARANGAYS.forEach(brgy => {
+          brgy.paths.forEach(path => {
+             L.polygon(path, {
+                fillColor: brgy.color,
+                fillOpacity: 0.55,
+                color: '#ffffff',
+                weight: 1.5,
+                opacity: 0.9,
+                interactive: false
+             }).addTo(mapInstanceRef.current);
+          });
+        });
+      }
+
+      // Drawn numbers inside barangays
+      if (BARANGAY_NUMBERS && BARANGAY_NUMBERS.length > 0) {
+        BARANGAY_NUMBERS.forEach(bnum => {
+            const icon = L.divIcon({
+               className: 'leaflet-barangay-number',
+               html: `<div style="font-weight: 700; font-size: 0.7rem; color: #404040; opacity: 0.8; font-style: italic; white-space: nowrap; transform: translate(-50%, -50%); pointer-events: none; font-family: sans-serif;">${bnum.text}</div>`,
+               iconSize: [0, 0] // the CSS translate will center the text exactly
+            });
+            L.marker([bnum.lat, bnum.lng], { icon: icon, interactive: false, zIndexOffset: -100 }).addTo(mapInstanceRef.current);
+        });
+      }
+
+      // Outline border of North Caloocan
+      L.polygon(NORTH_CALOOCAN_POLYGON, {
+        color: '#c54914',
+        weight: 2,
+        opacity: 0.6,
+        fillOpacity: 0,
+        interactive: false,
+        dashArray: '6 4',
+      }).addTo(mapInstanceRef.current);
 
       // Add minimalist map tiles
       L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
@@ -334,7 +394,10 @@ export const MapView = ({
     });
     if (boundsPoints.length > 0) {
       const bounds = L.latLngBounds(boundsPoints);
-      mapInstanceRef.current.fitBounds(bounds, { padding: [60, 60], maxZoom: 15 });
+      mapInstanceRef.current.fitBounds(bounds, { padding: [60, 60], maxZoom: 16 });
+    } else {
+      // Default: always show North Caloocan
+      mapInstanceRef.current.fitBounds(L.latLngBounds(NORTH_CALOOCAN_BOUNDS), { padding: [20, 20] });
     }
   }, [reports, sensors, onMarkerClick]);
 
