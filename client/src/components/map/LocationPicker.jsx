@@ -54,41 +54,50 @@ export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseM
         maxZoom: 19,
       }).addTo(mapInstanceRef.current);
 
-      // Faint overlay outside North Caloocan — uses actual irregular polygon boundary
+      // Faint overlay outside North Caloocan
       const world = [[-90, -180], [-90, 180], [90, 180], [90, -180]];
       L.polygon([world, NORTH_CALOOCAN_POLYGON], {
         color: 'none',
         fillColor: '#000',
-        fillOpacity: 0.25,
+        fillOpacity: 0.18,
         interactive: false,
-        pane: 'overlayPane',
       }).addTo(mapInstanceRef.current);
 
-      // Colored inner barangay boundaries
+      // Barangay boundary lines only (no fill)
       if (BARANGAYS && BARANGAYS.length > 0) {
         BARANGAYS.forEach(brgy => {
           brgy.paths.forEach(path => {
-             L.polygon(path, {
-                fillColor: brgy.color,
-                fillOpacity: 0.55,
-                color: '#ffffff',
-                weight: 1.5,
-                opacity: 0.9,
-                interactive: false
-             }).addTo(mapInstanceRef.current);
+            L.polygon(path, {
+              fillOpacity: 0,
+              color: '#555555',
+              weight: 2,
+              opacity: 1,
+              interactive: false,
+            }).addTo(mapInstanceRef.current);
           });
         });
       }
 
-      // Drawn numbers inside barangays
+      // OSM-style barangay labels (deduplicated, with halo)
       if (BARANGAY_NUMBERS && BARANGAY_NUMBERS.length > 0) {
+        const groupMap = {};
+        (BARANGAYS || []).forEach(b => { if (b.name && b.group && !groupMap[b.name]) groupMap[b.name] = b.group; });
+        const seen = new Set();
         BARANGAY_NUMBERS.forEach(bnum => {
-            const icon = L.divIcon({
-               className: 'leaflet-barangay-number',
-               html: `<div style="font-weight: 700; font-size: 0.7rem; color: #404040; opacity: 0.8; font-style: italic; white-space: nowrap; transform: translate(-50%, -50%); pointer-events: none; font-family: sans-serif;">${bnum.text}</div>`,
-               iconSize: [0, 0] // the CSS translate will center the text exactly
-            });
-            L.marker([bnum.lat, bnum.lng], { icon: icon, interactive: false, zIndexOffset: -100 }).addTo(mapInstanceRef.current);
+          if (seen.has(bnum.text)) return;
+          seen.add(bnum.text);
+          const groupName = groupMap[bnum.text] || '';
+          const halo = '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 3px #fff';
+          const icon = L.divIcon({
+            className: '',
+            html: `<div style="pointer-events:none;text-align:center;transform:translate(-50%,-50%)">
+              <div style="font-size:11px;font-weight:600;font-style:italic;font-family:'Noto Sans',Arial,sans-serif;color:#3d3517;text-shadow:${halo};white-space:nowrap;line-height:1.3">Barangay ${bnum.text}</div>
+              ${groupName ? `<div style="font-size:9.5px;font-weight:400;font-style:italic;font-family:'Noto Sans',Arial,sans-serif;color:#5a4f2a;text-shadow:${halo};white-space:nowrap;line-height:1.2">${groupName.charAt(0) + groupName.slice(1).toLowerCase()}</div>` : ''}
+            </div>`,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0],
+          });
+          L.marker([bnum.lat, bnum.lng], { icon, interactive: false, zIndexOffset: 200 }).addTo(mapInstanceRef.current);
         });
       }
 
@@ -96,7 +105,7 @@ export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseM
       L.polygon(NORTH_CALOOCAN_POLYGON, {
         color: '#c54914',
         weight: 2,
-        opacity: 0.7,
+        opacity: 0.6,
         fillOpacity: 0,
         interactive: false,
         dashArray: '6 4',
