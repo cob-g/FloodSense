@@ -209,3 +209,7 @@ body {
 .bg-accent-orange { background-color: var(--color-accent-orange); }
 .bg-bright-orange { background-color: var(--color-bright-orange); }
 .bg-danger-red { background-color: #f44336; }
+
+/* Sileo toast viewport — raise above navbar (z-[2000]) */
+[data-sileo-viewport] { z-index: 3000 !important; }
+

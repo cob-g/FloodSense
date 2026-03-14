@@ -1,4 +1,5 @@
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../contexts/ToastContext';
 import { User, Mail, MapPin, Shield, Droplets, Clock, LogOut, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,12 +28,14 @@ const InfoRow = ({ icon: Icon, label, value, accent = false }) => (
 
 export const ProfilePage = () => {
   const { user, logout } = useAuth();
+  const toast = useToast();
   const navigate = useNavigate();
 
   const roleMeta = ROLE_META[user?.role] || ROLE_META.user;
 
   const handleLogout = async () => {
     await logout();
+    toast.info('Signed out successfully');
     navigate('/auth/login');
   };
 

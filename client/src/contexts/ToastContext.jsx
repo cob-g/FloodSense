@@ -1,7 +1,9 @@
-import { createContext, useContext, useState, useCallback } from 'react';
-import Toast from '../components/common/Toast';
+import { createContext, useContext, useCallback } from 'react';
+import { sileo } from 'sileo';
 
 const ToastContext = createContext(null);
+
+const FILL = '#1a0a00'; // deepest FloodSense brand dark — feels native to the system
 
 export const useToast = () => {
   const context = useContext(ToastContext);
@@ -12,36 +14,18 @@ export const useToast = () => {
 };
 
 export const ToastProvider = ({ children }) => {
-  const [toasts, setToasts] = useState([]);
-
-  const showToast = useCallback((message, type = 'info', duration = 3000) => {
-    const id = Date.now();
-    setToasts((prev) => [...prev, { id, message, type, duration }]);
+  const showToast = useCallback((message, type = 'info', description) => {
+    sileo[type]?.({ title: message, description, fill: FILL }) ?? sileo.info({ title: message, description, fill: FILL });
   }, []);
 
-  const removeToast = useCallback((id) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  }, []);
-
-  const success = useCallback((message, duration) => showToast(message, 'success', duration), [showToast]);
-  const error = useCallback((message, duration) => showToast(message, 'error', duration), [showToast]);
-  const warning = useCallback((message, duration) => showToast(message, 'warning', duration), [showToast]);
-  const info = useCallback((message, duration) => showToast(message, 'info', duration), [showToast]);
+  const success = useCallback((message, description) => sileo.success({ title: message, description, fill: FILL }), []);
+  const error   = useCallback((message, description) => sileo.error({   title: message, description, fill: FILL }), []);
+  const warning = useCallback((message, description) => sileo.warning({ title: message, description, fill: FILL }), []);
+  const info    = useCallback((message, description) => sileo.info({    title: message, description, fill: FILL }), []);
 
   return (
     <ToastContext.Provider value={{ showToast, success, error, warning, info }}>
       {children}
-      <div className="fixed top-20 right-4 z-[3000] space-y-3">
-        {toasts.map((toast) => (
-          <Toast
-            key={toast.id}
-            message={toast.message}
-            type={toast.type}
-            duration={toast.duration}
-            onClose={() => removeToast(toast.id)}
-          />
-        ))}
-      </div>
     </ToastContext.Provider>
   );
 };

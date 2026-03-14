@@ -6,6 +6,8 @@ import { queryClient } from './lib/queryClient'
 import { AuthProvider } from './contexts/AuthContext'
 import { SocketProvider } from './contexts/SocketContext'
 import { ToastProvider } from './contexts/ToastContext'
+import { Toaster } from 'sileo'
+import 'sileo/styles.css'
 import App from './App.jsx'
 import './index.css'
 import { registerSW } from './serviceWorkerRegistration'
@@ -18,6 +20,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <SocketProvider>
             <ToastProvider>
               <App />
+              <Toaster position="top-center" offset={{ top: 80 }} theme="light" options={{ duration: 5000 }}/>
             </ToastProvider>
           </SocketProvider>
         </AuthProvider>

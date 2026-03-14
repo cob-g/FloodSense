@@ -408,6 +408,15 @@ const FeedPage = () => {
           </div>
         </div>
 
+        {/* Toast Test Strip */}
+        <div className="mb-8 flex flex-wrap items-center gap-2 p-4 rounded-2xl border border-dashed border-gray-900/20 bg-white/50 backdrop-blur-sm">
+          <span className="text-xs font-bold text-gray-400 tracking-widest uppercase mr-2">Toast Preview</span>
+          <button onClick={() => toast.success('Report Submitted', 'Your flood report has been received and is under review.')} className="px-4 py-2 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-semibold hover:bg-green-100 active:scale-95 transition-all">✓ Success</button>
+          <button onClick={() => toast.error('Failed to Load', 'Could not fetch reports. Check your connection and try again.')} className="px-4 py-2 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-100 active:scale-95 transition-all">✕ Error</button>
+          <button onClick={() => toast.warning('Flood Alert', 'Water levels are rising in Barangay 1. Avoid low-lying areas.')} className="px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm font-semibold hover:bg-amber-100 active:scale-95 transition-all">⚠ Warning</button>
+          <button onClick={() => toast.info('Sensor Update', 'New sensor data is available for North Caloocan area.')} className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm font-semibold hover:bg-blue-100 active:scale-95 transition-all">ℹ Info</button>
+        </div>
+
         {/* Interactive Navigation Tabs */}
         <div className="mb-10">
           <div className="flex flex-wrap gap-3 bg-white/5 backdrop-blur-sm rounded-2xl border border-gray-900/30 p-3">

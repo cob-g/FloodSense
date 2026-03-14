@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useWeeklyReport } from '../../hooks/useAnalytics';
 import { analyticsService } from '../../services/analytics.service';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../contexts/ToastContext';
 
  
 
@@ -211,6 +212,7 @@ export default AdminWeekly;
 // Local header with actions to keep file lean
 function HeaderWithActions() {
   const navigate = useNavigate();
+  const toast = useToast();
 
   const downloadCSV = async () => {
     try {
@@ -224,7 +226,7 @@ function HeaderWithActions() {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (e) {
-      alert('Failed to export CSV');
+      toast.error('Failed to export CSV');
     }
   };
 

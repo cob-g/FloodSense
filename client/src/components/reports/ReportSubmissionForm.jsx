@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useCreateReport } from '../../hooks/useReports';
 import { DEPTH_OPTIONS, PASSABILITY_OPTIONS, MESSAGES } from '../../utils/constants';
 import LocationPicker from '../map/LocationPicker';
-import { AlertTriangle, MapPin, Camera, X, ChevronDown } from 'lucide-react';
+import { useToast } from '../../contexts/ToastContext';
+import { MapPin, Camera, X, ChevronDown } from 'lucide-react';
 
 export const ReportSubmissionForm = ({ onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -13,10 +14,10 @@ export const ReportSubmissionForm = ({ onClose, onSuccess }) => {
     photos: [],
   });
   const [photoFiles, setPhotoFiles] = useState([]);
-  const [error, setError] = useState('');
   const [useMyLocation, setUseMyLocation] = useState(null);
   const [locating, setLocating] = useState(false);
-  
+  const toast = useToast();
+
   const createReport = useCreateReport();
 
   // Depths that make "Passable (Safe)" logically impossible
@@ -39,32 +40,30 @@ export const ReportSubmissionForm = ({ onClose, onSuccess }) => {
     const invalidFiles = files.filter(file => file.size > maxSize);
     
     if (invalidFiles.length > 0) {
-      setError('Some files are too large. Maximum size is 5MB per photo.');
+      toast.warning('Some files are too large. Maximum size is 5MB per photo.');
       return;
     }
 
     // Limit to 3 photos
     if (files.length > 3) {
-      setError('Maximum 3 photos allowed');
+      toast.warning('Maximum 3 photos allowed');
       return;
     }
 
     setPhotoFiles(files);
-    setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
 
     // Validation
     if (!formData.location) {
-      setError(MESSAGES.LOCATION_REQUIRED);
+      toast.warning(MESSAGES.LOCATION_REQUIRED);
       return;
     }
 
     if (photoFiles.length === 0) {
-      setError(MESSAGES.PHOTO_REQUIRED);
+      toast.warning(MESSAGES.PHOTO_REQUIRED);
       return;
     }
 
@@ -87,16 +86,17 @@ export const ReportSubmissionForm = ({ onClose, onSuccess }) => {
       const response = await createReport.mutateAsync(submitData);
       
       if (response.success) {
+        toast.success('Report Submitted', 'Your flood report has been received and is under review.');
         onSuccess?.();
         onClose();
       } else {
-        setError(response.message || 'Failed to submit report');
+        toast.error(response.message || 'Failed to submit report');
       }
     } catch (err) {
       if (err.message?.includes('3 minuto')) {
-        setError(MESSAGES.RATE_LIMIT);
+        toast.warning(MESSAGES.RATE_LIMIT);
       } else {
-        setError(err.message || 'An error occurred while submitting the report');
+        toast.error(err.message || 'An error occurred while submitting the report');
       }
     }
   };
@@ -157,16 +157,6 @@ export const ReportSubmissionForm = ({ onClose, onSuccess }) => {
 
         {/* ── Scrollable Body ── */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-7 py-6 space-y-5">
-
-          {error && (
-            <div
-              className="flex items-center gap-2.5 p-3.5 rounded-2xl text-red-700 text-sm font-semibold"
-              style={{ background: 'rgba(254,242,242,0.85)', border: '1px solid #fecaca' }}
-            >
-              <AlertTriangle size={15} />
-              <span>{error}</span>
-            </div>
-          )}
 
           {/* Location */}
           <div>

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useReports, useDeleteReport } from '../../hooks/useReports';
 import ReportDetailModal from '../../components/reports/ReportDetailModal';
+import { useToast } from '../../contexts/ToastContext';
 
 export const AdminFeed = () => {
   const [limit, setLimit] = useState(10);
@@ -8,13 +9,14 @@ export const AdminFeed = () => {
   const reports = useMemo(() => data?.data?.reports || [], [data]);
   const delMut = useDeleteReport();
   const [selected, setSelected] = useState(null);
+  const toast = useToast();
 
   const confirmDelete = async (id) => {
     if (!window.confirm('Delete this report?')) return;
     try {
       await delMut.mutateAsync(id);
     } catch (e) {
-      alert('Failed to delete');
+      toast.error('Failed to delete report');
     }
   };
 

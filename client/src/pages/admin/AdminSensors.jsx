@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useListSensorsWithStatus, useCreateSensor, useUpdateSensor, useDeleteSensor } from '../../hooks/useSensorRegistry';
+import { useToast } from '../../contexts/ToastContext';
 
 export default function AdminSensors() {
   const { data, isLoading, error } = useListSensorsWithStatus();
@@ -7,6 +8,7 @@ export default function AdminSensors() {
   const updateMut = useUpdateSensor();
   const deleteMut = useDeleteSensor();
   const sensors = data?.data || [];
+  const toast = useToast();
 
   const [form, setForm] = useState({
     sensorId: '',
@@ -24,8 +26,8 @@ export default function AdminSensors() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    if (!form.sensorId.trim()) return alert('Sensor ID is required');
-    if (!form.locationName.trim()) return alert('Location Name is required');
+    if (!form.sensorId.trim()) { toast.warning('Sensor ID is required'); return; }
+    if (!form.locationName.trim()) { toast.warning('Location Name is required'); return; }
     try {
       await createMut.mutateAsync({
         sensorId: form.sensorId.trim(),
@@ -37,13 +39,13 @@ export default function AdminSensors() {
       });
       setForm({ sensorId: '', locationName: '', latitude: '', longitude: '', mountHeight: '', notes: '' });
     } catch (err) {
-      alert(err?.error || err?.message || 'Failed to create sensor');
+      toast.error(err?.error || err?.message || 'Failed to create sensor');
     }
   };
 
   const copyConfig = async (s) => {
     const snippet = `// FloodSense device config\nconst char* SENSOR_ID = "${s.sensorId}";\nconst float LATITUDE = ${s.latitude ?? 0};\nconst float LONGITUDE = ${s.longitude ?? 0};\n// Paste into your sketch and rebuild.`;
-    try { await navigator.clipboard.writeText(snippet); alert('Config copied to clipboard'); } catch (_) { alert('Copy failed'); }
+    try { await navigator.clipboard.writeText(snippet); toast.success('Config copied to clipboard'); } catch (_) { toast.error('Copy failed'); }
   };
 
   const [editingId, setEditingId] = useState(null);
@@ -73,13 +75,13 @@ export default function AdminSensors() {
       }});
       setEditingId(null);
     } catch (err) {
-      alert(err?.error || err?.message || 'Failed to update sensor');
+      toast.error(err?.error || err?.message || 'Failed to update sensor');
     }
   };
   const cancelEdit = () => setEditingId(null);
   const deleteRow = async (s) => {
     if (!confirm(`Delete sensor ${s.sensorId}? This cannot be undone.`)) return;
-    try { await deleteMut.mutateAsync(s._id); } catch (err) { alert(err?.error || err?.message || 'Failed to delete sensor'); }
+    try { await deleteMut.mutateAsync(s._id); } catch (err) { toast.error(err?.error || err?.message || 'Failed to delete sensor'); }
   };
 
   return (

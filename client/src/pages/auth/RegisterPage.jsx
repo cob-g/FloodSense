@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { AlertTriangle, Droplets } from 'lucide-react';
+import { Droplets, AlertTriangle } from 'lucide-react';
 
 const BARANGAYS = [
   'Barangay 165',
@@ -44,8 +44,8 @@ export const RegisterPage = () => {
     barangay: '',
     phone: '',
   });
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
   const [brgyOpen, setBrgyOpen] = useState(false);
@@ -176,14 +176,14 @@ export const RegisterPage = () => {
           <h2 className="text-[32px] font-black text-[#1a0a00] leading-tight mb-1.5">Create account</h2>
           <p className="text-[#6b5c52] text-[15px] font-medium mb-8">Join our flood safety community</p>
 
-          {error && (
-            <div className="mb-6 p-3.5 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm font-bold flex items-center gap-2">
-              <AlertTriangle size={15} />
-              <span>{error}</span>
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-5 flex-1">
+            {error && (
+              <div className="p-3.5 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm font-bold flex items-center gap-2">
+                <AlertTriangle size={15} />
+                <span>{error}</span>
+              </div>
+            )}
+
             {/* Name & Email Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>

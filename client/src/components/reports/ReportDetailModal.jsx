@@ -2,6 +2,7 @@ import { formatDate, getSeverityColor, formatCoordinates } from '../../utils/hel
 import { STATUS_LABELS } from '../../utils/constants';
 import { useAuth } from '../../hooks/useAuth';
 import { useDeleteReport } from '../../hooks/useReports';
+import { useToast } from '../../contexts/ToastContext';
 import { createPortal } from 'react-dom';
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:5000';
@@ -9,6 +10,7 @@ const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:5000';
 export const ReportDetailModal = ({ report, onClose }) => {
   const { user } = useAuth();
   const deleteReport = useDeleteReport();
+  const toast = useToast();
 
   const statusColors = {
     UNVERIFIED: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
@@ -22,7 +24,7 @@ export const ReportDetailModal = ({ report, onClose }) => {
         await deleteReport.mutateAsync(report._id);
         onClose();
       } catch (error) {
-        alert('Failed to delete report: ' + error.message);
+        toast.error('Failed to delete report: ' + error.message);
       }
     }
   };

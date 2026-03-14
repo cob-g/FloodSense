@@ -1,12 +1,12 @@
 import { useState, useContext } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthContext';
-import { AlertTriangle, Droplets } from 'lucide-react';
+import { Droplets, AlertTriangle } from 'lucide-react';
 
 export const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -126,8 +126,7 @@ export const LoginPage = () => {
               '0 24px 56px rgba(197,73,20,0.13), 0 4px 16px rgba(197,73,20,0.07), inset 0 1.5px 0 rgba(255,255,255,0.95)',
           }}
         >
-          {/* Glass inner top-highlight shimmer */}
-          <div
+          {/* Glass inner top-highlight shimmer */}          <div
             className="absolute top-0 left-0 right-0 pointer-events-none"
             style={{
               height: '1.5px',
@@ -147,7 +146,6 @@ export const LoginPage = () => {
             }}
           />
 
-          {/* Error */}
           {error && (
             <div className="mb-5 p-3.5 rounded-2xl text-red-600 text-sm font-bold flex items-center gap-2" style={{ background: 'rgba(254,242,242,0.85)', border: '1px solid #fecaca' }}>
               <AlertTriangle size={15} />

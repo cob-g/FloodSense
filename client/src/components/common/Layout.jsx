@@ -1,7 +1,8 @@
 import { Outlet, Link, useNavigate, useLocation, NavLink as RouterLink, Navigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useSocket } from '../../hooks/useSocket';
+import { useToast } from '../../contexts/ToastContext';
 import { Droplets } from 'lucide-react';
 import Footer from './Footer';
 import ChatBubble from '../chatbot/ChatBubble';
@@ -31,6 +32,8 @@ export const Layout = () => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [online, setOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const { warning, info } = useToast();
+  const isFirstOnlineEffect = useRef(true);
 
   useEffect(() => {
     const on = () => setOnline(true);
@@ -43,8 +46,21 @@ export const Layout = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (isFirstOnlineEffect.current) {
+      isFirstOnlineEffect.current = false;
+      return;
+    }
+    if (online) {
+      info('You are back online');
+    } else {
+      warning('You are now offline');
+    }
+  }, [online]);
+
   const handleLogout = async () => {
     await logout();
+    info('Signed out successfully');
     setMenuOpen(false);
   };
 

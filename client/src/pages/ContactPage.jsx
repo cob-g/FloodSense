@@ -25,18 +25,18 @@ const ContactPage = () => {
     e.preventDefault();
     
     if (!formData.name || !formData.email || !formData.subject || !formData.category || !formData.message) {
-      toast.error('Please fill in all required fields');
+      toast.error('Incomplete Form', 'Please fill in all required fields before submitting.');
       return;
     }
 
     setIsSubmitting(true);
     try {
       await api.post('/contact', formData);
-      toast.success('Thank you for your message! We will get back to you soon.');
+      toast.success('Message Sent', 'Thank you! We\'ll get back to you within 24–48 hours.');
       setFormData({ name: '', email: '', subject: '', category: '', message: '' });
     } catch (error) {
       console.error('Contact form error:', error);
-      toast.error(error.message || 'Failed to send message. Please try again.');
+      toast.error('Failed to Send', error.message || 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

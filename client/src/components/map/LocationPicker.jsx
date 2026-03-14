@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useToast } from '../../contexts/ToastContext';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
@@ -28,6 +29,7 @@ export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseM
   const handleUseCurrentLocationRef = useRef(null);
   const [loadingAddress, setLoadingAddress] = useState(false);
   const [locating, setLocating] = useState(false);
+  const toast = useToast();
 
   const setLocatingState = (val) => {
     setLocating(val);
@@ -209,7 +211,7 @@ export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseM
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser');
+      toast.warning('Geolocation is not supported by your browser');
       return;
     }
 
@@ -224,7 +226,7 @@ export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseM
         // Check if the user's actual GPS location is within the real North Caloocan polygon
         if (!isInNorthCaloocan(latitude, longitude)) {
           setLocatingState(false);
-          alert('Your current location is outside North Caloocan. Please select your location manually on the map.');
+          toast.warning('Your current location is outside North Caloocan. Please select your location manually on the map.');
           return;
         }
 
@@ -238,7 +240,7 @@ export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseM
         if (error.code === error.PERMISSION_DENIED) msg = 'Location access was denied. Please allow location permission in your browser settings.';
         else if (error.code === error.POSITION_UNAVAILABLE) msg = 'Your location is currently unavailable. Try again or pick manually on the map.';
         else if (error.code === error.TIMEOUT) msg = 'Location request timed out. Check your GPS/signal and try again.';
-        alert(msg);
+        toast.error(msg);
       },
       { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
     );
