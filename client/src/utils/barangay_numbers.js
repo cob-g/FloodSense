@@ -55,7 +55,7 @@ export const BARANGAY_NUMBERS = [
     "lng": 121.0449576
   },
   {
-    "text": "176",
+    "text": "1766",
     "lat": 14.775248,
     "lng": 121.0449222
   },

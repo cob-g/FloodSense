@@ -11,7 +11,7 @@ import { useNetwork } from '../hooks/useNetwork';
 import { useFallbacks } from '../hooks/useFallbacks';
 import { getFallbacks } from '../lib/idb';
 import { useToast } from '../contexts/ToastContext';
-import { Map, Radio, Users, Plus, Activity, AlertTriangle, Droplets, Phone, Home, Ambulance, Shield, TrendingUp, CheckCircle } from 'lucide-react';
+import { Map, Radio, Users, Plus, Activity, AlertTriangle, Droplets, Phone, Home, Ambulance, Shield, TrendingUp, CheckCircle, WifiOff, RefreshCw, MapPin, Clock, Database } from 'lucide-react';
 import { ReportsChart } from '../components/analytics/ReportsChart';
 import { SensorChart } from '../components/analytics/SensorChart';
 
@@ -149,312 +149,219 @@ const FeedPage = () => {
     };
 
     return (
-<div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-gray-900 font-sans overflow-hidden">
-  {/* Background decorative elements */}
-  <div className="absolute inset-0 overflow-hidden">
-    <div className="absolute top-0 left-1/4 w-72 h-72 bg-gradient-to-r from-cyan-600/10 to-blue-500/10 rounded-full blur-3xl"></div>
-    <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-r from-blue-600/10 to-cyan-500/10 rounded-full blur-3xl"></div>
-    <div className="absolute top-1/2 left-0 w-48 h-48 bg-gradient-to-r from-cyan-500/5 to-transparent rounded-full blur-2xl"></div>
-  </div>
+      <div className="min-h-screen bg-transparent text-gray-900 overflow-x-hidden">
+        {/* Background Orbs — amber tones to signal offline state */}
+        <div className="fixed top-20 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="fixed bottom-0 left-1/4 w-96 h-96 bg-orange-400/8 rounded-full blur-3xl pointer-events-none"></div>
 
-  <div className="relative max-w-6xl mx-auto p-4 lg:p-6">
-    
-    {/* Header Section - Split Layout */}
-    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-10">
-      {/* Left: Logo & Title */}
-      <div className="flex-1">
-        <div className="inline-flex items-center gap-3 mb-4">
-          <div className="relative">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 shadow-lg shadow-cyan-500/30 flex items-center justify-center">
-              <svg className="w-5 h-5 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-cyan-300 to-blue-400 rounded-full border-2 border-slate-950"></div>
-          </div>
-          <div>
-            <h1 className="text-3xl lg:text-4xl font-light bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
-              Flood Zone Archive
-            </h1>
-            <p className="text-gray-900/40 text-sm">Locally stored flood data</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Right: Status & Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-        <div className="bg-gradient-to-r from-white/5 to-white/3 backdrop-blur-lg rounded-xl p-4 border border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-3 h-3 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"></div>
-              <div className="absolute inset-0 bg-cyan-400 rounded-full animate-ping opacity-20"></div>
-            </div>
-            <div>
-              <div className="text-gray-900/90 font-medium">Local Cache</div>
-              <div className="text-gray-900/40 text-sm">Offline Mode</div>
-            </div>
-          </div>
-        </div>
-        
-        <button
-          onClick={handleRefresh}
-          className="px-4 py-2.5 bg-gradient-to-r from-white/10 to-white/5 hover:from-white/20 hover:to-white/10 border border-white/20 rounded-xl text-sm transition-all duration-200 hover:scale-[1.02] active:scale-95 flex items-center gap-2"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          Refresh
-        </button>
-      </div>
-    </div>
-
-    {/* Main Dashboard Grid */}
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-      
-      {/* Left Column - Stats & Info */}
-      <div className="lg:col-span-1 space-y-6">
-        
-        {/* Stats Cards - Vertical Stack */}
-        <div className="bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-          <h2 className="text-gray-900 font-medium mb-6 flex items-center gap-2">
-            <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            Cache Statistics
-          </h2>
-          
-          <div className="space-y-4">
-            <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/5 rounded-2xl p-5 border border-cyan-500/20 backdrop-blur-sm">
-              <div className="text-3xl font-light text-cyan-300 mb-1">{offlineItems.length}</div>
-              <div className="text-gray-900/60 text-sm">Active Zones</div>
-              <div className="mt-2 w-full h-1 bg-slate-800/50 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"
-                  style={{ width: `${Math.min(100, offlineItems.length * 10)}%` }}
-                ></div>
+        {/* Offline Status Banner */}
+        <div className="sticky top-0 z-40 bg-amber-50/80 border-b border-amber-200/60 backdrop-blur-md">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2.5">
+                <WifiOff className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                <span className="text-amber-800 font-semibold text-sm">
+                  You're offline —{' '}
+                  <span className="font-normal text-amber-700">displaying last cached data. Live updates are paused.</span>
+                </span>
               </div>
-            </div>
-            
-            <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-2xl p-5 border border-emerald-500/20 backdrop-blur-sm">
-              <div className="text-3xl font-light text-emerald-300 mb-1">100%</div>
-              <div className="text-gray-900/60 text-sm">Verification Rate</div>
-              <div className="mt-2 w-full h-1 bg-slate-800/50 rounded-full">
-                <div className="w-full h-full bg-gradient-to-r from-emerald-500 to-green-500 rounded-full"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Cache Info */}
-        <div className="bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-          <h3 className="text-gray-900 font-medium mb-4">Cache Information</h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-900/40 text-sm">Last Updated</span>
-              <span className="text-gray-900/90 font-medium">
-                {(() => {
-                  const ms = Array.isArray(offlineItems)
-                    ? offlineItems.reduce((acc, item) => {
-                        const d = item?.updatedAt || item?.createdAt;
-                        const t = d ? new Date(d).getTime() : 0;
-                        return t > acc ? t : acc;
-                      }, 0)
-                    : 0;
-
-                  return ms ? new Date(ms).toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  }) : 'Never';
-                })()}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-900/40 text-sm">Storage Mode</span>
-              <span className="px-3 py-1 bg-white/5 rounded-full text-cyan-300 text-sm border border-white/10">
-                Offline
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-900/40 text-sm">Data Integrity</span>
-              <span className="text-emerald-400 font-medium">Verified</span>
+              <button
+                onClick={handleRefresh}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm flex-shrink-0"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Retry
+              </button>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Right Column - Flood Items List */}
-      <div className="lg:col-span-2">
-        <div className="bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm rounded-2xl p-6 border border-white/10 h-full">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-gray-900 font-medium text-lg flex items-center gap-2">
-              <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              Cached Flood Zones
-              <span className="text-gray-900/40 font-normal text-sm ml-2">
-                ({offlineItems.length} items)
-              </span>
-            </h2>
-            
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-pulse"></div>
-              <span className="text-gray-900/40 text-sm">Live Cache</span>
-            </div>
-          </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
 
-          {/* Flood Items Container */}
-          <div className="h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-            {offlineItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full py-12">
-                <div className="relative">
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-white/10 to-transparent border border-white/10 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-gray-900/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 12H4" />
-                    </svg>
-                  </div>
-                  <div className="absolute inset-0 bg-cyan-500/20 blur-xl rounded-full -z-10"></div>
+          {/* Hero Header */}
+          <div className="mb-10">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-2.5 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-1.5 backdrop-blur-sm">
+                  <WifiOff className="w-3.5 h-3.5 text-amber-600" />
+                  <span className="text-xs font-black text-amber-700 tracking-widest uppercase">Offline Mode</span>
                 </div>
-                <h3 className="text-xl font-light text-gray-900 mb-2">No Cache Available</h3>
-                <p className="text-gray-900/40 text-sm mb-6 max-w-sm text-center">
-                  Connect to sync the latest flood zone data
+                <h1 className="text-4xl lg:text-5xl font-black leading-tight">
+                  <span className="text-gray-900">Flood Intelligence</span>
+                  <br />
+                  <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+                    Dashboard
+                  </span>
+                </h1>
+                <p className="text-base text-gray-900/60 max-w-xl">
+                  You're viewing data from your last session. Restore your connection to get live flood reports and sensor readings.
                 </p>
-                <button
-                  onClick={handleRefresh}
-                  className="px-6 py-2.5 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 border border-cyan-500/40 rounded-xl text-sm transition-all duration-200"
-                >
-                  Sync Data
-                </button>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {offlineItems.map((item) => (
-                  <div
-                    key={item._id || item.name + (item.address || '')}
-                    className="group relative bg-gradient-to-r from-white/5 to-transparent hover:from-white/10 border border-white/10 hover:border-cyan-500/40 rounded-2xl p-5 transition-all duration-300 hover:translate-y-[-2px] backdrop-blur-sm"
+
+              <button
+                onClick={handleRefresh}
+                className="group flex items-center gap-3 px-6 py-3.5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl transition-all duration-300 shadow-lg shadow-orange-500/25 hover:scale-105 active:scale-95"
+              >
+                <RefreshCw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
+                Restore Connection
+              </button>
+            </div>
+          </div>
+
+          {/* Stats Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div className="bg-gray-900/5 backdrop-blur-md rounded-2xl border border-gray-900/10 p-5 flex items-center gap-4">
+              <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Database className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <div className="text-2xl font-black text-gray-900">{offlineItems.length}</div>
+                <div className="text-gray-900/50 text-sm font-medium">Cached Reports</div>
+              </div>
+            </div>
+
+            <div className="bg-gray-900/5 backdrop-blur-md rounded-2xl border border-gray-900/10 p-5 flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <div className="text-2xl font-black text-gray-900">
+                  {offlineItems.filter(i => i.status === 'VALIDATED').length}
+                </div>
+                <div className="text-gray-900/50 text-sm font-medium">Verified Zones</div>
+              </div>
+            </div>
+
+            <div className="bg-gray-900/5 backdrop-blur-md rounded-2xl border border-gray-900/10 p-5 flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Clock className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <div className="text-sm font-black text-gray-900">
+                  {(() => {
+                    const ms = Array.isArray(offlineItems)
+                      ? offlineItems.reduce((acc, item) => {
+                          const d = item?.updatedAt || item?.createdAt;
+                          const t = d ? new Date(d).getTime() : 0;
+                          return t > acc ? t : acc;
+                        }, 0)
+                      : 0;
+                    return ms
+                      ? new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                      : 'No data';
+                  })()}
+                </div>
+                <div className="text-gray-900/50 text-sm font-medium">Last Synced</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Cached Reports List */}
+          <div className="bg-gray-900/5 backdrop-blur-md rounded-3xl border border-gray-900/30 overflow-hidden">
+            <div className="p-6 lg:p-8 border-b border-gray-900/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <Database className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-gray-900">Cached Flood Reports</h2>
+                    <p className="text-gray-900/50 text-sm">{offlineItems.length} reports stored locally</p>
+                  </div>
+                </div>
+                <span className="px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full text-amber-700 text-xs font-bold tracking-wide uppercase">
+                  Read-only
+                </span>
+              </div>
+            </div>
+
+            <div className="p-6 lg:p-8">
+              {offlineItems.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="w-20 h-20 bg-gray-900/5 rounded-full flex items-center justify-center mb-6 border border-gray-900/10">
+                    <Database className="w-8 h-8 text-gray-900/20" />
+                  </div>
+                  <h3 className="text-xl font-black text-gray-900 mb-2">No Cached Data</h3>
+                  <p className="text-gray-900/50 text-sm max-w-sm mb-6">
+                    No reports were saved before going offline. Reconnect to load and cache the latest flood data.
+                  </p>
+                  <button
+                    onClick={handleRefresh}
+                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl transition-all duration-300 shadow-lg shadow-orange-500/25 hover:scale-105"
                   >
-                    {/* Left accent line */}
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-gradient-to-b from-cyan-500 to-blue-500 rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                    <div className="flex items-start gap-4">
-                      {/* Icon */}
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
-                        <div className="w-2.5 h-2.5 bg-cyan-300 rounded-full"></div>
+                    <RefreshCw className="w-4 h-4" />
+                    Try to Reconnect
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto pr-1 offline-scrollbar">
+                  {offlineItems.map((item) => (
+                    <div
+                      key={item._id || item.name + (item.address || '')}
+                      className="group relative bg-white/60 hover:bg-white/80 border border-gray-900/10 hover:border-orange-500/30 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+                    >
+                      {/* Offline badge */}
+                      <div className="absolute top-3 right-3 px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-full">
+                        <span className="text-amber-700 text-xs font-bold tracking-wide">CACHED</span>
                       </div>
 
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-3">
-                          <h3 className="text-gray-900 font-medium">
-                            {item.name || 'Flood Area'}
+                      <div className="flex items-start gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Droplets className="w-4 h-4 text-orange-500" />
+                        </div>
+                        <div className="flex-1 min-w-0 pr-12">
+                          <h3 className="text-gray-900 font-bold text-sm leading-tight truncate">
+                            {item.name || 'Flood Report'}
                           </h3>
-                          <span className="text-xs text-gray-900/30 bg-white/5 px-2 py-1 rounded-full">
-                            CACHED
-                          </span>
-                        </div>
-
-                        <div className="space-y-2">
                           {item.barangay && (
-                            <div className="flex items-center gap-2 text-gray-900/70 text-sm">
-                              <span className="text-gray-900/50">●</span>
-                              <span className="truncate">Barangay {item.barangay}</span>
-                            </div>
-                          )}
-
-                          {(item.address || item.notes) && (
-                            <div className="flex items-center gap-2 text-gray-900/60 text-sm">
-                              <span className="text-gray-900/50">📍</span>
-                              <span className="truncate">{item.address || item.notes}</span>
-                            </div>
-                          )}
-
-                          {Array.isArray(item.location?.coordinates) && (
-                            <div className="mt-3 pt-3 border-t border-white/10">
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-900/40">Coordinates:</span>
-                                <div className="text-gray-900/40 font-mono">
-                                  {item.location.coordinates[1].toFixed(4)}, {item.location.coordinates[0].toFixed(4)}
-                                </div>
-                              </div>
-                            </div>
+                            <p className="text-gray-900/50 text-xs mt-0.5">Brgy. {item.barangay}</p>
                           )}
                         </div>
                       </div>
-                    </div>
 
-                    {/* Status Bar */}
-                    <div className="mt-4 pt-4 border-t border-white/10">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-pulse"></div>
-                          <span className="text-cyan-300 text-sm font-medium">Verified Flood</span>
+                      {(item.address || item.notes) && (
+                        <div className="flex items-start gap-2 mb-3">
+                          <MapPin className="w-3.5 h-3.5 text-gray-900/30 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-900/60 text-xs line-clamp-2">{item.address || item.notes}</span>
                         </div>
-                        <span className="text-xs text-gray-900/30">
-                          {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : 'No date'}
+                      )}
+
+                      {Array.isArray(item.location?.coordinates) && (
+                        <div className="text-xs text-gray-900/30 font-mono mb-3">
+                          {item.location.coordinates[1].toFixed(4)}, {item.location.coordinates[0].toFixed(4)}
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-900/8">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                          <span className="text-emerald-700 text-xs font-semibold">Verified</span>
+                        </div>
+                        <span className="text-gray-900/30 text-xs">
+                          {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
                         </span>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Footer note */}
+          <div className="mt-6 flex items-center justify-center gap-2 text-gray-900/30 text-xs">
+            <WifiOff className="w-3.5 h-3.5" />
+            <span>FloodSense • Offline Mode • Data may not reflect current conditions</span>
           </div>
         </div>
+
+        <style>{`
+          .offline-scrollbar::-webkit-scrollbar { width: 5px; }
+          .offline-scrollbar::-webkit-scrollbar-track { background: transparent; }
+          .offline-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 99px; }
+          .offline-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
+        `}</style>
       </div>
-    </div>
-
-    {/* Footer */}
-    <div className="mt-8 pt-6 border-t border-white/10">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="text-gray-900/30 text-sm">
-          Flood Zone Archive • Offline Data Repository
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="text-gray-900/40 text-sm">
-            <span className="text-cyan-300">{offlineItems.length}</span> zones cached
-          </div>
-          <div className="w-1 h-1 bg-white/20 rounded-full"></div>
-          <div className="text-gray-900/30 text-sm">
-            Last sync: {(() => {
-              const ms = Array.isArray(offlineItems)
-                ? offlineItems.reduce((acc, item) => {
-                    const d = item?.updatedAt || item?.createdAt;
-                    const t = d ? new Date(d).getTime() : 0;
-                    return t > acc ? t : acc;
-                  }, 0)
-                : 0;
-
-              return ms ? new Date(ms).toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric'
-              }) : 'N/A';
-            })()}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {/* Custom Scrollbar Styles */}
-  <style jsx>{`
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: linear-gradient(to bottom, #22d3ee, #3b82f6);
-      border-radius: 3px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(to bottom, #06b6d4, #2563eb);
-    }
-  `}</style>
-</div>
     );
   }
 

@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import {
   DEFAULT_MAP_CENTER,
   DEFAULT_MAP_ZOOM,
@@ -99,16 +102,6 @@ export const MapView = ({
               text-align: center;
               transform: translate(-50%, -50%);
             ">
-              <div style="
-                font-size: 11px;
-                font-weight: 600;
-                font-style: italic;
-                font-family: 'Noto Sans', Arial, sans-serif;
-                color: #3d3517;
-                text-shadow: ${halo};
-                white-space: nowrap;
-                line-height: 1.3;
-              ">Barangay ${bnum.text}</div>
               ${groupName ? `<div style="
                 font-size: 9.5px;
                 font-weight: 400;
@@ -157,31 +150,9 @@ export const MapView = ({
       .addAttribution('© OpenStreetMap contributors, © CARTO')
       .addTo(mapInstanceRef.current);
 
-      // Try to load MarkerCluster dynamically
+      // Initialize MarkerCluster (imported locally, no CDN fetch)
       const ensureCluster = async () => {
         try {
-          if (!('markerClusterGroup' in L)) {
-            await new Promise((resolve, reject) => {
-              const link = document.createElement('link');
-              link.rel = 'stylesheet';
-              link.href = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css';
-              link.onload = resolve; link.onerror = resolve;
-              document.head.appendChild(link);
-            });
-            await new Promise((resolve, reject) => {
-              const link2 = document.createElement('link');
-              link2.rel = 'stylesheet';
-              link2.href = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css';
-              link2.onload = resolve; link2.onerror = resolve;
-              document.head.appendChild(link2);
-            });
-            await new Promise((resolve, reject) => {
-              const script = document.createElement('script');
-              script.src = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
-              script.onload = resolve; script.onerror = resolve;
-              document.body.appendChild(script);
-            });
-          }
           if ('markerClusterGroup' in L) {
             clusterGroupRef.current = L.markerClusterGroup({
               showCoverageOnHover: false,
