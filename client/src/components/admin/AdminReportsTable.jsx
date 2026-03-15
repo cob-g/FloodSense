@@ -160,7 +160,7 @@ export const AdminReportsTable = ({ reports, loading }) => {
                   <p className="text-sm text-white/60">{formatDate(report.createdAt)}</p>
                 </td>
                 <td className="px-4 py-4">
-                  <span className={`text-xs px-2 py-1 rounded-lg border ${
+                  <span className={`text-xs px-2 py-1 rounded-lg border whitespace-nowrap inline-block ${
                     report.status === 'VALIDATED' ? 'text-green-300 border-green-400/40 bg-green-400/10' :
                     report.status === 'REJECTED' ? 'text-red-300 border-red-400/40 bg-red-400/10' :
                     'text-amber-300 border-amber-400/40 bg-amber-400/10'
@@ -186,7 +186,21 @@ export const AdminReportsTable = ({ reports, loading }) => {
                     </div>
                   )}
                   {report.status !== 'UNVERIFIED' && (
-                    <span className="text-sm text-white/50">-</span>
+                    <div className="flex items-center">
+                      {report.status === 'REJECTED' && report.validationNotes ? (
+                        <div className="relative group flex items-center">
+                          <span className="text-xs text-red-300/80 cursor-help border-b border-dashed border-red-400/30 pb-0.5">
+                            View notes
+                          </span>
+                          <div className="absolute hidden group-hover:block bg-[#1a1410] border border-white/10 shadow-2xl text-white/90 p-3 rounded-xl text-xs z-50 bottom-full right-0 mb-2 w-56">
+                            <div className="font-semibold text-red-400 mb-1 border-b border-white/10 pb-1">Reason for Rejection</div>
+                            <div className="leading-relaxed">{report.validationNotes}</div>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-white/50">-</span>
+                      )}
+                    </div>
                   )}
                 </td>
               </tr>

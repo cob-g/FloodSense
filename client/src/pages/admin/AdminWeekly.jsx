@@ -28,7 +28,7 @@ export const AdminWeekly = () => {
       <HeaderWithActions />
 
       {/* Header Section */}
-      <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 mb-6">
+      <div className="bg-[#1c1410]/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-xl p-6 mb-6">
         {wrLoading && <div className="text-white/70">Loading weekly report…</div>}
         {wrError && <div className="text-red-400">Failed to load weekly report</div>}
         {!wrLoading && !wrError && weekly && (
@@ -59,7 +59,7 @@ export const AdminWeekly = () => {
       {/* IoT Water Level Summary */}
       {!wrLoading && !wrError && weekly && (
         <div className="grid gap-6 md:grid-cols-2 mb-6">
-          <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+          <div className="bg-[#1c1410]/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-xl p-6">
             <h2 className="text-white/90 font-semibold mb-4">IoT Water Level Summary</h2>
             <div className="grid grid-cols-4 gap-3">
               <Metric label="Average (cm)" value={weekly.iotWaterLevel?.overall?.averageCm?.toFixed ? weekly.iotWaterLevel.overall.averageCm.toFixed(1) : (weekly.iotWaterLevel?.overall?.averageCm ?? '—')} />
@@ -80,7 +80,7 @@ export const AdminWeekly = () => {
           </div>
 
           {/* Community Reports Summary */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+          <div className="bg-[#1c1410]/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-xl p-6">
             <h2 className="text-white/90 font-semibold mb-4">Community Reports Summary</h2>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <Metric label="Total Reports" value={weekly.communityReports?.totalReports ?? 0} large />
@@ -147,7 +147,7 @@ export const AdminWeekly = () => {
 
       {/* Alerts and Warnings */}
       {!wrLoading && !wrError && weekly && (
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 mb-6">
+        <div className="bg-[#1c1410]/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-xl p-6 mb-6">
           <h2 className="text-white/90 font-semibold mb-4">Alerts and Warnings</h2>
           <div className="space-y-3">
             {(weekly.alerts || []).length === 0 && (
@@ -171,22 +171,22 @@ export const AdminWeekly = () => {
 
       {/* Offline Data Sync Status */}
       {!wrLoading && !wrError && weekly && (
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 mb-6">
+        <div className="bg-[#1c1410]/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-xl p-6 mb-6">
           <h2 className="text-white/90 font-semibold mb-2">Offline Data Sync Status</h2>
           <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+            <div className="bg-[#140e0b]/80 rounded-xl p-4 border border-white/5 shadow-inner">
               <div className="text-white/60">Unsynced Records</div>
               <div className="text-white/90 font-semibold">{weekly.offlineSync?.unsyncedRecords ?? 'N/A'}</div>
             </div>
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+            <div className="bg-[#140e0b]/80 rounded-xl p-4 border border-white/5 shadow-inner">
               <div className="text-white/60">Last Successful Sync</div>
               <div className="text-white/90 font-semibold">{weekly.offlineSync?.lastSuccessfulSync ? new Date(weekly.offlineSync.lastSuccessfulSync).toLocaleString() : 'N/A'}</div>
             </div>
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+            <div className="bg-[#140e0b]/80 rounded-xl p-4 border border-white/5 shadow-inner">
               <div className="text-white/60">Local Cache (bytes)</div>
               <div className="text-white/90 font-semibold">{weekly.offlineSync?.localCacheBytes ?? 'N/A'}</div>
             </div>
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+            <div className="bg-[#140e0b]/80 rounded-xl p-4 border border-white/5 shadow-inner">
               <div className="text-white/60">Next Scheduled Sync</div>
               <div className="text-white/90 font-semibold">{weekly.offlineSync?.nextScheduledAttempt ? new Date(weekly.offlineSync.nextScheduledAttempt).toLocaleString() : 'N/A'}</div>
             </div>
@@ -235,11 +235,20 @@ function HeaderWithActions() {
   };
 
   return (
-    <div className="mb-6 flex items-center justify-between gap-3">
-      <h1 className="text-2xl font-black text-white">Weekly Report</h1>
-      <div className="flex items-center gap-2">
-        <button onClick={downloadCSV} className="px-3 py-2 rounded-lg border border-white/15 bg-white/5 text-white hover:bg-white/10 text-sm">Export CSV</button>
-        <button onClick={printPDF} className="px-3 py-2 rounded-lg border border-orange-400/30 bg-orange-500/10 text-orange-200 hover:bg-orange-500/20 text-sm">Export PDF / Print</button>
+    <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <h1 className="text-3xl font-black text-white tracking-tight" style={{ fontFamily: 'Goodly, sans-serif' }}>Weekly Report</h1>
+        <p className="text-white/50 text-sm mt-1">FloodSense Community Monitoring Dashboard</p>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <button onClick={downloadCSV} className="px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white font-medium hover:bg-white/10 text-sm transition-colors flex items-center gap-2">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Export CSV
+        </button>
+        <button onClick={printPDF} className="px-4 py-2.5 rounded-xl text-white font-medium text-sm transition-all duration-300 flex items-center gap-2 shadow-[0_4px_16px_rgba(197,73,20,0.3)] hover:-translate-y-0.5" style={{ background: 'linear-gradient(135deg, #c54914 0%, #7a2200 100%)' }}>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          Export PDF / Print
+        </button>
       </div>
     </div>
   );
@@ -295,7 +304,7 @@ function BadgeRow({ items = [] }) {
 
 function Metric({ label, value, large = false }) {
   return (
-    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+    <div className="bg-[#140e0b]/80 rounded-xl p-4 border border-white/5 shadow-inner">
       <div className="text-xs text-white/60 mb-1">{label}</div>
       <div className={`${large ? 'text-3xl' : 'text-2xl'} font-black text-white`}>{value}</div>
     </div>

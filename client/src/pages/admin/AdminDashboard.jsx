@@ -7,30 +7,32 @@ import AdminReportsTable from '../../components/admin/AdminReportsTable';
 export const AdminDashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [filter, setFilter] = useState('UNVERIFIED'); // UNVERIFIED, all
-  
+  const [filter, setFilter] = useState('UNVERIFIED'); // UNVERIFIED, VALIDATED, REJECTED, all
+
+  const { data: allData } = useReports({ limit: 1000 }); // For global stats
   const { data, isLoading: reportsLoading } = useReports({
     status: filter === 'all' ? undefined : filter,
-    limit: 50,
+    limit: 100,
   });
 
   const reports = data?.data?.reports || [];
 
   // Calculate stats
   const stats = useMemo(() => {
-    const allReports = data?.data?.reports || [];
+    const allReports = allData?.data?.reports || [];
     const pending = allReports.filter(r => r.status === 'UNVERIFIED').length;
-    
+    const rejected = allReports.filter(r => r.status === 'REJECTED').length;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const validatedToday = allReports.filter(r => 
-      r.status === 'VALIDATED' && new Date(r.updatedAt) >= today
+    const validatedToday = allReports.filter(r =>
+      r.status === 'VALIDATED' && new Date(r.updatedAt || r.validatedAt || r.createdAt) >= today
     ).length;
-    
+
     const total = allReports.length;
 
-    return { pending, validatedToday, total };
-  }, [data]);
+    return { pending, rejected, validatedToday, total };
+  }, [allData]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -52,8 +54,8 @@ export const AdminDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-4">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white mb-2">
+      <div className="mb-8">
+        <h1 className="text-3xl font-black text-white tracking-tight mb-2" style={{ fontFamily: 'Goodly, sans-serif' }}>
           Admin Dashboard
         </h1>
         <p className="text-white/60">
@@ -62,56 +64,96 @@ export const AdminDashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-          <h3 className="text-sm font-medium text-white/70 mb-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-[#1c1410]/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-xl p-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <svg className="w-16 h-16 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          </div>
+          <h3 className="text-sm font-medium text-white/50 mb-3 uppercase tracking-wider">
             Pending Reports
           </h3>
-          <p className="text-3xl font-black text-amber-300">{stats.pending}</p>
-          <p className="text-xs text-white/60 mt-1">Awaiting validation</p>
+          <p className="text-4xl font-black text-amber-400 drop-shadow-[0_2px_12px_rgba(251,191,36,0.3)]">{stats.pending}</p>
+          <p className="text-[13px] font-semibold text-amber-400/60 mt-2">AWAITING VALIDATION</p>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-          <h3 className="text-sm font-medium text-white/70 mb-2">
+        <div className="bg-[#1c1410]/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-xl p-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <svg className="w-16 h-16 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <h3 className="text-sm font-medium text-white/50 mb-3 uppercase tracking-wider">
             Validated Today
           </h3>
-          <p className="text-3xl font-black text-emerald-300">{stats.validatedToday}</p>
-          <p className="text-xs text-white/60 mt-1">Confirmed reports</p>
+          <p className="text-4xl font-black text-emerald-400 drop-shadow-[0_2px_12px_rgba(52,211,153,0.3)]">{stats.validatedToday}</p>
+          <p className="text-[13px] font-semibold text-emerald-400/60 mt-2">CONFIRMED REPORTS</p>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-          <h3 className="text-sm font-medium text-white/70 mb-2">
+        <div className="bg-[#1c1410]/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-xl p-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <svg className="w-16 h-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <h3 className="text-sm font-medium text-white/50 mb-3 uppercase tracking-wider">
+            Rejected Reports
+          </h3>
+          <p className="text-4xl font-black text-red-400 drop-shadow-[0_2px_12px_rgba(248,113,113,0.3)]">{stats.rejected}</p>
+          <p className="text-[13px] font-semibold text-red-400/60 mt-2">INVALIDATED</p>
+        </div>
+
+        <div className="bg-[#1c1410]/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-xl p-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+            <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <h3 className="text-sm font-medium text-white/50 mb-3 uppercase tracking-wider">
             Total Reports
           </h3>
-          <p className="text-3xl font-black text-white">{stats.total}</p>
-          <p className="text-xs text-white/60 mt-1">All time</p>
+          <p className="text-4xl font-black text-white drop-shadow-[0_2px_12px_rgba(255,255,255,0.2)]">{stats.total}</p>
+          <p className="text-[13px] font-semibold text-white/40 mt-2">ALL TIME</p>
         </div>
       </div>
 
       {/* Reports Table */}
-      <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/10 bg-white/5">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">
+      <div className="bg-[#1c1410]/80 backdrop-blur-md rounded-2xl border border-white/5 shadow-2xl overflow-hidden">
+        <div className="px-6 py-5 border-b border-white/5 bg-white/5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h2 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: 'Goodly, sans-serif' }}>
               Reports Review
             </h2>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setFilter('UNVERIFIED')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 border ${
                   filter === 'UNVERIFIED'
-                    ? 'bg-accent-orange/30 text-white border-accent-orange/40'
-                    : 'bg-white/10 text-white/80 hover:bg-white/15 border-white/10'
+                    ? 'bg-gradient-to-r from-[#c54914] to-[#7a2200] text-white border-transparent shadow-[0_4px_12px_rgba(197,73,20,0.3)]'
+                    : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border-transparent'
                 }`}
               >
                 Pending
               </button>
               <button
+                onClick={() => setFilter('VALIDATED')}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 border ${
+                  filter === 'VALIDATED'
+                    ? 'bg-gradient-to-r from-[#c54914] to-[#7a2200] text-white border-transparent shadow-[0_4px_12px_rgba(197,73,20,0.3)]'
+                    : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border-transparent'
+                }`}
+              >
+                Validated
+              </button>
+              <button
+                onClick={() => setFilter('REJECTED')}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 border ${
+                  filter === 'REJECTED'
+                    ? 'bg-gradient-to-r from-[#c54914] to-[#7a2200] text-white border-transparent shadow-[0_4px_12px_rgba(197,73,20,0.3)]'
+                    : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border-transparent'
+                }`}
+              >
+                Rejected
+              </button>
+              <button
                 onClick={() => setFilter('all')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 border ${
                   filter === 'all'
-                    ? 'bg-accent-orange/30 text-white border-accent-orange/40'
-                    : 'bg-white/10 text-white/80 hover:bg-white/15 border-white/10'
+                    ? 'bg-gradient-to-r from-[#c54914] to-[#7a2200] text-white border-transparent shadow-[0_4px_12px_rgba(197,73,20,0.3)]'
+                    : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border-transparent'
                 }`}
               >
                 All Reports

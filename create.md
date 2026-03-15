@@ -539,6 +539,8 @@ export default function ReportsMap({ reports }){
 - [x] Input validation and sanitization
 - [x] Security headers and CORS
 - [x] Database seeding utilities
+- [x] Hardware Sensor Registry & Real-time ingestion APIs
+- [x] AI Chatbot integration (Gemini) with custom context instructions
 
 ### Frontend (In Progress)
 - [x] Phase 1: Foundation & Setup
@@ -569,23 +571,25 @@ export default function ReportsMap({ reports }){
   - [x] Location picker component with click-to-select
   - [x] Geolocation support ("Use My Location" button)
   - [x] Reverse geocoding for addresses
-- [x] Phase 5: Real-time Features
-  - [x] Socket.IO integration (SocketContext with event handlers)
+- [x] Phase 5: Real-time Features & Integrations
+  - [x] Socket.IO integration (SocketContext with event handlers race condition fixes)
   - [x] Live feed updates (automatic query invalidation)
   - [x] Toast notifications (ToastContext with success/error/warning/info)
   - [x] Barangay room subscriptions (joinBarangay functionality)
-- [x] Phase 6: Admin Dashboard
-  - [x] Admin layout (AdminDashboard page with stats)
-  - [x] Reports review page with pending reports list (AdminReportsTable)
-  - [x] Validation workflow UI (validate/reject buttons with notes modal)
+  - [x] Smart AI Chatbot embedded interface (useChatbot context)
+  - [x] Hardware Sensor Dashboard logic (Live Telemetry readings)
+- [x] Phase 6: Admin Dashboard Rebrand & Features
+  - [x] Overhaul Admin Layout with distinct branding (Dark-warm theme, glassmorphism, Lucide icons)
+  - [x] Reports review page with global metrics (AdminReportsTable & advanced filters)
+  - [x] Validation workflow UI (Validation & Rejection metrics tracking, Rejection reason tooltips)
   - [x] Fallback places management
-  - [x] Weekly reports view
+  - [x] Weekly analytics & reporting views
+  - [x] Sensor network status monitor layout
 - [ ] Phase 7: Offline Support
   - [x] Service worker setup
   - [x] IndexedDB integration
   - [x] Offline fallback list
-  - [x] Connection status indicator
-  - [x] Network-adaptive UI
+  - [ ] Enhanced Network-adaptive UI tests
 - [ ] Phase 8: Polish & Optimization
   - [ ] Responsive design refinement
   - [ ] Loading states
