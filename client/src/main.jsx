@@ -20,7 +20,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <SocketProvider>
             <ToastProvider>
               <App />
-              <Toaster position="top-center" offset={{ top: 80 }} theme="light" options={{ duration: 5000 }}/>
+              <Toaster position="top-center" offset={{ top: 80 }} theme="light" options={{ duration: 5000 }} />
             </ToastProvider>
           </SocketProvider>
         </AuthProvider>

@@ -209,7 +209,7 @@ const FeedPage = () => {
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             <div className="bg-gray-900/5 backdrop-blur-md rounded-2xl border border-gray-900/10 p-5 flex items-center gap-4">
               <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Database className="w-5 h-5 text-amber-600" />
@@ -254,7 +254,7 @@ const FeedPage = () => {
                 <div className="text-gray-900/50 text-sm font-medium">Last Synced</div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Cached Reports List */}
           <div className="bg-gray-900/5 backdrop-blur-md rounded-3xl border border-gray-900/30 overflow-hidden">
@@ -408,15 +408,6 @@ const FeedPage = () => {
           </div>
         </div>
 
-        {/* Toast Test Strip */}
-        <div className="mb-8 flex flex-wrap items-center gap-2 p-4 rounded-2xl border border-dashed border-gray-900/20 bg-white/50 backdrop-blur-sm">
-          <span className="text-xs font-bold text-gray-400 tracking-widest uppercase mr-2">Toast Preview</span>
-          <button onClick={() => toast.success('Report Submitted', 'Your flood report has been received and is under review.')} className="px-4 py-2 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-semibold hover:bg-green-100 active:scale-95 transition-all">✓ Success</button>
-          <button onClick={() => toast.error('Failed to Load', 'Could not fetch reports. Check your connection and try again.')} className="px-4 py-2 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-100 active:scale-95 transition-all">✕ Error</button>
-          <button onClick={() => toast.warning('Flood Alert', 'Water levels are rising in Barangay 1. Avoid low-lying areas.')} className="px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm font-semibold hover:bg-amber-100 active:scale-95 transition-all">⚠ Warning</button>
-          <button onClick={() => toast.info('Sensor Update', 'New sensor data is available for North Caloocan area.')} className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm font-semibold hover:bg-blue-100 active:scale-95 transition-all">ℹ Info</button>
-        </div>
-
         {/* Interactive Navigation Tabs */}
         <div className="mb-10">
           <div className="flex flex-wrap gap-3 bg-white/5 backdrop-blur-sm rounded-2xl border border-gray-900/30 p-3">
@@ -446,9 +437,9 @@ const FeedPage = () => {
         </div>
 
         {/* Main Content Grid - Tab-based Display */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
+        <div className={`grid grid-cols-1 gap-6 lg:gap-8 ${activeTab !== 'reports' ? 'xl:grid-cols-12' : ''}`}>
           {/* Main Content Area */}
-          <div className="xl:col-span-8 space-y-6">
+          <div className={`space-y-6 ${activeTab !== 'reports' ? 'xl:col-span-8' : ''}`}>
 
             {/* Live Map Section */}
             {activeTab === 'map' && (
@@ -555,111 +546,113 @@ const FeedPage = () => {
             )}
           </div>
 
-          {/* Right Sidebar - Stats & Quick Actions */}
-          <div className="xl:col-span-4 space-y-6">
+          {/* Right Sidebar - Stats & Quick Actions (hidden on Community Reports tab) */}
+          {activeTab !== 'reports' && (
+            <div className="xl:col-span-4 space-y-6">
 
-            {/* Quick Stats Card */}
-            <div className="bg-gray-900/5 backdrop-blur-md rounded-3xl border border-gray-900/30 p-6 lg:p-8 transform transition-all duration-300 hover:scale-[1.02] hover:border-orange-500/40">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-gray-50" />
-                </div>
-                <h3 className="text-xl font-black text-gray-900">Quick Stats</h3>
-              </div>
-
-              <div className="space-y-4">
-                <div className="group p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all duration-300 cursor-pointer">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <CheckCircle className="w-6 h-6 text-gray-900" />
-                      </div>
-                      <div>
-                        <div className="text-gray-900 font-bold">Verified Reports</div>
-                        <div className="text-gray-900/60 text-sm">Today</div>
-                      </div>
-                    </div>
-                    <div className="text-3xl font-black text-gray-900">{validatedReports.length}</div>
+              {/* Quick Stats Card */}
+              <div className="bg-gray-900/5 backdrop-blur-md rounded-3xl border border-gray-900/30 p-6 lg:p-8 transform transition-all duration-300 hover:scale-[1.02] hover:border-orange-500/40">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-gray-50" />
                   </div>
+                  <h3 className="text-xl font-black text-gray-900">Quick Stats</h3>
                 </div>
 
-                <div className="group p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all duration-300 cursor-pointer">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <AlertTriangle className="w-6 h-6 text-gray-900" />
-                      </div>
-                      <div>
-                        <div className="text-gray-900 font-bold">Active Alerts</div>
-                        <div className="text-gray-900/60 text-sm">Needs attention</div>
-                      </div>
-                    </div>
-                    <div className="text-3xl font-black text-gray-900">
-                      {validatedReports.filter(r => r.passability === 'NotPassable').length}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="group p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all duration-300 cursor-pointer">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Droplets className="w-6 h-6 text-gray-900" />
-                      </div>
-                      <div>
-                        <div className="text-gray-900 font-bold">Sensors Online</div>
-                        <div className="text-gray-900/60 text-sm">24/7 monitoring</div>
-                      </div>
-                    </div>
-                    <div className="text-3xl font-black text-gray-900">{sensorReadings.length}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Emergency Contacts Card */}
-            <div className="bg-gray-900/5 backdrop-blur-md rounded-3xl border border-gray-900/30 p-6 lg:p-8 transform transition-all duration-300 hover:border-red-500/30">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-500 rounded-xl flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-gray-50" />
-                </div>
-                <h3 className="text-xl font-black text-gray-900">Emergency Contacts</h3>
-              </div>
-
-              <div className="space-y-3">
-                {[
-                  { name: 'Barangay Emergency', number: '(02) 8282-1234', icon: Home },
-                  { name: 'Rescue Team', number: '(02) 8282-5678', icon: Shield },
-                  { name: 'Medical Emergency', number: '(02) 8282-9012', icon: Ambulance }
-                ].map((contact, index) => (
-                  <button
-                    key={index}
-                    className="w-full p-4 bg-white/5 hover:bg-red-500/10 rounded-xl border border-white/10 hover:border-red-500/30 transition-all duration-300 text-left group"
-                  >
+                <div className="space-y-4">
+                  <div className="group p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all duration-300 cursor-pointer">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <contact.icon className="w-5 h-5 text-gray-900/70" />
+                        <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <CheckCircle className="w-6 h-6 text-gray-900" />
+                        </div>
                         <div>
-                          <div className="text-gray-900 font-bold text-sm">{contact.name}</div>
-                          <div className="text-gray-900/60 text-xs">{contact.number}</div>
+                          <div className="text-gray-900 font-bold">Verified Reports</div>
+                          <div className="text-gray-900/60 text-sm">Today</div>
                         </div>
                       </div>
-                      <div className="w-10 h-10 bg-red-500/10 group-hover:bg-red-500/20 rounded-lg flex items-center justify-center transition-colors">
-                        <Phone className="w-5 h-5 text-red-400" />
+                      <div className="text-3xl font-black text-gray-900">{validatedReports.length}</div>
+                    </div>
+                  </div>
+
+                  <div className="group p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all duration-300 cursor-pointer">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <AlertTriangle className="w-6 h-6 text-gray-900" />
+                        </div>
+                        <div>
+                          <div className="text-gray-900 font-bold">Active Alerts</div>
+                          <div className="text-gray-900/60 text-sm">Needs attention</div>
+                        </div>
+                      </div>
+                      <div className="text-3xl font-black text-gray-900">
+                        {validatedReports.filter(r => r.passability === 'NotPassable').length}
                       </div>
                     </div>
-                  </button>
-                ))}
+                  </div>
+
+                  <div className="group p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all duration-300 cursor-pointer">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Droplets className="w-6 h-6 text-gray-900" />
+                        </div>
+                        <div>
+                          <div className="text-gray-900 font-bold">Sensors Online</div>
+                          <div className="text-gray-900/60 text-sm">24/7 monitoring</div>
+                        </div>
+                      </div>
+                      <div className="text-3xl font-black text-gray-900">{sensorReadings.length}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-                <p className="text-red-300 text-xs font-semibold flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-red-400" />
-                  For life-threatening emergencies, dial 911 immediately
-                </p>
+              {/* Emergency Contacts Card */}
+              <div className="bg-gray-900/5 backdrop-blur-md rounded-3xl border border-gray-900/30 p-6 lg:p-8 transform transition-all duration-300 hover:border-red-500/30">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-500 rounded-xl flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-gray-50" />
+                  </div>
+                  <h3 className="text-xl font-black text-gray-900">Emergency Contacts</h3>
+                </div>
+
+                <div className="space-y-3">
+                  {[
+                    { name: 'Barangay Emergency', number: '(02) 8282-1234', icon: Home },
+                    { name: 'Rescue Team', number: '(02) 8282-5678', icon: Shield },
+                    { name: 'Medical Emergency', number: '(02) 8282-9012', icon: Ambulance }
+                  ].map((contact, index) => (
+                    <button
+                      key={index}
+                      className="w-full p-4 bg-white/5 hover:bg-red-500/10 rounded-xl border border-white/10 hover:border-red-500/30 transition-all duration-300 text-left group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <contact.icon className="w-5 h-5 text-gray-900/70" />
+                          <div>
+                            <div className="text-gray-900 font-bold text-sm">{contact.name}</div>
+                            <div className="text-gray-900/60 text-xs">{contact.number}</div>
+                          </div>
+                        </div>
+                        <div className="w-10 h-10 bg-red-500/10 group-hover:bg-red-500/20 rounded-lg flex items-center justify-center transition-colors">
+                          <Phone className="w-5 h-5 text-red-400" />
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <p className="text-red-300 text-xs font-semibold flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-red-400" />
+                    For life-threatening emergencies, dial 911 immediately
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

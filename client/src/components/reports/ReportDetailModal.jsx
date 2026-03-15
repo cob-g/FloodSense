@@ -1,22 +1,50 @@
-import { formatDate, getSeverityColor, formatCoordinates } from '../../utils/helpers';
+import { formatDate, formatCoordinates } from '../../utils/helpers';
 import { STATUS_LABELS } from '../../utils/constants';
 import { useAuth } from '../../hooks/useAuth';
 import { useDeleteReport } from '../../hooks/useReports';
 import { useToast } from '../../contexts/ToastContext';
 import { createPortal } from 'react-dom';
+import { MapPin, Droplets, Navigation, User, Calendar, FileText, ShieldAlert, Waves, Trash2, X } from 'lucide-react';
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:5000';
+
+const severityGradient = {
+  Low:      'linear-gradient(135deg, #60a5fa, #22d3ee, #3b82f6)',
+  Medium:   'linear-gradient(135deg, #fbbf24, #fde68a, #f97316)',
+  High:     'linear-gradient(135deg, #f97316, #f87171, #ea580c)',
+  Critical: 'linear-gradient(135deg, #e11d48, #f87171, #be123c)',
+};
+
+const severityChip = {
+  Low:      { bg: 'rgba(96,165,250,0.2)',  color: '#dbeafe', border: 'rgba(147,197,253,0.3)' },
+  Medium:   { bg: 'rgba(251,191,36,0.2)',  color: '#fef3c7', border: 'rgba(253,230,138,0.3)' },
+  High:     { bg: 'rgba(249,115,22,0.2)',  color: '#ffedd5', border: 'rgba(253,186,116,0.3)' },
+  Critical: { bg: 'rgba(225,29,72,0.2)',   color: '#ffe4e6', border: 'rgba(253,164,175,0.3)' },
+};
+
+const statusConfig = {
+  UNVERIFIED: { bg: 'rgba(254,243,199,0.93)', color: '#78350f', border: 'rgba(251,191,36,0.55)', dot: '#f59e0b', pulse: false },
+  VALIDATED:  { bg: 'rgba(209,250,229,0.93)', color: '#064e3b', border: 'rgba(16,185,129,0.55)', dot: '#10b981', pulse: true  },
+  REJECTED:   { bg: 'rgba(254,226,226,0.93)', color: '#7f1d1d', border: 'rgba(239,68,68,0.55)',  dot: '#ef4444', pulse: false },
+};
+
+const passLabel = { Passable: 'Passable', HeavyOnly: 'Heavy only', NotPassable: 'Blocked' };
+const passStyle = {
+  Passable:    { bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
+  HeavyOnly:   { bg: '#fffbeb', color: '#92400e', border: '#fde68a' },
+  NotPassable: { bg: '#fff1f2', color: '#9f1239', border: '#fecdd3' },
+};
 
 export const ReportDetailModal = ({ report, onClose }) => {
   const { user } = useAuth();
   const deleteReport = useDeleteReport();
   const toast = useToast();
 
-  const statusColors = {
-    UNVERIFIED: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
-    VALIDATED: 'bg-green-500/10 text-green-400 border-green-500/30',
-    REJECTED: 'bg-red-500/10 text-red-400 border-red-500/30',
-  };
+  const sev     = severityGradient[report.severity] || severityGradient.Low;
+  const sevChip = severityChip[report.severity]     || severityChip.Low;
+  const stat    = statusConfig[report.status]       || statusConfig.UNVERIFIED;
+  const pass    = passStyle[report.passability]     || { bg: '#f9fafb', color: '#374151', border: '#e5e7eb' };
+  const hasPhotos = report.photos?.length > 0;
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this report?')) {
@@ -32,154 +60,249 @@ export const ReportDetailModal = ({ report, onClose }) => {
   const canDelete = user?.role === 'admin' || user?.role === 'superadmin';
 
   return createPortal(
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[3000]" onClick={onClose}>
-      <div className="bg-space-800/95 backdrop-blur-xl rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-white/10 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="sticky top-0 bg-space-900/95 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-accent/30 to-accent/10 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            Report Details
-          </h2>
-          <button
-            onClick={onClose}
-            className="w-9 h-9 rounded-xl hover:bg-white/10 flex items-center justify-center transition-colors group"
-          >
-            <svg className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+    <div
+      className="fixed inset-0 flex items-center justify-center p-4 z-[3000]"
+      style={{
+        background: 'rgba(20, 8, 0, 0.55)',
+        backdropFilter: 'blur(16px) saturate(140%)',
+        WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+      }}
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-2xl my-4 rounded-[2rem] overflow-hidden flex flex-col"
+        style={{
+          maxHeight: '92vh',
+          background: 'rgba(255,252,249,0.72)',
+          backdropFilter: 'blur(40px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+          border: '1px solid rgba(255,255,255,0.85)',
+          boxShadow: '0 32px 80px rgba(122,34,0,0.22), 0 8px 24px rgba(197,73,20,0.12), inset 0 1.5px 0 rgba(255,255,255,0.95)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Top shimmer line */}
+        <div
+          className="absolute top-0 left-0 right-0 pointer-events-none z-10"
+          style={{
+            height: '1.5px',
+            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.9) 40%, rgba(255,200,160,0.55) 65%, transparent 100%)',
+          }}
+        />
+        {/* Warm tint blob */}
+        <div
+          className="absolute pointer-events-none"
+          style={{ top: '-80px', right: '-80px', width: '240px', height: '240px', borderRadius: '50%', background: 'rgba(197,73,20,0.07)', filter: 'blur(50px)' }}
+        />
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* Status Badge */}
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className={`px-4 py-2 rounded-xl text-sm font-bold border ${statusColors[report.status]}`}>
-              {STATUS_LABELS[report.status]}
-            </span>
-            <span className={`px-4 py-2 rounded-xl text-sm font-bold border ${getSeverityColor(report.severity)}`}>
-              {report.severity}
-            </span>
-          </div>
-
-          {/* Photos */}
-          {report.photos && report.photos.length > 0 && (
-            <div className="grid grid-cols-2 gap-4">
-              {report.photos.map((photo, index) => (
-                <img
-                  key={index}
-                  src={`${BASE_URL}/uploads/${photo}`}
-                  alt={`Flood photo ${index + 1}`}
-                  className="w-full h-56 object-cover rounded-xl ring-2 ring-white/10 hover:ring-accent/50 transition-all shadow-lg"
-                />
-              ))}
+        {/* ── Hero ── */}
+        <div className="relative h-52 flex-shrink-0 overflow-hidden">
+          {hasPhotos ? (
+            <img
+              src={`${BASE_URL}/uploads/${report.photos[0]}`}
+              alt="Flood"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center" style={{ background: sev }}>
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute -bottom-6 -left-6 w-40 h-40 rounded-full border-4 border-white" />
+                <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full border-4 border-white" />
+                <div className="absolute top-6 left-1/3 w-20 h-20 rounded-full border-2 border-white" />
+              </div>
+              <Waves className="w-16 h-16 text-white/25" strokeWidth={1.5} />
             </div>
           )}
 
-          {/* Location */}
-          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-            <h3 className="text-sm font-bold text-white/90 mb-3 flex items-center gap-2">
-              <svg className="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              Location
-            </h3>
-            <p className="text-white font-medium">{report.location?.address || 'No address provided'}</p>
-            <p className="text-sm text-white/60 mt-1">
-              {formatCoordinates(report.location?.coordinates[1], report.location?.coordinates[0])}
-            </p>
-            <p className="text-sm text-accent font-medium mt-2">{report.barangay}</p>
+          {/* Bottom dark overlay */}
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(to top, rgba(20,8,0,0.6) 0%, rgba(20,8,0,0.08) 50%, transparent 100%)' }}
+          />
+
+          {/* Status badge — top left */}
+          <div className="absolute top-4 left-4">
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold"
+              style={{ background: stat.bg, color: stat.color, border: `1px solid ${stat.border}`, backdropFilter: 'blur(8px)' }}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${stat.pulse ? 'animate-pulse' : ''}`}
+                style={{ background: stat.dot }}
+              />
+              {STATUS_LABELS[report.status]}
+            </span>
           </div>
 
-          {/* Flood Details */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <h3 className="text-sm font-bold text-white/90 mb-2 flex items-center gap-2">
-                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-                </svg>
-                Water Depth
-              </h3>
-              <p className="text-white font-bold text-lg">{report.depth}</p>
+          {/* Close — top right */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-105"
+            style={{ background: 'rgba(20,8,0,0.35)', border: '1px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)' }}
+          >
+            <X className="w-4 h-4 text-white" />
+          </button>
+
+          {/* Severity chip + extra photos count — bottom */}
+          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+            <span
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold"
+              style={{ background: sevChip.bg, color: sevChip.color, border: `1px solid ${sevChip.border}` }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
+              {report.severity} Severity
+            </span>
+            {report.photos?.length > 1 && (
+              <span
+                className="text-white/80 text-xs font-semibold px-2.5 py-1 rounded-full"
+                style={{ background: 'rgba(20,8,0,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)' }}
+              >
+                +{report.photos.length - 1} more photo{report.photos.length > 2 ? 's' : ''}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* ── Extra photos strip ── */}
+        {report.photos?.length > 1 && (
+          <div className="flex gap-2 px-5 pt-4 pb-0 flex-shrink-0 overflow-x-auto">
+            {report.photos.slice(1).map((photo, i) => (
+              <img
+                key={i}
+                src={`${BASE_URL}/uploads/${photo}`}
+                alt={`Photo ${i + 2}`}
+                className="w-20 h-20 object-cover rounded-xl flex-shrink-0 hover:scale-105 transition-transform duration-200"
+                style={{ border: '2px solid rgba(255,255,255,0.7)', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+                loading="lazy"
+              />
+            ))}
+          </div>
+        )}
+
+        {/* ── Scrollable content ── */}
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-3">
+
+          {/* Location */}
+          <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid #e2d5cc' }}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: 'rgba(197,73,20,0.1)', border: '1px solid rgba(197,73,20,0.2)' }}>
+                <MapPin size={13} style={{ color: '#c54914' }} />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#6b4030' }}>Location</span>
             </div>
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <h3 className="text-sm font-bold text-white/90 mb-2 flex items-center gap-2">
-                <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
-                Road Passability
-              </h3>
-              <p className="text-white font-bold text-lg">{report.passability}</p>
+            <p className="font-black text-lg leading-snug" style={{ color: '#1a0a00' }}>
+              {report.location?.address || 'No address provided'}
+            </p>
+            <p className="text-sm font-semibold mt-1" style={{ color: '#c54914' }}>Brgy. {report.barangay}</p>
+            {report.location?.coordinates && (
+              <p className="text-xs font-mono mt-1.5" style={{ color: '#6b4030' }}>
+                {formatCoordinates(report.location.coordinates[1], report.location.coordinates[0])}
+              </p>
+            )}
+          </div>
+
+          {/* Metric tiles */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-2xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid #e2d5cc' }}>
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center mx-auto mb-2" style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.15)' }}>
+                <Droplets className="w-4 h-4 text-blue-500" />
+              </div>
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#6b4030' }}>Depth</div>
+              <div className="text-sm font-black" style={{ color: '#1a0a00' }}>{report.depth}</div>
+            </div>
+
+            <div className="rounded-2xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid #e2d5cc' }}>
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center mx-auto mb-2" style={{ background: 'rgba(197,73,20,0.1)', border: '1px solid rgba(197,73,20,0.15)' }}>
+                <ShieldAlert size={16} style={{ color: '#c54914' }} />
+              </div>
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#6b4030' }}>Severity</div>
+              <div className="text-sm font-black" style={{ color: '#1a0a00' }}>{report.severity}</div>
+            </div>
+
+            <div className="rounded-2xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid #e2d5cc' }}>
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center mx-auto mb-2" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.15)' }}>
+                <Navigation className="w-4 h-4 text-emerald-500" />
+              </div>
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#6b4030' }}>Access</div>
+              <span
+                className="text-[11px] font-black px-2 py-0.5 rounded-lg inline-block"
+                style={{ background: pass.bg, color: pass.color, border: `1px solid ${pass.border}` }}
+              >
+                {passLabel[report.passability] || report.passability}
+              </span>
             </div>
           </div>
 
           {/* Description */}
           {report.description && (
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <h3 className="text-sm font-bold text-white/90 mb-3 flex items-center gap-2">
-                <svg className="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-                </svg>
-                Description
-              </h3>
-              <p className="text-white/80 whitespace-pre-wrap leading-relaxed">{report.description}</p>
+            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid #e2d5cc' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: 'rgba(61,32,16,0.06)', border: '1px solid rgba(61,32,16,0.1)' }}>
+                  <FileText size={13} style={{ color: '#7a5040' }} />
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#6b4030' }}>Description</span>
+              </div>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: '#3d2010' }}>{report.description}</p>
             </div>
           )}
 
-          {/* Reporter Info */}
-          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-            <h3 className="text-sm font-bold text-white/90 mb-3 flex items-center gap-2">
-              <svg className="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Reported By
-            </h3>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center ring-2 ring-accent/30">
-                <span className="text-lg font-bold text-accent">
-                  {report.user?.name?.charAt(0).toUpperCase() || 'U'}
-                </span>
+          {/* Admin notes */}
+          {report.validationNotes && (
+            <div className="rounded-2xl p-4" style={{ background: 'rgba(237,233,254,0.5)', border: '1px solid rgba(167,139,250,0.3)' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.2)' }}>
+                  <ShieldAlert size={13} className="text-violet-500" />
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-violet-600">Admin Notes</span>
               </div>
-              <div>
-                <p className="font-bold text-white">{report.user?.name || 'Anonymous'}</p>
-                <p className="text-sm text-white/60">{formatDate(report.createdAt)}</p>
+              <p className="text-sm leading-relaxed text-violet-900/80">{report.validationNotes}</p>
+            </div>
+          )}
+
+          {/* Reporter + date */}
+          <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid #e2d5cc' }}>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ring-2 ring-white shadow-md"
+                  style={{ background: 'linear-gradient(135deg, #c54914, #7a2200)' }}
+                >
+                  <span className="text-sm font-black text-white select-none">
+                    {report.user?.name?.charAt(0).toUpperCase() || 'U'}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <User size={11} style={{ color: '#6b4030' }} className="flex-shrink-0" />
+                    <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#6b4030' }}>Reporter</span>
+                  </div>
+                  <p className="font-black text-sm truncate" style={{ color: '#1a0a00' }}>{report.user?.name || 'Anonymous'}</p>
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <div className="flex items-center gap-1.5 mb-0.5 justify-end">
+                  <Calendar size={11} style={{ color: '#6b4030' }} />
+                  <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#6b4030' }}>Submitted</span>
+                </div>
+                <p className="text-xs font-semibold" style={{ color: '#3d2010' }}>{formatDate(report.createdAt)}</p>
               </div>
             </div>
           </div>
 
-          {/* Admin Notes */}
-          {report.validationNotes && (
-            <div className="bg-purple-500/10 rounded-xl p-4 border border-purple-500/30">
-              <h3 className="text-sm font-bold text-purple-400 mb-3 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Admin Notes
-              </h3>
-              <p className="text-white/90 leading-relaxed">{report.validationNotes}</p>
-            </div>
+          {/* Admin delete */}
+          {canDelete && (
+            <button
+              onClick={handleDelete}
+              disabled={deleteReport.isLoading}
+              className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl text-sm font-bold transition-all duration-200 hover:shadow-md disabled:opacity-50"
+              style={{ background: '#fff1f2', border: '1px solid #fecdd3', color: '#9f1239' }}
+            >
+              <Trash2 className="w-4 h-4" />
+              {deleteReport.isLoading ? 'Deleting...' : 'Delete Report'}
+            </button>
           )}
 
-          {/* Actions */}
-          {canDelete && (
-            <div className="pt-4 border-t border-white/10">
-              <button
-                onClick={handleDelete}
-                disabled={deleteReport.isLoading}
-                className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold py-3.5 rounded-xl transition-all border border-red-500/30 hover:border-red-500/50 disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                {deleteReport.isLoading ? 'Deleting...' : 'Delete Report'}
-              </button>
-            </div>
-          )}
+          <div className="h-1" />
         </div>
       </div>
     </div>,

@@ -46,6 +46,8 @@ export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseM
       const bounds = L.latLngBounds(NORTH_CALOOCAN_BOUNDS);
 
       mapInstanceRef.current = L.map(mapRef.current, {
+        zoomControl: false,
+        attributionControl: false,
         maxBounds: bounds,
         maxBoundsViscosity: 1.0, // hard wall — cannot pan outside
         minZoom: NORTH_CALOOCAN_MIN_ZOOM,
@@ -93,7 +95,6 @@ export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseM
           const icon = L.divIcon({
             className: '',
             html: `<div style="pointer-events:none;text-align:center;transform:translate(-50%,-50%)">
-              <div style="font-size:11px;font-weight:600;font-style:italic;font-family:'Noto Sans',Arial,sans-serif;color:#3d3517;text-shadow:${halo};white-space:nowrap;line-height:1.3">Barangay ${bnum.text}</div>
               ${groupName ? `<div style="font-size:9.5px;font-weight:400;font-style:italic;font-family:'Noto Sans',Arial,sans-serif;color:#5a4f2a;text-shadow:${halo};white-space:nowrap;line-height:1.2">${groupName.charAt(0) + groupName.slice(1).toLowerCase()}</div>` : ''}
             </div>`,
             iconSize: [0, 0],
@@ -112,6 +113,9 @@ export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseM
         interactive: false,
         dashArray: '6 4',
       }).addTo(mapInstanceRef.current);
+
+      // Custom zoom control — bottom right, matching MapView
+      L.control.zoom({ position: 'bottomright' }).addTo(mapInstanceRef.current);
 
       // Add click handler
       mapInstanceRef.current.on('click', handleMapClick);
@@ -247,20 +251,20 @@ export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseM
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-0">
       {/* Map */}
       <div className="relative">
-        <div 
-          ref={mapRef} 
-          className="w-full h-64 rounded-xl overflow-hidden border border-neutral-300"
+        <div
+          ref={mapRef}
+          className="w-full h-64 rounded-xl overflow-hidden"
         />
-        
+
         {/* Current Location Button (optional inside map) */}
         {showInMapButton && (
           <button
             type="button"
             onClick={handleUseCurrentLocation}
-            className="absolute top-3 right-3 bg-white hover:bg-neutral-50 text-neutral-700 px-3 py-2 rounded-lg shadow-md text-sm font-medium transition-colors"
+            className="absolute top-3 right-3 bg-white/90 hover:bg-white text-[#7a2200] px-3 py-1.5 rounded-lg shadow-md text-xs font-bold transition-all border border-[rgba(197,73,20,0.2)]"
           >
             📍 Use My Location
           </button>
@@ -269,20 +273,21 @@ export const LocationPicker = ({ onLocationSelect, initialLocation, registerUseM
 
       {/* Selected Location Info */}
       {selectedLocation && (
-        <div className="bg-primary-50 border border-primary-200 rounded-lg p-3">
-          <p className="text-sm font-medium text-primary-900 mb-1">Selected Location:</p>
+        <div className="px-3 py-2.5 rounded-b-xl" style={{ background: 'rgba(255,244,238,0.7)', borderTop: '1px solid rgba(197,73,20,0.12)' }}>
           {loadingAddress ? (
-            <p className="text-sm text-primary-700">Loading address...</p>
+            <p className="text-xs font-medium" style={{ color: '#9a6f55' }}>Loading address...</p>
           ) : (
-            <p className="text-sm text-primary-700">{selectedLocation.address}</p>
+            <p className="text-xs font-semibold leading-snug" style={{ color: '#3d2010' }}>{selectedLocation.address}</p>
           )}
         </div>
       )}
 
       {!selectedLocation && (
-        <p className="text-sm text-neutral-600 text-center">
-          Click on the map to select a location
-        </p>
+        <div className="px-3 py-2 rounded-b-xl" style={{ background: 'rgba(255,244,238,0.5)', borderTop: '1px solid rgba(197,73,20,0.1)' }}>
+          <p className="text-xs text-center font-medium" style={{ color: '#9a6f55' }}>
+            Tap on the map to select your location
+          </p>
+        </div>
       )}
     </div>
   );

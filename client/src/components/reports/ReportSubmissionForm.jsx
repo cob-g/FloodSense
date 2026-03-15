@@ -3,7 +3,7 @@ import { useCreateReport } from '../../hooks/useReports';
 import { DEPTH_OPTIONS, PASSABILITY_OPTIONS, MESSAGES } from '../../utils/constants';
 import LocationPicker from '../map/LocationPicker';
 import { useToast } from '../../contexts/ToastContext';
-import { MapPin, Camera, X, ChevronDown } from 'lucide-react';
+import { MapPin, Camera, X, ChevronDown, Droplets, Navigation, FileText } from 'lucide-react';
 
 export const ReportSubmissionForm = ({ onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -138,43 +138,60 @@ export const ReportSubmissionForm = ({ onClose, onSuccess }) => {
 
         {/* ── Header ── */}
         <div
-          className="relative flex-none px-7 py-5 flex items-center justify-between"
+          className="relative flex-none px-7 py-5 overflow-hidden"
           style={{ borderBottom: '1px solid rgba(197,73,20,0.1)' }}
         >
-          <div className="flex items-center gap-3">
-            {/* Orange accent dot */}
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: 'linear-gradient(135deg, #c54914, #7a2200)' }} />
-            <h2 className="text-[18px] font-black text-[#1a0a00] tracking-tight">Submit Flood Report</h2>
+          {/* Warm cream tint */}
+          <div className="absolute inset-0" style={{ background: 'rgba(255,244,238,0.55)' }} />
+          {/* Dot pattern — matches dashboard header */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: 'radial-gradient(circle, rgba(197,73,20,0.13) 1px, transparent 1px)',
+              backgroundSize: '18px 18px',
+            }}
+          />
+
+          <div className="relative flex items-start justify-between">
+            <div>
+              {/* Pill badge — like "LIVE MONITORING" */}
+              
+              {/* Split title */}
+              <h2 className="text-[20px] font-black tracking-tight leading-tight">
+                <span style={{ color: '#1a0a00' }}>Submit </span>
+                <span style={{ color: '#c54914' }}>Report</span>
+              </h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110 mt-1"
+              style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(197,73,20,0.18)' }}
+            >
+              <X size={15} strokeWidth={2.5} color="#7a2200" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
-            style={{ background: 'rgba(197,73,20,0.09)', border: '1px solid rgba(197,73,20,0.15)' }}
-          >
-            <X size={15} strokeWidth={2.5} color="#7a2200" />
-          </button>
         </div>
 
         {/* ── Scrollable Body ── */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-7 py-6 space-y-5">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 py-5 space-y-3">
 
-          {/* Location */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-[13px] font-bold text-[#3d2010] tracking-wide">
-                Location <span style={{ color: '#c54914' }}>*</span>
-              </label>
+          {/* Location card */}
+          <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid #e2d5cc' }}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: 'rgba(197,73,20,0.1)', border: '1px solid rgba(197,73,20,0.2)' }}>
+                  <MapPin size={13} style={{ color: '#c54914' }} />
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#6b4030' }}>
+                  Location <span style={{ color: '#c54914' }}>*</span>
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={() => !locating && useMyLocation && useMyLocation()}
                 disabled={locating}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-bold transition-all hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed"
-                style={{
-                  color: '#7a2200',
-                  background: 'rgba(197,73,20,0.08)',
-                  border: '1px solid rgba(197,73,20,0.2)',
-                  borderRadius: '999px',
-                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold transition-all hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed"
+                style={{ color: '#7a2200', background: 'rgba(197,73,20,0.08)', border: '1px solid rgba(197,73,20,0.2)', borderRadius: '999px' }}
               >
                 {locating ? (
                   <>
@@ -183,16 +200,13 @@ export const ReportSubmissionForm = ({ onClose, onSuccess }) => {
                   </>
                 ) : (
                   <>
-                    <MapPin size={13} strokeWidth={2.5} />
+                    <MapPin size={11} strokeWidth={2.5} />
                     Use My Location
                   </>
                 )}
               </button>
             </div>
-            <div
-              className="rounded-2xl overflow-hidden"
-              style={{ border: '1px solid rgba(197,73,20,0.18)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)' }}
-            >
+            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(197,73,20,0.15)' }}>
               <LocationPicker
                 onLocationSelect={(location) => setFormData({ ...formData, location })}
                 initialLocation={formData.location}
@@ -203,93 +217,117 @@ export const ReportSubmissionForm = ({ onClose, onSuccess }) => {
             </div>
           </div>
 
-          {/* Depth + Passability row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[13px] font-bold text-[#3d2010] mb-1.5 tracking-wide">
-                Water Depth <span style={{ color: '#c54914' }}>*</span>
-              </label>
+          {/* Depth + Passability cards */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Depth */}
+            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid #e2d5cc' }}>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)' }}>
+                  <Droplets size={13} className="text-blue-500" />
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#6b4030' }}>
+                  Depth <span style={{ color: '#c54914' }}>*</span>
+                </span>
+              </div>
               <div className="relative">
                 <select
                   required
                   value={formData.depth}
                   onChange={handleDepthChange}
-                  className="w-full appearance-none px-4 py-3.5 bg-white border border-[#e2d5cc] rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#c54914]/10 focus:border-[#c54914] transition-all text-[#1a0a00] font-medium text-[14px] pr-10"
-                  style={{ color: formData.depth ? '#1a0a00' : '#a08070' }}
+                  className="w-full appearance-none px-3.5 py-3 bg-white border border-[#e2d5cc] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#c54914]/10 focus:border-[#c54914] transition-all font-medium text-[13px] pr-8"
+                  style={{ color: formData.depth ? '#1a0a00' : '#6b4030' }}
                 >
-                  <option value="" disabled>Select depth</option>
+                  <option value="" disabled>Select</option>
                   {DEPTH_OPTIONS.map((depth) => (
                     <option key={depth} value={depth}>{depth}</option>
                   ))}
                 </select>
-                <ChevronDown size={15} className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" color="#a08070" />
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" color="#6b4030" />
               </div>
             </div>
-            <div>
-              <label className="block text-[13px] font-bold text-[#3d2010] mb-1.5 tracking-wide">
-                Road Passability <span style={{ color: '#c54914' }}>*</span>
-              </label>
+
+            {/* Passability */}
+            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid #e2d5cc' }}>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)' }}>
+                  <Navigation size={13} className="text-emerald-500" />
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#6b4030' }}>
+                  Road Passability <span style={{ color: '#c54914' }}>*</span>
+                </span>
+              </div>
               <div className="relative">
                 <select
                   required
                   value={formData.passability}
                   onChange={(e) => setFormData({ ...formData, passability: e.target.value })}
-                  className="w-full appearance-none px-4 py-3.5 bg-white border border-[#e2d5cc] rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#c54914]/10 focus:border-[#c54914] transition-all text-[#1a0a00] font-medium text-[14px] pr-10"
-                  style={{ color: formData.passability ? '#1a0a00' : '#a08070' }}
+                  className="w-full appearance-none px-3.5 py-3 bg-white border border-[#e2d5cc] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#c54914]/10 focus:border-[#c54914] transition-all font-medium text-[13px] pr-8"
+                  style={{ color: formData.passability ? '#1a0a00' : '#6b4030' }}
                 >
-                  <option value="" disabled>Select passability</option>
+                  <option value="" disabled>Select</option>
                   {PASSABILITY_OPTIONS.map((option) => {
                     const blocked = isHighDepth && option.value === 'Passable';
                     return (
                       <option key={option.value} value={option.value} disabled={blocked}>
-                        {blocked ? `${option.label} — not possible at this depth` : option.label}
+                        {blocked ? `${option.label} — unavailable` : option.label}
                       </option>
                     );
                   })}
                 </select>
-                {isHighDepth && (
-                  <p className="mt-1.5 text-[11px] font-semibold" style={{ color: '#c54914' }}>
-                    ⚠️ "Passable (Safe)" is unavailable at {formData.depth.toLowerCase()}-level depth.
-                  </p>
-                )}
-                <ChevronDown size={15} className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" color="#a08070" />
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" color="#6b4030" />
               </div>
+              {isHighDepth && (
+                <p className="mt-2 text-[11px] font-semibold" style={{ color: '#c54914' }}>
+                  ⚠️ "Passable" unavailable at {formData.depth.toLowerCase()} depth.
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Description */}
-          <div>
-            <label className="block text-[13px] font-bold text-[#3d2010] mb-1.5 tracking-wide">
-              Description <span className="font-normal text-[#a08070]">(Optional)</span>
-            </label>
+          {/* Description card */}
+          <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid #e2d5cc' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: 'rgba(61,32,16,0.06)', border: '1px solid rgba(61,32,16,0.1)' }}>
+                <FileText size={13} style={{ color: '#7a5040' }} />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#6b4030' }}>
+                Description <span className="font-normal normal-case" style={{ color: '#9a6f55' }}>(optional)</span>
+              </span>
+            </div>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
-              className="w-full px-4 py-3.5 bg-white border border-[#e2d5cc] rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#c54914]/10 focus:border-[#c54914] transition-all text-[#1a0a00] font-medium placeholder-[#a08070] text-[14px] resize-none"
-              placeholder="Additional details about the flood situation..."
+              className="w-full px-3.5 py-3 bg-white border border-[#e2d5cc] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#c54914]/10 focus:border-[#c54914] transition-all font-medium placeholder-[#9a7060] text-[14px] resize-none"
+              style={{ color: '#1a0a00' }}
+              placeholder="Describe the flood situation..."
             />
           </div>
 
-          {/* Photo Upload */}
-          <div>
-            <label className="block text-[13px] font-bold text-[#3d2010] mb-1.5 tracking-wide">
-              Photos <span style={{ color: '#c54914' }}>*</span>
-              <span className="font-normal text-[#a08070] ml-1.5">(Max 3, 5MB each)</span>
-            </label>
+          {/* Photos card */}
+          <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid #e2d5cc' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: 'rgba(197,73,20,0.1)', border: '1px solid rgba(197,73,20,0.2)' }}>
+                <Camera size={13} style={{ color: '#c54914' }} />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#6b4030' }}>
+                Photos <span style={{ color: '#c54914' }}>*</span>
+              </span>
+              <span className="text-[11px]" style={{ color: '#9a6f55' }}>· Max 3, 5MB each</span>
+            </div>
             <label
-              className="flex flex-col items-center justify-center gap-2 w-full py-7 rounded-2xl cursor-pointer transition-all"
+              className="flex flex-col items-center justify-center gap-2 w-full py-6 rounded-xl cursor-pointer transition-all"
               style={{
-                background: photoFiles.length ? 'rgba(197,73,20,0.04)' : 'rgba(255,255,255,0.7)',
-                border: '1.5px dashed rgba(197,73,20,0.3)',
+                background: photoFiles.length ? 'rgba(197,73,20,0.04)' : 'transparent',
+                border: '1.5px dashed rgba(197,73,20,0.25)',
               }}
             >
-              <Camera size={22} color="#c54914" strokeWidth={1.8} />
-              <span className="text-[13px] font-semibold text-[#7a2200]">
+              <Camera size={20} color="#c54914" strokeWidth={1.8} />
+              <span className="text-[13px] font-semibold" style={{ color: '#7a2200' }}>
                 {photoFiles.length ? `${photoFiles.length} photo${photoFiles.length > 1 ? 's' : ''} selected` : 'Tap to upload photos'}
               </span>
               {photoFiles.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 justify-center mt-1">
+                <div className="flex flex-wrap gap-1.5 justify-center mt-0.5">
                   {photoFiles.map((file, idx) => (
                     <span key={idx} className="text-[11px] font-medium px-2.5 py-1 rounded-full" style={{ background: 'rgba(197,73,20,0.1)', color: '#7a2200' }}>
                       {file.name.length > 18 ? file.name.slice(0, 16) + '…' : file.name}
@@ -307,11 +345,7 @@ export const ReportSubmissionForm = ({ onClose, onSuccess }) => {
               type="button"
               onClick={onClose}
               className="flex-1 font-bold py-3.5 rounded-2xl text-[14px] transition-all hover:-translate-y-0.5 active:translate-y-0"
-              style={{
-                background: 'rgba(197,73,20,0.08)',
-                border: '1px solid rgba(197,73,20,0.18)',
-                color: '#7a2200',
-              }}
+              style={{ background: 'rgba(197,73,20,0.08)', border: '1px solid rgba(197,73,20,0.18)', color: '#7a2200' }}
             >
               Cancel
             </button>
@@ -319,10 +353,7 @@ export const ReportSubmissionForm = ({ onClose, onSuccess }) => {
               type="submit"
               disabled={createReport.isLoading}
               className="flex-1 text-white font-bold py-3.5 rounded-2xl text-[14px] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 active:translate-y-0"
-              style={{
-                background: 'linear-gradient(135deg, #c54914 0%, #7a2200 100%)',
-                boxShadow: '0 8px 24px rgba(197,73,20,0.30)',
-              }}
+              style={{ background: 'linear-gradient(135deg, #c54914 0%, #7a2200 100%)', boxShadow: '0 8px 24px rgba(197,73,20,0.30)' }}
             >
               {createReport.isLoading ? (
                 <div className="flex items-center justify-center gap-2">
@@ -333,7 +364,7 @@ export const ReportSubmissionForm = ({ onClose, onSuccess }) => {
             </button>
           </div>
 
-          <p className="text-[11px] text-[#a08070] text-center pb-1">
+          <p className="text-[11px] text-center pb-1" style={{ color: '#6b4030' }}>
             {MESSAGES.REPORT_SUCCESS}
           </p>
         </form>
