@@ -1,5 +1,4 @@
  import { Routes, Route, Navigate } from 'react-router-dom';
- import { AuthProvider } from './contexts/AuthContext';
  import { ThemeProvider } from './contexts/ThemeContext';
  import PrivateRoute from './components/auth/PrivateRoute';
  import ProtectedRoute from './components/common/ProtectedRoute';
@@ -25,7 +24,6 @@
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
           <Routes>
             {/* Public site layout */}
             <Route element={<Layout />}>
@@ -77,7 +75,6 @@ function App() {
             <Route path="/404" element={<NotFoundPage />} />
             <Route path="*" element={<Navigate to="/404" replace />} />
           </Routes>
-      </AuthProvider>
     </ThemeProvider>
   );
 }

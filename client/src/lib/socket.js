@@ -7,7 +7,6 @@ export const socket = io(SOCKET_URL, {
   withCredentials: true,
   reconnection: true,
   reconnectionDelay: 1000,
-  reconnectionAttempts: 5,
 });
 
 export const connectSocket = (userId) => {

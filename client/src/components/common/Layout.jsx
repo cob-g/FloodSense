@@ -60,8 +60,7 @@ export const Layout = () => {
 
   const handleLogout = async () => {
     await logout();
-    info('Signed out successfully');
-    setMenuOpen(false);
+    window.location.href = '/';
   };
 
   // Don't show navbar on auth pages

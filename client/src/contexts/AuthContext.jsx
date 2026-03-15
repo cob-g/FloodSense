@@ -1,6 +1,5 @@
 import { createContext, useState, useEffect } from 'react';
 import { authService } from '../services/auth.service';
-import { connectSocket, disconnectSocket } from '../lib/socket';
 
 export const AuthContext = createContext(null);
 
@@ -17,7 +16,6 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.getProfile();
       if (response?.success && response.data?.user) {
         setUser(response.data.user);
-        connectSocket(response.data.user.id);
       } else {
         setUser(null);
       }
@@ -33,7 +31,6 @@ export const AuthProvider = ({ children }) => {
     const response = await authService.login(credentials);
     if (response.success && response.data?.user) {
       setUser(response.data.user);
-      connectSocket(response.data.user.id);
     }
     return response;
   };
@@ -42,7 +39,6 @@ export const AuthProvider = ({ children }) => {
     const response = await authService.register(userData);
     if (response.success && response.data?.user) {
       setUser(response.data.user);
-      connectSocket(response.data.user.id);
     }
     return response;
   };
@@ -54,7 +50,6 @@ export const AuthProvider = ({ children }) => {
       console.error('Logout error:', error);
     } finally {
       setUser(null);
-      disconnectSocket();
     }
   };
 

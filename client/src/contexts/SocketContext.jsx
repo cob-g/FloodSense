@@ -6,92 +6,85 @@ import { AuthContext } from './AuthContext';
 export const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children }) => {
-  const [connected, setConnected] = useState(false);
+  // Tracks actual physical socket connection (regardless of auth state)
+  const [socketConnected, setSocketConnected] = useState(socket.connected);
   const authContext = useContext(AuthContext);
   const user = authContext?.user;
   const queryClient = useQueryClient();
 
+  // Effect 1: manage the physical socket connection once and keep it alive
   useEffect(() => {
-    if (!user) {
-      if (socket.connected) {
-        socket.disconnect();
-        console.log('Socket disconnected (user logged out)');
-      }
-      setConnected(false);
+    const onConnect    = () => setSocketConnected(true);
+    const onDisconnect = () => setSocketConnected(false);
+    const onConnectError = () => setSocketConnected(false);
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('connect_error', onConnectError);
+
+    // Keep local state in sync in case the socket connected before listeners
+    // were reattached (can happen during StrictMode effect re-runs).
+    setSocketConnected(socket.connected);
+
+    if (!socket.connected) socket.connect();
+
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('connect_error', onConnectError);
+    };
+  }, []);
+
+  // Effect 2: when user logs in and socket isn't already connected, force a
+  // fresh connect — this resets any exhausted reconnection counter and handles
+  // the race where the initial connect attempt failed before login.
+  useEffect(() => {
+    if (!user) return;
+
+    // If already connected, immediately reflect it in local state.
+    if (socket.connected) {
+      setSocketConnected(true);
       return;
     }
 
-    // Register listeners FIRST before connecting to avoid missing the connect event
-    const handleConnect = () => {
-      console.log('Socket connected');
-      setConnected(true);
-      if (user.barangay) {
-        joinBarangay(user.barangay);
-      }
-    };
-    const handleDisconnect = () => {
-      console.log('Socket disconnected');
-      setConnected(false);
-    };
-    const handleConnectError = (err) => {
-      console.log('Socket connect_error:', err?.message || err);
-      setConnected(false);
-    };
-    const handleJoinedBarangay = (data) => console.log('Joined barangay:', data);
-    const handleNewReport = (data) => {
-      console.log('New report received:', data);
-      queryClient.invalidateQueries(['reports']);
-    };
-    const handleReportValidated = (data) => {
-      console.log('Report validated:', data);
-      queryClient.invalidateQueries(['reports']);
-    };
-    const handleReportRejected = (data) => {
-      console.log('Report rejected:', data);
-      queryClient.invalidateQueries(['reports']);
-    };
-    const handleReportDeleted = (data) => {
-      console.log('Report deleted:', data);
-      queryClient.invalidateQueries(['reports']);
-    };
-    const handleReportUpdate = (data) => {
-      console.log('Report update:', data);
-      queryClient.invalidateQueries(['reports']);
-    };
-
-    socket.on('connect', handleConnect);
-    socket.on('disconnect', handleDisconnect);
-    socket.on('connect_error', handleConnectError);
-    socket.on('joined-barangay', handleJoinedBarangay);
-    socket.on('new-report', handleNewReport);
-    socket.on('report-validated', handleReportValidated);
-    socket.on('report-rejected', handleReportRejected);
-    socket.on('report-deleted', handleReportDeleted);
-    socket.on('report-update', handleReportUpdate);
-
-    // Connect or sync state after listeners are set up
-    if (socket.connected) {
-      setConnected(true);
-      if (user.barangay) {
-        joinBarangay(user.barangay);
-      }
-    } else {
-      socket.connect();
-      console.log('Socket connecting...');
+    // If a pre-login attempt is stuck in a bad state, restart once on login.
+    if (socket.active) {
+      socket.disconnect();
     }
 
+    socket.connect();
+  }, [user]);
+
+  // Effect 3: join barangay room when both user and socket are ready
+  useEffect(() => {
+    if (user?.barangay && socketConnected) {
+      joinBarangay(user.barangay);
+    }
+  }, [user, socketConnected]);
+
+  // Effect 4: listen for data events only while a user is logged in
+  useEffect(() => {
+    if (!user) return;
+
+    const invalidate = () => queryClient.invalidateQueries(['reports']);
+
+    socket.on('new-report', invalidate);
+    socket.on('report-validated', invalidate);
+    socket.on('report-rejected', invalidate);
+    socket.on('report-deleted', invalidate);
+    socket.on('report-update', invalidate);
+
     return () => {
-      socket.off('connect', handleConnect);
-      socket.off('disconnect', handleDisconnect);
-      socket.off('connect_error', handleConnectError);
-      socket.off('joined-barangay', handleJoinedBarangay);
-      socket.off('new-report', handleNewReport);
-      socket.off('report-validated', handleReportValidated);
-      socket.off('report-rejected', handleReportRejected);
-      socket.off('report-deleted', handleReportDeleted);
-      socket.off('report-update', handleReportUpdate);
+      socket.off('new-report', invalidate);
+      socket.off('report-validated', invalidate);
+      socket.off('report-rejected', invalidate);
+      socket.off('report-deleted', invalidate);
+      socket.off('report-update', invalidate);
     };
   }, [user, queryClient]);
+
+  // "connected" exposed to consumers = socket is up AND user is logged in
+  const connected = socketConnected && !!user;
 
   return (
     <SocketContext.Provider value={{ connected, socket }}>
