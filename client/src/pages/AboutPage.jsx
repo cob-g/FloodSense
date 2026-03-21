@@ -1,26 +1,28 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Droplets, Users, Target, Heart, MapPin, Award, Code, Database, Wifi, AlertTriangle, Zap, Shield } from 'lucide-react';
 
 const AboutPage = () => {
+  const { t } = useTranslation();
   const [hoveredValue, setHoveredValue] = useState(null);
 
   const milestones = [
     {
-      phase: "Ideation",
-      title: "Identifying the Problem",
-      description: "Caloocan City experiences recurring floods that disrupt thousands of lives. Traditional monitoring systems were reactive, not proactive.",
+      phase: t('about.journey.phase1'),
+      title: t('about.journey.phase1Title'),
+      description: t('about.journey.phase1Desc'),
       color: "from-orange-500 to-red-500"
     },
     {
-      phase: "Development",
-      title: "Building the Solution",
-      description: "Our team engineered an IoT-powered ecosystem combining ultrasonic sensors, real-time data processing, and community validation.",
+      phase: t('about.journey.phase2'),
+      title: t('about.journey.phase2Title'),
+      description: t('about.journey.phase2Desc'),
       color: "from-orange-600 to-orange-500"
     },
     {
-      phase: "Deployment",
-      title: "Empowering Communities",
-      description: "FloodSense now serves North Caloocan residents with 24/7 monitoring, verified alerts, and actionable flood intelligence.",
+      phase: t('about.journey.phase3'),
+      title: t('about.journey.phase3Title'),
+      description: t('about.journey.phase3Desc'),
       color: "from-red-600 to-orange-600"
     }
   ];
@@ -28,50 +30,50 @@ const AboutPage = () => {
   const values = [
     {
       icon: <Users className="w-10 h-10" />,
-      title: "Community-Driven",
-      description: "Technology is only as powerful as the people who use it. We built FloodSense with community input at every stage.",
+      title: t('about.values.communityDriven'),
+      description: t('about.values.communityDrivenDesc'),
       gradient: "from-orange-500 to-red-500"
     },
     {
       icon: <Shield className="w-10 h-10" />,
-      title: "Safety First",
-      description: "Every line of code, every sensor, every alert—designed with one goal: keeping residents safe during emergencies.",
+      title: t('about.values.safetyFirst'),
+      description: t('about.values.safetyFirstDesc'),
       gradient: "from-red-500 to-orange-600"
     },
     {
       icon: <Zap className="w-10 h-10" />,
-      title: "Innovation",
-      description: "We leverage cutting-edge IoT, real-time databases, and modern web technologies to solve age-old problems.",
+      title: t('about.values.innovation'),
+      description: t('about.values.innovationDesc'),
       gradient: "from-orange-600 to-orange-500"
     },
     {
       icon: <Heart className="w-10 h-10" />,
-      title: "Transparency",
-      description: "Open data, verified reports, and honest communication build trust between technology and community.",
+      title: t('about.values.transparency'),
+      description: t('about.values.transparencyDesc'),
       gradient: "from-red-600 to-orange-500"
     }
   ];
 
   const techStack = [
-    { 
-      category: "IoT Hardware", 
+    {
+      category: t('about.tech.iotHardware'),
       icon: <Wifi className="w-6 h-6" />,
-      items: ["ESP32 Microcontrollers", "Ultrasonic Sensors", "Real-time Telemetry"]
+      items: [t('about.tech.iot1'), t('about.tech.iot2'), t('about.tech.iot3')]
     },
-    { 
-      category: "Backend", 
+    {
+      category: t('about.tech.backend'),
       icon: <Database className="w-6 h-6" />,
-      items: ["Node.js Server", "MongoDB Database", "RESTful APIs"]
+      items: [t('about.tech.backend1'), t('about.tech.backend2'), t('about.tech.backend3')]
     },
-    { 
-      category: "Frontend", 
+    {
+      category: t('about.tech.frontend'),
       icon: <Code className="w-6 h-6" />,
-      items: ["React Framework", "Real-time Dashboard", "Interactive Maps"]
+      items: [t('about.tech.frontend1'), t('about.tech.frontend2'), t('about.tech.frontend3')]
     },
-    { 
-      category: "Community", 
+    {
+      category: t('about.tech.community'),
       icon: <Users className="w-6 h-6" />,
-      items: ["Citizen Reporting", "Barangay Validation", "Public Alerts"]
+      items: [t('about.tech.community1'), t('about.tech.community2'), t('about.tech.community3')]
     }
   ];
 
@@ -109,47 +111,46 @@ const AboutPage = () => {
           <div className="mb-8">
             <div className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-full px-6 py-3 backdrop-blur-sm mb-6">
               <Droplets className="w-5 h-5 text-orange-500" />
-              <span className="text-sm font-semibold text-orange-400 tracking-wide">ABOUT FLOODSENSE</span>
+              <span className="text-sm font-semibold text-orange-400 tracking-wide">{t('about.badge')}</span>
             </div>
-            
+
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black mb-6 leading-tight">
-              Where Technology
+              {t('about.hero.title')}
               <br />
               <span className="bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 bg-clip-text text-transparent">
-                Saves Lives
+                {t('about.hero.titleHighlight')}
               </span>
             </h1>
-            
+
             <p className="text-lg text-gray-900 max-w-3xl mx-auto leading-relaxed mb-8">
-              FloodSense is a pioneering IoT-based flood monitoring system born from the desire 
-              to protect communities through intelligent technology and collective action.
+              {t('about.hero.subtitle')}
             </p>
           </div>
 
           {/* Stats Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-gray-900/30 hover:border-orange-500/50 transition-all duration-300">
               <div className="text-orange-500 mb-3">
                 <Users className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Student-Built</h3>
-              <p className="text-sm text-gray-700">Developed by passionate computer science students as a capstone thesis project</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">{t('about.stats.studentBuilt')}</h3>
+              <p className="text-sm text-gray-700">{t('about.stats.studentBuiltDesc')}</p>
             </div>
-            
+
             <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-gray-900/30 hover:border-orange-500/50 transition-all duration-300">
               <div className="text-orange-500 mb-3">
                 <Target className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Community-Focused</h3>
-              <p className="text-sm text-gray-700">Designed with direct input from North Caloocan residents and local officials</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">{t('about.stats.communityFocused')}</h3>
+              <p className="text-sm text-gray-700">{t('about.stats.communityFocusedDesc')}</p>
             </div>
-            
+
             <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-gray-900/30 hover:border-orange-500/50 transition-all duration-300">
               <div className="text-orange-500 mb-3">
                 <Award className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Open Innovation</h3>
-              <p className="text-sm text-gray-700">Committed to transparency and continuous improvement through collaboration</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">{t('about.stats.openInnovation')}</h3>
+              <p className="text-sm text-gray-700">{t('about.stats.openInnovationDesc')}</p>
             </div>
           </div>
         </section>
@@ -159,32 +160,29 @@ const AboutPage = () => {
           <div className="relative bg-gradient-to-br from-orange-500/10 via-red-500/5 to-transparent backdrop-blur-md border border-orange-500/20 rounded-3xl p-12 lg:p-16 overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-red-500/10 rounded-full blur-3xl"></div>
-            
+
             <div className="relative grid lg:grid-cols-5 gap-12 items-center">
               <div className="lg:col-span-3">
                 <h2 className="text-4xl lg:text-5xl font-black mb-6">
-                  Our <span className="text-orange-500">Mission</span>
+                  {t('about.mission.title')} <span className="text-orange-500">{t('about.mission.titleHighlight')}</span>
                 </h2>
                 <p className="text-lg text-gray-800 leading-relaxed mb-6">
-                  To revolutionize flood disaster management in Caloocan City by combining 
-                  IoT sensor networks with community-driven reporting—creating a transparent, 
-                  reliable, and real-time flood intelligence system that empowers residents 
-                  to make informed decisions during emergencies.
+                  {t('about.mission.description')}
                 </p>
                 <div className="flex items-center gap-3 text-orange-400">
                   <MapPin className="w-5 h-5" />
-                  <span className="font-semibold">Serving North Caloocan, Philippines</span>
+                  <span className="font-semibold">{t('about.mission.location')}</span>
                 </div>
               </div>
-              
+
               <div className="lg:col-span-2 space-y-4">
                 <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-orange-500/20">
-                  <div className="text-orange-500 font-bold mb-1">Vision</div>
-                  <p className="text-sm text-gray-700">A flood-resilient community where technology and people work together.</p>
+                  <div className="text-orange-500 font-bold mb-1">{t('about.mission.vision')}</div>
+                  <p className="text-sm text-gray-700">{t('about.mission.visionDesc')}</p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-red-500/20">
-                  <div className="text-red-500 font-bold mb-1">Goal</div>
-                  <p className="text-sm text-gray-700">Zero casualties through proactive flood intelligence and rapid response.</p>
+                  <div className="text-red-500 font-bold mb-1">{t('about.mission.goal')}</div>
+                  <p className="text-sm text-gray-700">{t('about.mission.goalDesc')}</p>
                 </div>
               </div>
             </div>
@@ -195,9 +193,9 @@ const AboutPage = () => {
         <section className="mb-32">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-black mb-4">
-              The <span className="text-orange-500">FloodSense</span> Journey
+              {t('about.journey.title')} <span className="text-orange-500">{t('about.journey.titleHighlight')}</span>
             </h2>
-            <p className="text-gray-900 text-lg">From concept to community impact</p>
+            <p className="text-gray-900 text-lg">{t('about.journey.subtitle')}</p>
           </div>
           
           <div className="grid lg:grid-cols-3 gap-6">
@@ -223,9 +221,9 @@ const AboutPage = () => {
         <section className="mb-32">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-black mb-4">
-              Our <span className="text-orange-500">Core Values</span>
+              {t('about.values.title')} <span className="text-orange-500">{t('about.values.titleHighlight')}</span>
             </h2>
-            <p className="text-gray-900 text-lg">Principles that guide every decision we make</p>
+            <p className="text-gray-900 text-lg">{t('about.values.subtitle')}</p>
           </div>
           
           <div className="grid md:grid-cols-2 gap-6">
@@ -256,9 +254,9 @@ const AboutPage = () => {
         <section className="mb-32">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-black mb-4">
-              Built with <span className="text-orange-500">Modern Tech</span>
+              {t('about.tech.title')} <span className="text-orange-500">{t('about.tech.titleHighlight')}</span>
             </h2>
-            <p className="text-gray-900 text-lg">A full-stack solution from sensors to screen</p>
+            <p className="text-gray-900 text-lg">{t('about.tech.subtitle')}</p>
           </div>
           
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -289,15 +287,13 @@ const AboutPage = () => {
           <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 backdrop-blur-md border border-orange-500/20 rounded-3xl p-12 lg:p-16 text-center">
             <Award className="w-16 h-16 text-orange-500 mx-auto mb-6" />
             <h2 className="text-3xl lg:text-4xl font-black mb-4">
-              A <span className="text-orange-500">Student-Led</span> Innovation
+              {t('about.student.title')} <span className="text-orange-500">{t('about.student.titleHighlight')}</span>
             </h2>
             <p className="text-lg text-gray-900 max-w-3xl mx-auto leading-relaxed mb-8">
-              FloodSense was developed as a capstone thesis project by passionate computer science 
-              students who saw technology not just as code and circuits—but as a tool to protect 
-              their community and save lives.
+              {t('about.student.description')}
             </p>
             <div className="inline-flex items-center gap-2 bg-white/10 border border-orange-500/30 rounded-full px-6 py-3">
-              <span className="text-sm font-semibold text-orange-400">Capstone Project 2024-2025</span>
+              <span className="text-sm font-semibold text-orange-400">{t('about.student.capstone')}</span>
             </div>
           </div>
         </section>

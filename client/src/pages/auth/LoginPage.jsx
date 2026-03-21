@@ -1,9 +1,11 @@
 import { useState, useContext } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../contexts/AuthContext';
 import { Droplets, AlertTriangle } from 'lucide-react';
 
 export const LoginPage = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -81,10 +83,10 @@ export const LoginPage = () => {
             className="text-white font-black leading-[1.1] mb-4"
             style={{ fontSize: 'clamp(2.6rem, 6vw, 4rem)', textShadow: '0 4px 20px rgba(0,0,0,0.2)' }}
           >
-            Welcome back.
+            {t('auth.login.title')}
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '15px', maxWidth: '320px', lineHeight: 1.7 }}>
-            Your real-time flood monitoring dashboard is ready.
+            {t('auth.login.subtitle')}
           </p>
         </div>
 
@@ -156,7 +158,7 @@ export const LoginPage = () => {
           <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
             <div>
               <label className="block text-[13px] font-bold text-[#3d2010] mb-1.5 ml-0.5 tracking-wide">
-                Email Address
+                {t('auth.login.emailLabel')}
               </label>
               <input
                 type="email"
@@ -170,14 +172,14 @@ export const LoginPage = () => {
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-[13px] font-bold text-[#3d2010] ml-0.5 tracking-wide">Password</label>
+                <label className="block text-[13px] font-bold text-[#3d2010] ml-0.5 tracking-wide">{t('auth.login.passwordLabel')}</label>
                 <span
                   className="text-[12px] font-semibold cursor-pointer transition-colors"
                   style={{ color: '#c54914' }}
                   onMouseEnter={e => e.target.style.color = '#7a2200'}
                   onMouseLeave={e => e.target.style.color = '#c54914'}
                 >
-                  Forgot Password?
+                  {t('auth.login.forgotPassword')}
                 </span>
               </div>
               <input
@@ -202,16 +204,16 @@ export const LoginPage = () => {
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-5 h-5 border-2 border-orange-200 border-t-white rounded-full animate-spin" />
-                  Signing In...
+                  {t('auth.login.signingIn')}
                 </div>
-              ) : 'Sign In'}
+              ) : t('auth.login.signInButton')}
             </button>
           </form>
         </div>
 
         {/* Below-card link */}
         <p className="relative z-10 mt-7 text-center text-[14px] font-medium" style={{ color: '#6b5c52' }}>
-          Don't have an account?{' '}
+          {t('auth.login.noAccount')}{' '}
           <Link
             to="/auth/register"
             className="font-bold transition-colors"
@@ -219,7 +221,7 @@ export const LoginPage = () => {
             onMouseEnter={(e) => (e.target.style.color = '#7a2200')}
             onMouseLeave={(e) => (e.target.style.color = '#c54914')}
           >
-            Create an account
+            {t('auth.login.createAccount')}
           </Link>
         </p>
       </div>

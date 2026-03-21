@@ -11,6 +11,7 @@ import 'sileo/styles.css'
 import App from './App.jsx'
 import './index.css'
 import { registerSW } from './serviceWorkerRegistration'
+import './i18n' // Initialize i18n
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

@@ -1,0 +1,725 @@
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+
+i18n
+  .use(initReactI18next)
+  .init({
+    resources: {
+      en: {
+        translation: {
+          // Navigation
+          nav: {
+            home: 'Home',
+            feed: 'Feed',
+            learn: 'Learn',
+            about: 'About',
+            contact: 'Contact',
+            profile: 'Profile',
+            login: 'Login',
+            logout: 'Logout',
+            register: 'Register',
+          },
+          // Common
+          common: {
+            loading: 'Loading...',
+            error: 'Error',
+            success: 'Success',
+            submit: 'Submit',
+            cancel: 'Cancel',
+            save: 'Save',
+            delete: 'Delete',
+            edit: 'Edit',
+            close: 'Close',
+            search: 'Search',
+            filter: 'Filter',
+            back: 'Back',
+            next: 'Next',
+            previous: 'Previous',
+          },
+          // Landing Page
+          landing: {
+            hero: {
+              title: 'Flood Intelligence',
+              titleHighlight: 'For North Caloocan',
+              subtitle: 'Real-time flood alerts powered by IoT sensors and community reports, keeping our community safe and informed.',
+              viewMap: 'View Live Map',
+              submitReport: 'Submit Report',
+              stats: {
+                verifiedAlerts: 'Verified Alerts',
+                activeSensors: 'Active Sensors',
+                monitoring: 'Monitoring',
+              }
+            },
+            liveMap: {
+              title: 'Live Flood',
+              titleHighlight: 'Monitoring',
+              subtitle: 'Real-time flood data across North Caloocan with verified community reports and sensor readings',
+            },
+            whyFloodsense: {
+              title: 'Why',
+              titleHighlight: 'FloodSense?',
+              reason1: 'Traditional systems are often too slow. FloodSense uses IoT sensors to provide real-time, street-level data, enabling proactive safety decisions when they matter most.',
+              reason2: 'We bridge technology and community. By merging sensor precision with verified resident reports, we create a resilient network that protects North Caloocan together.',
+              feature1Title: 'IoT Sensor Network',
+              feature1Desc: 'Real-time water level monitoring across North Caloocan',
+              feature2Title: 'Community Reports',
+              feature2Desc: 'Verified ground-level flood intelligence',
+              feature3Title: 'Barangay Validation',
+              feature3Desc: 'Officially confirmed flood data',
+            },
+            impact: {
+              title: 'The FloodSense Impact',
+              forCommuters: 'For Commuters',
+              forResidents: 'For Residents',
+              forGovernment: 'For Government',
+              forBusiness: 'For Business Owners',
+            },
+            cta: {
+              title: 'Ready to Stay',
+              titleHighlight: 'Flood-Safe?',
+              subtitle: 'Join thousands of North Caloocan residents who trust FloodSense for real-time flood intelligence.',
+              exploreData: 'Explore Live Data',
+              learnMore: 'Learn More',
+            },
+            nav: {
+              liveFeed: 'Live Feed',
+              map: 'Map',
+              about: 'About',
+              dashboard: 'Dashboard',
+              signIn: 'Sign In',
+            }
+          },
+          // Feed Page
+          feed: {
+            status: {
+              liveMonitoring: 'LIVE MONITORING',
+              offline: 'Offline Mode',
+              readOnly: 'Read-only',
+            },
+            title: 'Flood Intelligence',
+            titleHighlight: 'Dashboard',
+            subtitle: 'Monitor real-time flood conditions, sensor data, and community reports across North Caloocan in one unified dashboard.',
+            submitReport: 'Submit Report',
+            tabs: {
+              liveMap: 'Live Map',
+              analytics: 'Analytics',
+              sensors: 'Sensor Network',
+              reports: 'Community Reports',
+            },
+            liveMap: {
+              title: 'Live Flood Map',
+              subtitle: 'Interactive map showing validated flood zones and sensor locations',
+              live: 'Live',
+              slowConnection: {
+                title: 'Slow Connection Detected',
+                message: 'The live map is temporarily hidden to improve performance. You can still view it, but loading may be slow.',
+                loadAnyway: 'Load Map Anyway',
+              }
+            },
+            sensors: {
+              title: 'Sensor Network',
+              subtitle: 'Real-time water level data from IoT sensors across the city',
+            },
+            communityReports: {
+              title: 'Community Reports',
+              subtitle: 'Barangay-validated flood reports submitted by local residents',
+            },
+            stats: {
+              verifiedReports: 'Verified Reports',
+              today: 'Today',
+              activeAlerts: 'Active Alerts',
+              needsAttention: 'Needs attention',
+              sensorsOnline: 'Sensors Online',
+              monitoring: '24/7 monitoring',
+              quickStats: 'Quick Stats',
+            },
+            emergency: {
+              title: 'Emergency Contacts',
+              barangay: 'Barangay Emergency',
+              rescue: 'Rescue Team',
+              medical: 'Medical Emergency',
+              warningText: 'For life-threatening emergencies, dial 911 immediately',
+            },
+            offline: {
+              title: 'You\'re offline',
+              subtitle: 'displaying last cached data. Live updates are paused.',
+              retry: 'Retry',
+              restoreConnection: 'Restore Connection',
+              viewingCached: 'You\'re viewing data from your last session. Restore your connection to get live flood reports and sensor readings.',
+              cachedReports: 'Cached Flood Reports',
+              reportsStored: 'reports stored locally',
+              noCachedData: 'No Cached Data',
+              noCachedMessage: 'No reports were saved before going offline. Reconnect to load and cache the latest flood data.',
+              tryReconnect: 'Try to Reconnect',
+              cached: 'CACHED',
+              verified: 'Verified',
+              stillOffline: 'Still offline or no internet access.',
+              backOnline: 'You are back online. Refreshing...',
+              connectionRestored: 'Connection restored. Refreshing...',
+            },
+            connection: {
+              youreOffline: 'You are now offline',
+              backOnline: 'You are back online',
+            }
+          },
+          // Auth
+          auth: {
+            login: {
+              title: 'Welcome back.',
+              subtitle: 'Your real-time flood monitoring dashboard is ready.',
+              emailLabel: 'Email Address',
+              passwordLabel: 'Password',
+              forgotPassword: 'Forgot Password?',
+              signInButton: 'Sign In',
+              signingIn: 'Signing In...',
+              noAccount: 'Don\'t have an account?',
+              createAccount: 'Create an account',
+            },
+            register: {
+              title: 'Create Account',
+              subtitle: 'Join the FloodSense community',
+              nameLabel: 'Name',
+              emailLabel: 'Email',
+              passwordLabel: 'Password',
+              confirmPasswordLabel: 'Confirm Password',
+              signUpButton: 'Sign Up',
+              hasAccount: 'Already have an account?',
+              signIn: 'Sign In',
+            }
+          },
+          // Contact
+          contact: {
+            badge: 'GET IN TOUCH',
+            hero: {
+              title: 'We\'d Love to',
+              titleHighlight: 'Hear From You',
+              subtitle: 'Whether you\'re a researcher, local official, community member, or developer—your input helps us build a stronger, more resilient FloodSense system.',
+            },
+            howCanWeHelp: {
+              title: 'How Can We',
+              titleHighlight: 'Help?',
+              subtitle: 'Select the reason that best describes your inquiry',
+            },
+            reasons: {
+              partnership: {
+                title: 'Partnership Inquiries',
+                description: 'Collaborate with us on research, deployment, or community initiatives',
+              },
+              technical: {
+                title: 'Technical Support',
+                description: 'Get assistance with the platform, sensors, or data integration',
+              },
+              feedback: {
+                title: 'General Feedback',
+                description: 'Share your thoughts, suggestions, or report issues with the system',
+              },
+              community: {
+                title: 'Community Engagement',
+                description: 'Learn how to become a validator or contribute to FloodSense',
+              }
+            },
+            information: {
+              title: 'Contact',
+              titleHighlight: 'Information',
+              description: 'Reach out to us directly through any of the channels below. We\'re committed to responding promptly to all inquiries.',
+              email: 'Email Address',
+              location: 'Location',
+              locationValue: 'North Caloocan City, Metro Manila, Philippines',
+              responseTime: 'Response Time',
+              responseTimeValue: 'Within 24-48 hours on business days',
+              importantNote: 'Important Note',
+              emergencyNote: 'For urgent flood-related emergencies, please contact your local barangay office or dial the emergency hotline 911 immediately.',
+            },
+            form: {
+              title: 'Send Us a Message',
+              fullName: 'Full Name',
+              emailAddress: 'Email Address',
+              category: 'Category',
+              subject: 'Subject',
+              message: 'Message',
+              required: '*',
+              placeholders: {
+                name: 'Juan Dela Cruz',
+                email: 'juan@example.com',
+                subject: 'Brief subject line',
+                message: 'Tell us more about your inquiry...',
+              },
+              categories: {
+                select: 'Select a category',
+                partnership: 'Partnership Inquiry',
+                technical: 'Technical Support',
+                feedback: 'General Feedback',
+                community: 'Community Engagement',
+                other: 'Other',
+              },
+              sendButton: 'Send Message',
+              sending: 'Sending...',
+            },
+            quickQuestion: {
+              title: 'Have a',
+              titleHighlight: 'Quick Question?',
+              subtitle: 'Many common questions are already answered in our Learn section. Check out our comprehensive guides and documentation before reaching out.',
+              visitResources: 'Visit Learning Resources',
+            },
+            toast: {
+              incomplete: 'Please fill in all required fields before submitting.',
+              success: 'Thank you! We\'ll get back to you within 24–48 hours.',
+              error: 'Something went wrong. Please try again.',
+            }
+          },
+          // Admin
+          admin: {
+            dashboard: 'Dashboard',
+            users: 'Users',
+            reports: 'Reports',
+            sensors: 'Sensors',
+            weekly: 'Weekly Reports',
+            fallbacks: 'Fallback Images',
+          },
+        },
+      },
+      tl: {
+        translation: {
+          // Navigation - Pure Formal Tagalog
+          nav: {
+            home: 'Tahanan',
+            feed: 'Mga Balita',
+            learn: 'Matuto',
+            about: 'Tungkol',
+            contact: 'Makipag-ugnayan',
+            profile: 'Talaan ng Gumagamit',
+            login: 'Mag-login',
+            logout: 'Mag-logout',
+            register: 'Mag-rehistro',
+          },
+          // Common - Formal Tagalog
+          common: {
+            loading: 'Naglo-load...',
+            error: 'May Kamalian',
+            success: 'Tagumpay',
+            submit: 'Isumite',
+            cancel: 'Kanselahin',
+            save: 'I-save',
+            delete: 'Burahin',
+            edit: 'Baguhin',
+            close: 'Isara',
+            search: 'Maghanap',
+            filter: 'Salain',
+            back: 'Bumalik',
+            next: 'Susunod',
+            previous: 'Nakaraan',
+          },
+          // Landing Page - Pure Formal Tagalog
+          landing: {
+            hero: {
+              title: 'Impormasyon Tungkol sa Baha',
+              titleHighlight: 'sa Hilagang Caloocan',
+              subtitle: 'Mga alerto tungkol sa baha gamit ang mga sensor at ulat ng komunidad upang mapanatiling ligtas at may kaalaman ang ating komunidad.',
+              viewMap: 'Tingnan ang Mapa',
+              submitReport: 'Magpadala ng Ulat',
+              stats: {
+                verifiedAlerts: 'Mga Napatunayan',
+                activeSensors: 'Aktibong Sensor',
+                monitoring: 'Pagsubaybay',
+              }
+            },
+            liveMap: {
+              title: 'Pangkasalukuyang',
+              titleHighlight: 'Pagsubaybay',
+              subtitle: 'Mga datos tungkol sa baha sa Hilagang Caloocan kasama ang mga napatunayan na ulat at pagbabasa ng sensor',
+            },
+            whyFloodsense: {
+              title: 'Bakit',
+              titleHighlight: 'FloodSense?',
+              reason1: 'Ang mga tradisyunal na sistema ay mabagal. Ang FloodSense ay gumagamit ng mga sensor upang magbigay ng impormasyon sa bawat kalye, upang makapag-desisyon kayo kaagad kapag kinakailangan.',
+              reason2: 'Pinagsasama namin ang teknolohiya at komunidad. Sa pamamagitan ng pagsasama ng mga tumpak na sensor at mga napatunayan na ulat ng mga residente, ginagawa nating mas protektado ang Hilagang Caloocan.',
+              feature1Title: 'Network ng mga Sensor',
+              feature1Desc: 'Pangkasalukuyang pagsubaybay sa antas ng tubig sa Hilagang Caloocan',
+              feature2Title: 'Mga Ulat ng Komunidad',
+              feature2Desc: 'Napatunayan na impormasyon tungkol sa baha mula sa mga residente',
+              feature3Title: 'Pagpapatunay ng Barangay',
+              feature3Desc: 'Opisyal na nakumpirma na datos tungkol sa baha',
+            },
+            impact: {
+              title: 'Ang Epekto ng FloodSense',
+              forCommuters: 'Para sa mga Commuter',
+              forResidents: 'Para sa mga Residente',
+              forGovernment: 'Para sa Pamahalaan',
+              forBusiness: 'Para sa mga May-ari ng Negosyo',
+            },
+            cta: {
+              title: 'Handa ka na bang',
+              titleHighlight: 'Manatiling Ligtas?',
+              subtitle: 'Sumali sa libu-libong mga residente ng Hilagang Caloocan na nagtitiwala sa FloodSense para sa mga balita tungkol sa baha.',
+              exploreData: 'Tingnan ang mga Datos',
+              learnMore: 'Matuto Pa',
+            },
+            nav: {
+              liveFeed: 'Pangkasalukuyang Balita',
+              map: 'Mapa',
+              about: 'Tungkol',
+              dashboard: 'Lupon ng Tagapamahala',
+              signIn: 'Mag-sign In',
+            }
+          },
+          // Feed Page - Pure Formal Tagalog
+          feed: {
+            status: {
+              liveMonitoring: 'PANGKASALUKUYANG PAGSUBAYBAY',
+              offline: 'Walang Koneksyon',
+              readOnly: 'Basahin Lamang',
+            },
+            title: 'Lupon ng Tagapamahala',
+            titleHighlight: 'ng Baha',
+            subtitle: 'Subaybayan ang pangkasalukuyang kondisyon ng baha, datos ng sensor, at mga ulat ng komunidad sa buong Hilagang Caloocan sa isang lugar.',
+            submitReport: 'Magpadala ng Ulat',
+            tabs: {
+              liveMap: 'Pangkasalukuyang Mapa',
+              analytics: 'Pagsusuri',
+              sensors: 'Mga Sensor',
+              reports: 'Mga Ulat ng Komunidad',
+            },
+            liveMap: {
+              title: 'Pangkasalukuyang Mapa ng Baha',
+              subtitle: 'Interaktibong mapa na may mga napatunayan na lugar ng baha at mga lokasyon ng sensor',
+              live: 'Buhay',
+              slowConnection: {
+                title: 'Mabagal ang Koneksyon',
+                message: 'Ang mapa ay pansamantalang nakatago upang mapabuti ang pagganap. Maaari mo pa rin itong i-load ngunit maaaring mabagal.',
+                loadAnyway: 'I-load Pa Rin',
+              }
+            },
+            sensors: {
+              title: 'Network ng mga Sensor',
+              subtitle: 'Pangkasalukuyang datos ng antas ng tubig mula sa mga sensor sa buong lungsod',
+            },
+            communityReports: {
+              title: 'Mga Ulat ng Komunidad',
+              subtitle: 'Mga ulat tungkol sa baha na pinatunayan ng barangay mula sa mga residente',
+            },
+            stats: {
+              verifiedReports: 'Mga Napatunayan na Ulat',
+              today: 'Ngayon',
+              activeAlerts: 'Mga Aktibong Alerto',
+              needsAttention: 'Nangangailangan ng pansin',
+              sensorsOnline: 'Mga Sensor na Aktibo',
+              monitoring: 'Pagsubaybay Buong Araw',
+              quickStats: 'Mabilis na Istatistika',
+            },
+            emergency: {
+              title: 'Mga Kontak sa Emerhensya',
+              barangay: 'Emerhensya ng Barangay',
+              rescue: 'Pangkat ng Pagliligtas',
+              medical: 'Medikal na Emerhensya',
+              warningText: 'Para sa mga emerhensya na may banta sa buhay, tumawag sa 911 kaagad',
+            },
+            offline: {
+              title: 'Walang koneksyon',
+              subtitle: 'nagpapakita ng huling naka-imbak na datos. Ang mga live na pagbabago ay pansamantalang nakatigil.',
+              retry: 'Subukan Muli',
+              restoreConnection: 'Ibalik ang Koneksyon',
+              viewingCached: 'Tinitingnan mo ngayon ang datos mula sa iyong huling sesyon. Ikonekta muli upang makuha ang mga pangkasalukuyang ulat tungkol sa baha at mga pagbabasa ng sensor.',
+              cachedReports: 'Mga Naka-imbak na Ulat',
+              reportsStored: 'mga ulat na naka-imbak',
+              noCachedData: 'Walang Naka-imbak na Datos',
+              noCachedMessage: 'Walang ulat na na-save bago ka nawalan ng koneksyon. Kumonetka muli upang mag-load at mag-imbak ng pinakabagong datos tungkol sa baha.',
+              tryReconnect: 'Subukang Kumonekta Muli',
+              cached: 'NAKA-IMBAK',
+              verified: 'Napatunayan',
+              stillOffline: 'Wala pa ring koneksyon o internet.',
+              backOnline: 'May koneksyon ka na ulit. Nagre-refresh...',
+              connectionRestored: 'Naibalik na ang koneksyon. Nagre-refresh...',
+            },
+            connection: {
+              youreOffline: 'Wala kang koneksyon',
+              backOnline: 'May koneksyon ka na ulit',
+            }
+          },
+          // Auth - Formal Tagalog
+          auth: {
+            login: {
+              title: 'Maligayang pagbabalik.',
+              subtitle: 'Handa na ang iyong lupon ng tagapamahala ng pagsubaybay sa baha.',
+              emailLabel: 'Email Address',
+              passwordLabel: 'Password',
+              forgotPassword: 'Nakalimutan ang Password?',
+              signInButton: 'Mag-sign In',
+              signingIn: 'Nagsa-sign in...',
+              noAccount: 'Wala pang account?',
+              createAccount: 'Lumikha ng account',
+            },
+            register: {
+              title: 'Lumikha ng Account',
+              subtitle: 'Sumali sa komunidad ng FloodSense',
+              nameLabel: 'Pangalan',
+              emailLabel: 'Email',
+              passwordLabel: 'Password',
+              confirmPasswordLabel: 'Kumpirmahin ang Password',
+              signUpButton: 'Mag-sign Up',
+              hasAccount: 'Mayroon nang account?',
+              signIn: 'Mag-sign In',
+            }
+          },
+          // Contact - Formal Tagalog
+          contact: {
+            badge: 'MAKIPAG-UGNAYAN',
+            hero: {
+              title: 'Gusto Naming',
+              titleHighlight: 'Marinig Ka',
+              subtitle: 'Maging mananaliksik, opisyal ng gobyerno, miyembro ng komunidad, o developer—ang iyong puna ay tumutulong sa amin na gawing mas malakas at mas matibay ang sistemang FloodSense.',
+            },
+            howCanWeHelp: {
+              title: 'Paano Kami',
+              titleHighlight: 'Makakatulong?',
+              subtitle: 'Pumili ng dahilan na tumutugma sa iyong katanungan',
+            },
+            reasons: {
+              partnership: {
+                title: 'Mga Katanungan Tungkol sa Pakikipagtulungan',
+                description: 'Makipagtulungan sa amin sa pananaliksik, paglulunsad, o mga inisyatiba ng komunidad',
+              },
+              technical: {
+                title: 'Teknikal na Suporta',
+                description: 'Kumuha ng tulong sa plataporma, mga sensor, o pagsasama ng datos',
+              },
+              feedback: {
+                title: 'Pangkalahatang Puna',
+                description: 'Ibahagi ang iyong mga kaisipan, mungkahi, o iulat ang mga problema sa sistema',
+              },
+              community: {
+                title: 'Pakikiisa sa Komunidad',
+                description: 'Alamin kung paano maging tagapatunay o mag-ambag sa FloodSense',
+              }
+            },
+            information: {
+              title: 'Impormasyon',
+              titleHighlight: 'sa Pakikipag-ugnayan',
+              description: 'Makipag-ugnayan sa amin nang direkta sa pamamagitan ng alinman sa mga channel sa ibaba. Kami ay nakatuon sa pagtugon sa lahat ng mga katanungan.',
+              email: 'Email Address',
+              location: 'Lokasyon',
+              locationValue: 'Lungsod ng Hilagang Caloocan, Metro Manila, Philippines',
+              responseTime: 'Oras ng Pagtugon',
+              responseTimeValue: 'Sa loob ng 24-48 oras sa mga araw ng negosyo',
+              importantNote: 'Mahalagang Paalala',
+              emergencyNote: 'Para sa mga agarang emerhensya na may kaugnayan sa baha, mangyaring makipag-ugnayan sa inyong lokal na tanggapan ng barangay o tumawag sa emergency hotline 911 kaagad.',
+            },
+            form: {
+              title: 'Magpadala ng Mensahe',
+              fullName: 'Buong Pangalan',
+              emailAddress: 'Email Address',
+              category: 'Kategorya',
+              subject: 'Paksa',
+              message: 'Mensahe',
+              required: '*',
+              placeholders: {
+                name: 'Juan Dela Cruz',
+                email: 'juan@example.com',
+                subject: 'Maikling paksa',
+                message: 'Sabihin sa amin ang higit pa tungkol sa iyong katanungan...',
+              },
+              categories: {
+                select: 'Pumili ng kategorya',
+                partnership: 'Katanungan Tungkol sa Pakikipagtulungan',
+                technical: 'Teknikal na Suporta',
+                feedback: 'Pangkalahatang Puna',
+                community: 'Pakikiisa sa Komunidad',
+                other: 'Iba Pa',
+              },
+              sendButton: 'Ipadala ang Mensahe',
+              sending: 'Nagpapadala...',
+            },
+            quickQuestion: {
+              title: 'May',
+              titleHighlight: 'Mabilis na Tanong?',
+              subtitle: 'Maraming karaniwang tanong ay nasagot na sa aming seksyon ng Pag-aaral. Tingnan ang aming komprehensibong mga gabay at dokumentasyon bago magtanong.',
+              visitResources: 'Bisitahin ang mga Mapagkukunan',
+            },
+            toast: {
+              incomplete: 'Mangyaring punan ang lahat ng kinakailangang patlang bago magsumite.',
+              success: 'Salamat! Babalikan ka namin sa loob ng 24–48 oras.',
+              error: 'May nangyaring mali. Mangyaring subukan muli.',
+            }
+          },
+          // Learn Page - Pure Formal Tagalog
+          learn: {
+            badge: 'SENTRO NG EDUKASYON NG FLOODSENSE',
+            hero: {
+              title1: 'Manatiling May Kaalaman.',
+              title2: 'Manatiling Ligtas. Manatiling Handa.',
+              subtitle: 'Ang FloodSense ay tumutulong sa iyo na hindi lamang subaybayan ang baha kundi maunawaan din ang mga ito. Alamin kung paano umuusbong ang mga baha, kung paano tumugon nang ligtas, at kung paano mananatiling matibay ang inyong komunidad sa pamamagitan ng kaalaman at paghahanda.',
+            },
+            whatCauses: {
+              title: 'Ano ang Sanhi ng',
+              titleHighlight: 'Baha?',
+              description: 'Ang mga baha ay nangyayari kapag ang pag-ulan, kanal, at lupa ay nagsasama sa mga paraang lumalampas sa likas o gawa ng tao na mga daanan ng tubig. Sa Hilagang Caloocan at iba pang lunsod, ang mga baha ay madalas na bunga ng malakas na ulan, baradong mga kanal, o pagtaas ng antas ng ilog. Ang mga sensor ng FloodSense ay sumusubaybay sa mga kondisyong ito upang makatulong na mahulaan at magbigay ng babala sa komunidad bago maging mapanganib ang antas ng tubig.',
+            },
+            deepDive: {
+              title: 'Pag-aralan nang Malalim ang',
+              titleHighlight: 'FloodSense',
+              subtitle: 'Tuklasin kung paano gumagana ang aming sistema at ang epekto nito',
+              tabs: {
+                overview: 'Pangkalahatang-ideya',
+                technology: 'Teknolohiya',
+                community: 'Komunidad',
+                benefits: 'Mga Benepisyo',
+              },
+              content: {
+                overviewTitle: 'Tungkol sa FloodSense Hilagang Caloocan',
+                overviewDesc: 'Ang FloodSense Hilagang Caloocan ay isang makabagong sistema ng pagsubaybay at pag-uulat ng baha na batay sa Internet of Things, na idinisenyo upang tugunan ang patuloy na hamon ng baha sa Lungsod ng Caloocan. Sa pamamagitan ng pagsasama ng pinakabagong teknolohiya at pakikilahok ng komunidad, ang sistema ay nagbibigay ng tumpak na impormasyon tungkol sa baha upang mapahusay ang kaligtasan ng publiko at paghahanda sa sakuna.',
+                technologyTitle: 'Kung Paano Gumagana ang Aming Teknolohiya',
+                technologyDesc: 'Ang aming sistema ay nagsasama ng mga ultrasonic sensor sa mga microcontroller ng ESP32 upang awtomatikong sukatin ang antas ng tubig sa pangkasalukuyan. Ang datos na ito ay ipinapadala sa pamamagitan ng Wi-Fi sa aming secure na server ng Node.js at naka-imbak sa isang database ng MongoDB. Ang platapormang web na batay sa React ay nagsisiguro ng walang putol na visualization ng datos at pakikipag-ugnayan ng mga gumagamit.',
+                communityTitle: 'Pakikilahok ng Komunidad',
+                communityDesc: 'Ang mga residente ay gumaganap ng mahalagang papel sa pagsubaybay sa baha sa pamamagitan ng pagsusumite ng mga ulat sa pamamagitan ng aming plataporma. Ang mga ulat na ito ay pinapatunayan ng mga opisyal ng barangay upang masiguro ang katumpakan. Kapag napatunayan na, ang parehong datos ng sensor at mga ulat ng komunidad ay ipinakita sa aming pampublikong lupon ng tagapamahala at interaktibong mapa ng baha.',
+                benefitsTitle: 'Mga Benepisyo at Epekto',
+                benefitsDesc: 'Pangkasalukuyang mga alerto tungkol sa baha para sa mga commuter at driver • Mas mabilis na pagtugon sa emerhensya gamit ang napatunayan na datos • Pinabuting paggawa ng desisyon para sa mga lokal na awtoridad • Pinahusay na kamalayan at paghahanda ng komunidad • Mas malakas na pakikipagtulungan sa pagitan ng mga mamamayan at pamahalaan',
+              }
+            },
+            features: {
+              title: 'Mga Pangunahing',
+              titleHighlight: 'Katangian',
+              subtitle: 'Kung paano pinagsasama ng FloodSense ang teknolohiya at komunidad',
+              feature1: 'Pangkasalukuyang Pagsubaybay',
+              feature1Desc: 'Ang mga ultrasonic sensor ay nagbibigay ng tuloy-tuloy na pagsukat ng antas ng tubig na may mataas na katumpakan',
+              feature2: 'Pag-uulat ng Komunidad',
+              feature2Desc: 'Ang mga residente ay nag-aambag ng lokal na impormasyon tungkol sa baha sa pamamagitan ng aming platapormang web',
+              feature3: 'Napatunayan na Datos',
+              feature3Desc: 'Ang mga opisyal ng barangay ay nagpapatunay ng lahat ng ulat ng komunidad para sa katumpakan at pagiging maaasahan',
+              feature4: 'Madaling Gamitin na Lupon',
+              feature4Desc: 'Madaling gamitin na interface na nagpapakita ng pangkasalukuyang mga alerto tungkol sa baha at mga update sa kaligtasan',
+            },
+            resources: {
+              title: 'Mga Mapagkukunan',
+              titleHighlight: 'sa Edukasyon',
+              subtitle: 'Mag-download ng komprehensibong mga gabay at dokumentasyon',
+              thesis: 'Dokumento ng Tesis ng Proyekto',
+              thesisDesc: 'Kumpletong papel ng pananaliksik na naglalahad ng sistema ng FloodSense',
+              safety: 'Mga Gabay sa Kaligtasan sa Baha',
+              safetyDesc: 'Mahahalagang hakbang sa kaligtasan sa panahon ng emerhensya sa baha',
+              manual: 'Manwal ng Sensor',
+              manualDesc: 'Teknikal na dokumentasyon para sa mga sensor ng pagsubaybay sa baha',
+              download: 'Mag-download',
+            },
+            faq: {
+              title: 'Mga Madalas',
+              titleHighlight: 'na Tanong',
+              subtitle: 'Mga karaniwang tanong tungkol sa FloodSense at kung paano ito gumagana',
+              q1: 'Ano ang FloodSense at paano ito gumagana?',
+              a1: 'Ang FloodSense ay isang sistema ng pagsubaybay sa baha batay sa Internet of Things na pinagsasama ang mga ultrasonic sensor sa pag-uulat ng komunidad. Ang mga sensor ay sumusukat ng antas ng tubig sa pangkasalukuyan at nagpapadala ng datos sa aming server, habang ang mga residente ay maaaring magsumite ng mga ulat tungkol sa baha na pinapatunayan ng mga opisyal ng barangay bago ipakita sa aming pampublikong lupon ng tagapamahala.',
+              q2: 'Gaano katumpak ang mga sensor ng baha?',
+              a2: 'Ang aming mga ultrasonic sensor ay nagbibigay ng mataas na katumpakan sa pagsukat ng antas ng tubig na may napakaliit na margin ng pagkakamali. Ang mga microcontroller ng ESP32 ay nagpoproseso ng datos sa pangkasalukuyan at nagpapadala ng mga update bawat ilang minuto. Bilang karagdagan, ang lahat ng ulat ng komunidad ay pinapatunayan ng mga lokal na opisyal upang masiguro ang katumpakan.',
+              q3: 'Maaari ko bang ma-access nang libre ang datos ng FloodSense?',
+              a3: 'Oo! Ang FloodSense ay nakatuon sa transparency at kaligtasan ng publiko. Ang lahat ng datos ng pagsubaybay sa baha, mga napatunayan na ulat, at mga alerto ay malayang naa-access sa pamamagitan ng aming lupon ng tagapamahala at interaktibong mapa. Naniniwala kami na ang mahalagang impormasyon tungkol sa kaligtasan ay dapat na available sa lahat.',
+              q4: 'Paano ako mag-uulat ng insidente ng baha?',
+              a4: 'Maaari kang magsumite ng mga ulat tungkol sa baha nang direkta sa pamamagitan ng aming platapormang web. Pumunta lamang sa seksyon ng pag-uulat, magbigay ng mga detalye ng lokasyon at obserbasyon, at isumite. Ang iyong ulat ay susuriin ng mga opisyal ng barangay para sa pagpapatunay bago lumitaw sa pampublikong lupon ng tagapamahala.',
+              q5: 'Sino ang nagpapatunay ng mga ulat ng komunidad tungkol sa baha?',
+              a5: 'Ang lahat ng mga ulat na isinumite ng komunidad ay pinapatunayan ng mga awtorisadong opisyal ng barangay sa Hilagang Caloocan. Ang prosesong ito ng pagpapatunay ay nagsisiguro na tanging tumpak at mapagkakatiwalaang impormasyon ang umaabot sa pampublikong lupon ng tagapamahala, na pinapanatili ang pagiging maaasahan ng aming sistema.',
+              q6: 'Ano ang dapat kong gawin sa panahon ng emerhensya sa baha?',
+              a6: 'Ang FloodSense ay nagbibigay ng impormasyon, ngunit HINDI ito serbisyo ng pagtugon sa emerhensya. Sa panahon ng aktibong pagbaha, unahin ang iyong kaligtasan: lumipat sa mas mataas na lugar, iwasan ang baha, at makipag-ugnayan sa inyong lokal na tanggapan ng barangay o tumawag sa 911 para sa tulong sa emerhensya.',
+              stillHaveQuestions: 'May mga tanong pa?',
+              contactUs: 'Makipag-ugnayan sa Amin',
+            }
+          },
+          // About Page - Pure Formal Tagalog
+          about: {
+            badge: 'TUNGKOL SA FLOODSENSE',
+            hero: {
+              title: 'Kung Saan ang Teknolohiya',
+              titleHighlight: 'ay Nagliligtas ng Buhay',
+              subtitle: 'Ang FloodSense ay isang pioneering na sistema ng pagsubaybay sa baha batay sa Internet of Things na ipinanganak mula sa nais na protektahan ang mga komunidad sa pamamagitan ng matalinong teknolohiya at sama-samang aksyon.',
+            },
+            stats: {
+              studentBuilt: 'Ginawa ng mga Estudyante',
+              studentBuiltDesc: 'Binuo ng mga masigasig na estudyante ng computer science bilang proyekto ng capstone thesis',
+              communityFocused: 'Nakatuon sa Komunidad',
+              communityFocusedDesc: 'Idinisenyo gamit ang direktang input mula sa mga residente ng Hilagang Caloocan at mga lokal na opisyal',
+              openInnovation: 'Bukas na Inobasyon',
+              openInnovationDesc: 'Nakatuon sa transparency at patuloy na pagpapabuti sa pamamagitan ng pakikipagtulungan',
+            },
+            mission: {
+              title: 'Ang Aming',
+              titleHighlight: 'Misyon',
+              description: 'Ang aming misyon ay baguhin ang pamamahala ng sakuna sa baha sa Lungsod ng Caloocan sa pamamagitan ng pagsasama ng network ng mga sensor ng Internet of Things sa pag-uulat na hinimok ng komunidad—lumilikha ng transparent, maaasahan, at pangkasalukuyang sistema ng intelligence tungkol sa baha na nagbibigay kapangyarihan sa mga residente na gumawa ng matalinong desisyon sa panahon ng emerhensya.',
+              vision: 'Pangitain',
+              visionDesc: 'Isang komunidad na matibay sa baha kung saan ang teknolohiya at mga tao ay nagtutulungan.',
+              goal: 'Layunin',
+              goalDesc: 'Walang nasasaktan sa pamamagitan ng proaktibong intelligence tungkol sa baha at mabilis na pagtugon.',
+              location: 'Naglilingkod sa Hilagang Caloocan, Philippines',
+            },
+            journey: {
+              title: 'Ang Paglalakbay ng',
+              titleHighlight: 'FloodSense',
+              subtitle: 'Mula sa konsepto tungo sa epekto sa komunidad',
+              phase1: 'Pag-ideya',
+              phase1Title: 'Pagtukoy sa Problema',
+              phase1Desc: 'Ang Lungsod ng Caloocan ay nakakaranas ng paulit-ulit na baha na gumagambala sa libu-libong buhay. Ang mga tradisyunal na sistema ng pagsubaybay ay reactive, hindi proactive.',
+              phase2: 'Pag-develop',
+              phase2Title: 'Pagbuo ng Solusyon',
+              phase2Desc: 'Ang aming koponan ay nakagawa ng ecosystem na powered ng Internet of Things na pinagsasama ang mga ultrasonic sensor, proseso ng datos sa pangkasalukuyan, at pagpapatunay ng komunidad.',
+              phase3: 'Paglulunsad',
+              phase3Title: 'Pagbibigay Kapangyarihan sa mga Komunidad',
+              phase3Desc: 'Ang FloodSense ay ngayon ay naglilingkod sa mga residente ng Hilagang Caloocan na may 24/7 na pagsubaybay, napatunayan na mga alerto, at mga aksyonableng intelligence tungkol sa baha.',
+            },
+            values: {
+              title: 'Ang Aming Pangunahing',
+              titleHighlight: 'Mga Halaga',
+              subtitle: 'Mga prinsipyong gumagabay sa bawat desisyon na ginagawa namin',
+              communityDriven: 'Hinihimok ng Komunidad',
+              communityDrivenDesc: 'Ang teknolohiya ay kasing lakas lamang ng mga taong gumagamit nito. Binuo namin ang FloodSense gamit ang input ng komunidad sa bawat yugto.',
+              safetyFirst: 'Kaligtasan Muna',
+              safetyFirstDesc: 'Bawat linya ng code, bawat sensor, bawat alerto—idinisenyo na may isang layunin: panatilihing ligtas ang mga residente sa panahon ng emerhensya.',
+              innovation: 'Inobasyon',
+              innovationDesc: 'Ginagamit namin ang pinakabagong Internet of Things, pangkasalukuyang databases, at modernong teknolohiya ng web upang lutasin ang mga sinaunang problema.',
+              transparency: 'Transparency',
+              transparencyDesc: 'Ang bukas na datos, napatunayan na mga ulat, at tapat na komunikasyon ay bumubuo ng tiwala sa pagitan ng teknolohiya at komunidad.',
+            },
+            tech: {
+              title: 'Ginawa gamit ang',
+              titleHighlight: 'Modernong Teknolohiya',
+              subtitle: 'Isang kumpletong solusyon mula sa mga sensor hanggang sa screen',
+              iotHardware: 'Hardware ng Internet of Things',
+              iot1: 'Mga Microcontroller ng ESP32',
+              iot2: 'Mga Ultrasonic Sensor',
+              iot3: 'Pangkasalukuyang Telemetry',
+              backend: 'Backend',
+              backend1: 'Server ng Node.js',
+              backend2: 'Database ng MongoDB',
+              backend3: 'Mga RESTful API',
+              frontend: 'Frontend',
+              frontend1: 'Framework ng React',
+              frontend2: 'Pangkasalukuyang Lupon ng Tagapamahala',
+              frontend3: 'Mga Interaktibong Mapa',
+              community: 'Komunidad',
+              community1: 'Pag-uulat ng Mamamayan',
+              community2: 'Pagpapatunay ng Barangay',
+              community3: 'Pampublikong mga Alerto',
+            },
+            student: {
+              title: 'Isang Inobasyon na',
+              titleHighlight: 'Pinamumunuan ng mga Estudyante',
+              description: 'Ang FloodSense ay binuo bilang proyekto ng capstone thesis ng mga masigasig na estudyante ng computer science na nakakita ng teknolohiya hindi lamang bilang code at circuits—kundi bilang kasangkapan upang protektahan ang kanilang komunidad at magligtas ng buhay.',
+              capstone: 'Proyekto ng Capstone 2024-2025',
+            },
+          },
+          // Admin
+          admin: {
+            dashboard: 'Lupon ng Tagapamahala',
+            users: 'Mga Gumagamit',
+            reports: 'Mga Ulat',
+            sensors: 'Mga Sensor',
+            weekly: 'Lingguhang mga Ulat',
+            fallbacks: 'Mga Larawan na Pansamantala',
+          },
+        },
+      },
+    },
+    lng: 'en', // default language
+    fallbackLng: 'en',
+    interpolation: {
+      escapeValue: false,
+    },
+    react: {
+      useSuspense: false,
+    },
+  });
+
+export default i18n;

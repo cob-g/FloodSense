@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-
+import { useTranslation } from 'react-i18next';
 import { BookOpen, HelpCircle, History, Handshake, BadgeCheck, LayoutDashboard, Download, FileText } from 'lucide-react';
 import { ChevronDown } from 'lucide-react';
 const FAQItem = ({ question, answer }) => {
@@ -34,45 +34,46 @@ const FAQItem = ({ question, answer }) => {
 };
 
 const LearnPage = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('overview');
 
   const content = {
     overview: {
-      title: "About FloodSense North Caloocan",
-      description: "FloodSense North Caloocan is an innovative IoT-based community flood monitoring and reporting system designed to address the persistent flooding challenges in Caloocan City. By combining cutting-edge technology with community participation, the system provides real-time, accurate flood information to enhance public safety and disaster preparedness."
+      title: t('learn.deepDive.content.overviewTitle'),
+      description: t('learn.deepDive.content.overviewDesc')
     },
     technology: {
-      title: "How Our Technology Works",
-      description: "Our system integrates ultrasonic sensors with ESP32 microcontrollers to automatically measure water levels in real-time. This data is transmitted via Wi-Fi to our secure Node.js server and stored in a MongoDB database. The React-based web platform ensures seamless data visualization and user interaction."
+      title: t('learn.deepDive.content.technologyTitle'),
+      description: t('learn.deepDive.content.technologyDesc')
     },
     community: {
-      title: "Community Participation",
-      description: "Residents play a crucial role in flood monitoring by submitting reports through our platform. These reports are validated by barangay officials to ensure accuracy. Once verified, both IoT sensor data and community reports are displayed on our public dashboard and interactive flood map."
+      title: t('learn.deepDive.content.communityTitle'),
+      description: t('learn.deepDive.content.communityDesc')
     },
     benefits: {
-      title: "Benefits & Impact",
-      description: "Real-time flood alerts for commuters and drivers • Faster emergency response with verified data • Improved decision-making for local authorities • Enhanced community awareness and preparedness • Stronger collaboration between citizens and government"
+      title: t('learn.deepDive.content.benefitsTitle'),
+      description: t('learn.deepDive.content.benefitsDesc')
     }
   };
 
   const resources = [
     {
-      title: "Project Thesis Document",
-      description: "Complete research paper detailing the FloodSense system",
+      title: t('learn.resources.thesis'),
+      description: t('learn.resources.thesisDesc'),
       type: "PDF",
       size: "2.4 MB",
       link: "/documents/FLOODSENSE-CALOOCAN-IOT.pdf"
     },
     {
-      title: "Flood Safety Guidelines",
-      description: "Essential safety measures during flood emergencies",
+      title: t('learn.resources.safety'),
+      description: t('learn.resources.safetyDesc'),
       type: "PDF",
       size: "1.1 MB",
       link: "/documents/flood-safety-guidelines.pdf"
     },
     {
-      title: "IoT Sensor Manual",
-      description: "Technical documentation for flood monitoring sensors",
+      title: t('learn.resources.manual'),
+      description: t('learn.resources.manualDesc'),
       type: "PDF",
       size: "3.2 MB",
       link: "/documents/sensor-manual.pdf"
@@ -82,26 +83,26 @@ const LearnPage = () => {
   const features = [
     {
       icon: <History className="w-10 h-10" />,
-      title: "Real-time Monitoring",
-      description: "Ultrasonic sensors provide continuous water level measurements with high precision",
+      title: t('learn.features.feature1'),
+      description: t('learn.features.feature1Desc'),
       gradient: "from-orange-500 to-red-500"
     },
     {
       icon: <Handshake className="w-10 h-10" />,
-      title: "Community Reporting",
-      description: "Residents contribute localized flood information through our web platform",
+      title: t('learn.features.feature2'),
+      description: t('learn.features.feature2Desc'),
       gradient: "from-red-500 to-orange-600"
     },
     {
       icon: <BadgeCheck className="w-10 h-10" />,
-      title: "Verified Data",
-      description: "Barangay officials validate all community reports for accuracy and reliability",
+      title: t('learn.features.feature3'),
+      description: t('learn.features.feature3Desc'),
       gradient: "from-orange-600 to-orange-500"
     },
     {
       icon: <LayoutDashboard className="w-10 h-10" />,
-      title: "Accessible Dashboard",
-      description: "User-friendly interface displaying real-time flood alerts and safety updates",
+      title: t('learn.features.feature4'),
+      description: t('learn.features.feature4Desc'),
       gradient: "from-red-600 to-orange-500"
     }
   ];
@@ -133,20 +134,19 @@ const LearnPage = () => {
           <div className="mb-8">
             <div className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-full px-6 py-3 backdrop-blur-sm mb-6">
               <BookOpen className="w-5 h-5 text-orange-500" />
-              <span className="text-sm font-semibold text-orange-400 tracking-wide">FLOODSENSE EDUCATION HUB</span>
+              <span className="text-sm font-semibold text-orange-400 tracking-wide">{t('learn.badge')}</span>
             </div>
-            
+
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black mb-6 leading-tight">
               <span className="bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 bg-clip-text text-transparent">
-                Stay Informed.
+                {t('learn.hero.title1')}
               </span>
               <br />
-              <span className="text-gray-900">Stay Safe. Stay Ready.</span>
+              <span className="text-gray-900">{t('learn.hero.title2')}</span>
             </h1>
-            
+
             <p className="text-lg text-gray-900 max-w-3xl font-normal mx-auto leading-relaxed">
-              FloodSense helps you not just track flood but understand them. Learn how floods develop, 
-              how to respond safely, and how your community can stay resilient through knowledge and preparedness.
+              {t('learn.hero.subtitle')}
             </p>
           </div>
         </section>
@@ -156,23 +156,20 @@ const LearnPage = () => {
           <div className="relative bg-gradient-to-br from-orange-500/10 via-red-500/5 to-transparent backdrop-blur-md border border-orange-500/20 rounded-3xl p-12 lg:p-16 overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-red-500/10 rounded-full blur-3xl"></div>
-            
+
             <div className="relative flex flex-col lg:flex-row items-start gap-8">
               <div className="flex-shrink-0">
                 <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-gray-900">
                   <HelpCircle className="w-14 h-14" />
                 </div>
               </div>
-              
+
               <div className="flex-1">
                 <h2 className="text-3xl lg:text-4xl font-black mb-4">
-                  What Causes <span className="text-orange-500">Flooding?</span>
+                  {t('learn.whatCauses.title')} <span className="text-orange-500">{t('learn.whatCauses.titleHighlight')}</span>
                 </h2>
                 <p className="text-lg text-gray-900 leading-relaxed">
-                  Floods occur when rainfall, drainage, and terrain combine in ways that overwhelm natural or 
-                  man-made water channels. In North Caloocan and other urban areas, floods often result from 
-                  heavy rain, clogged drainage systems, or rising river levels. FloodSense's IoT sensors monitor 
-                  these conditions to help predict and alert the community before water levels become dangerous.
+                  {t('learn.whatCauses.description')}
                 </p>
               </div>
             </div>
@@ -183,9 +180,9 @@ const LearnPage = () => {
         <section className="mb-32">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-black mb-4">
-              Deep Dive into <span className="text-orange-500">FloodSense</span>
+              {t('learn.deepDive.title')} <span className="text-orange-500">{t('learn.deepDive.titleHighlight')}</span>
             </h2>
-            <p className="text-gray-900 text-lg">Explore how our system works and its impact</p>
+            <p className="text-gray-900 text-lg">{t('learn.deepDive.subtitle')}</p>
           </div>
 
           {/* Tab Navigation */}
@@ -200,7 +197,7 @@ const LearnPage = () => {
                 }`}
                 onClick={() => setActiveTab(tab)}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {t(`learn.deepDive.tabs.${tab}`)}
               </button>
             ))}
           </div>
@@ -220,19 +217,19 @@ const LearnPage = () => {
         <section className="mb-32">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-black mb-4">
-              Key System <span className="text-orange-500">Features</span>
+              {t('learn.features.title')} <span className="text-orange-500">{t('learn.features.titleHighlight')}</span>
             </h2>
-            <p className="text-gray-900 text-lg">How FloodSense combines technology and community</p>
+            <p className="text-gray-900 text-lg">{t('learn.features.subtitle')}</p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 gap-6">
             {features.map((feature, index) => (
-              <div 
+              <div
                 key={index}
                 className="group relative bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-gray-900/30 hover:border-orange-500/50 transition-all duration-300"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-2xl`}></div>
-                
+
                 <div className="relative flex gap-6">
                   <div className={`flex-shrink-0 w-16 h-16 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-gray-50 group-hover:scale-110 transition-transform duration-300`}>
                     {feature.icon}
@@ -251,14 +248,14 @@ const LearnPage = () => {
         <section className="mb-32">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-black mb-4">
-              Educational <span className="text-orange-500">Resources</span>
+              {t('learn.resources.title')} <span className="text-orange-500">{t('learn.resources.titleHighlight')}</span>
             </h2>
-            <p className="text-gray-900 text-lg">Download comprehensive guides and documentation</p>
+            <p className="text-gray-900 text-lg">{t('learn.resources.subtitle')}</p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-6">
             {resources.map((resource, index) => (
-              <div 
+              <div
                 key={index}
                 className="group bg-gray-900 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-orange-500/50 transition-all duration-300 hover:-translate-y-2"
               >
@@ -270,19 +267,19 @@ const LearnPage = () => {
                     {resource.type}
                   </span>
                 </div>
-                
+
                 <h3 className="text-lg font-bold text-gray-50 mb-3">{resource.title}</h3>
                 <p className="text-sm text-gray-400 mb-6 leading-relaxed">{resource.description}</p>
-                
+
                 <div className="flex items-center justify-between pt-4 border-t border-white/10">
                   <span className="text-gray-500 text-sm">{resource.size}</span>
-                  <a 
-                    href={resource.link} 
+                  <a
+                    href={resource.link}
                     className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 group-hover:scale-105"
                     download
                   >
                     <Download className="w-4 h-4" />
-                    Download
+                    {t('learn.resources.download')}
                   </a>
                 </div>
               </div>
@@ -324,48 +321,48 @@ const LearnPage = () => {
         <section>
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-black mb-4">
-              Frequently Asked <span className="text-orange-500">Questions</span>
+              {t('learn.faq.title')} <span className="text-orange-500">{t('learn.faq.titleHighlight')}</span>
             </h2>
-            <p className="text-gray-900 text-lg">Common questions about FloodSense and how it works</p>
+            <p className="text-gray-900 text-lg">{t('learn.faq.subtitle')}</p>
           </div>
 
           <div className="space-y-4 max-w-4xl mx-auto">
-            <FAQItem 
-              question="What is FloodSense and how does it work?"
-              answer="FloodSense is an IoT-based flood monitoring system that combines ultrasonic sensors with community reporting. Sensors measure water levels in real-time and transmit data to our server, while residents can submit flood reports that are validated by barangay officials before being displayed on our public dashboard."
+            <FAQItem
+              question={t('learn.faq.q1')}
+              answer={t('learn.faq.a1')}
             />
-            
-            <FAQItem 
-              question="How accurate are the flood sensors?"
-              answer="Our ultrasonic sensors provide high-precision water level measurements with minimal margin of error. The ESP32 microcontrollers process data in real-time and transmit updates every few minutes. Additionally, all community reports are validated by local officials to ensure accuracy."
+
+            <FAQItem
+              question={t('learn.faq.q2')}
+              answer={t('learn.faq.a2')}
             />
-            
-            <FAQItem 
-              question="Can I access FloodSense data for free?"
-              answer="Yes! FloodSense is committed to transparency and public safety. All flood monitoring data, verified reports, and alerts are freely accessible through our dashboard and interactive map. We believe critical safety information should be available to everyone."
+
+            <FAQItem
+              question={t('learn.faq.q3')}
+              answer={t('learn.faq.a3')}
             />
-            
-            <FAQItem 
-              question="How do I report a flood incident?"
-              answer="You can submit flood reports directly through our web platform. Simply navigate to the reporting section, provide location details and observations, and submit. Your report will be reviewed by barangay officials for verification before appearing on the public dashboard."
+
+            <FAQItem
+              question={t('learn.faq.q4')}
+              answer={t('learn.faq.a4')}
             />
-            
-            <FAQItem 
-              question="Who validates the community flood reports?"
-              answer="All community-submitted reports are validated by authorized barangay officials in North Caloocan. This verification process ensures that only accurate, trustworthy information reaches the public dashboard, maintaining the reliability of our system."
+
+            <FAQItem
+              question={t('learn.faq.q5')}
+              answer={t('learn.faq.a5')}
             />
-            
-            <FAQItem 
-              question="What should I do during a flood emergency?"
-              answer="FloodSense provides information, but is NOT an emergency response service. During active flooding, prioritize your safety first: move to higher ground, avoid floodwaters, and contact your local barangay office or dial 911 for emergency assistance."
+
+            <FAQItem
+              question={t('learn.faq.q6')}
+              answer={t('learn.faq.a6')}
             />
           </div>
 
           <div className="text-center mt-12">
             <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-gray-900/30 inline-block">
-              <p className="text-gray-900 mb-4">Still have questions?</p>
+              <p className="text-gray-900 mb-4">{t('learn.faq.stillHaveQuestions')}</p>
               <Link to="/contact" className="inline-block bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-gray-900 px-8 py-3 rounded-xl font-bold transition-all duration-300 hover:scale-105">
-                Contact Us
+                {t('learn.faq.contactUs')}
               </Link>
             </div>
           </div>

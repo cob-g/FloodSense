@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import gsap from 'gsap';
 
 import { useAuth } from '../hooks/useAuth';
@@ -26,6 +27,7 @@ import {
 } from 'lucide-react';
 
 export const LandingPage = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [activeFeature, setActiveFeature] = useState(0);
@@ -60,40 +62,40 @@ export const LandingPage = () => {
   const features = [
     {
       icon: <Satellite className="w-6 h-6" />,
-      title: 'IoT Sensor Network',
-      description: 'Real-time water level monitoring across North Caloocan'
+      title: t('landing.whyFloodsense.feature1Title') || 'IoT Sensor Network',
+      description: t('landing.whyFloodsense.feature1Desc') || 'Real-time water level monitoring across North Caloocan'
     },
     {
       icon: <Users className="w-6 h-6" />,
-      title: 'Community Reports',
-      description: 'Verified ground-level flood intelligence'
+      title: t('landing.whyFloodsense.feature2Title') || 'Community Reports',
+      description: t('landing.whyFloodsense.feature2Desc') || 'Verified ground-level flood intelligence'
     },
     {
       icon: <ShieldCheck className="w-6 h-6" />,
-      title: 'Barangay Validation',
-      description: 'Officially confirmed flood data'
+      title: t('landing.whyFloodsense.feature3Title') || 'Barangay Validation',
+      description: t('landing.whyFloodsense.feature3Desc') || 'Officially confirmed flood data'
     }
   ];
 
   const impactFeatures = [
     {
       id: 1,
-      title: "For Commuters",
+      title: t('landing.impact.forCommuters'),
       icon: <MapPin size={64} />
     },
     {
       id: 2,
-      title: "For Residents",
+      title: t('landing.impact.forResidents'),
       icon: <Home size={64} />
     },
     {
       id: 3,
-      title: "For Government",
+      title: t('landing.impact.forGovernment'),
       icon: <Landmark size={64} />
     },
     {
       id: 4,
-      title: "For Business Owners",
+      title: t('landing.impact.forBusiness'),
       icon: <Briefcase size={64} />
     }
   ];
@@ -200,33 +202,33 @@ export const LandingPage = () => {
             
             <div className="hidden md:flex items-center space-x-8">
               <Link to="/feed" className="text-black/70 hover:text-accent-500 transition-colors font-medium">
-                Live Feed
+                {t('landing.nav.liveFeed')}
               </Link>
               <Link to="/map" className="text-black/70 hover:text-accent-500 transition-colors font-medium">
-                Map
+                {t('landing.nav.map')}
               </Link>
               <Link to="/about" className="text-black/70 hover:text-accent-500 transition-colors font-medium">
-                About
+                {t('landing.nav.about')}
               </Link>
             </div>
 
             <div className="flex items-center space-x-4">
               {user ? (
-                <button 
+                <button
                   onClick={() => navigate('/feed')}
                   className="px-6 py-2 bg-accent-500 hover:bg-accent-600 text-black font-semibold rounded-lg transition-all duration-300"
                 >
-                  Dashboard
+                  {t('landing.nav.dashboard')}
                 </button>
               ) : (
-                <button 
+                <button
                   onClick={() => {
                     try { window.sessionStorage.setItem('openReportAfterLogin', '1'); } catch (_) {}
                     navigate('/auth/login', { state: { from: { pathname: '/feed' } } });
                   }}
                   className="px-6 py-2 bg-black/5 hover:bg-black/10 text-black font-semibold rounded-lg border border-black/10 transition-all duration-300"
                 >
-                  Sign In
+                  {t('landing.nav.signIn')}
                 </button>
               )}
             </div>
@@ -249,34 +251,32 @@ export const LandingPage = () => {
             <div ref={dropletRef} className="hidden lg:block absolute -top-6 -left-16">
               <Sparkles className="w-12 h-12 text-[#ff5e1a]/60" />
             </div>
-            Flood Intelligence
+            {t('landing.hero.title')}
             <br />
             <span className="text-[#ff5e1a] animate-pulse">
-              For North Caloocan
+              {t('landing.hero.titleHighlight')}
             </span>
           </h1>
 
           <p ref={textRef} className="text-lg sm:text-xl text-gray-900 max-w-2xl mx-auto font-normal">
-            Real-time flood alerts powered by IoT sensors and community reports,
-            <br className="hidden sm:block" />
-            keeping our community safe and informed.
+            {t('landing.hero.subtitle')}
           </p>
 
           {/* Stats - Why: Luma uses minimal, elegant stat displays */}
           <div ref={statsRef} className="flex flex-wrap justify-center gap-8 pt-8">
             <div className="text-center">
               <div className="text-4xl font-black mb-1 text-gray-900">{validatedReports.length}+</div>
-              <div className="text-sm text-gray-900 font-medium">Verified Alerts</div>
+              <div className="text-sm text-gray-900 font-medium">{t('landing.hero.stats.verifiedAlerts')}</div>
             </div>
             <div className="w-px h-12 bg-transparent"></div>
             <div className="text-center">
               <div className="text-4xl font-black mb-1 text-gray-900">{sensorReadings.length}+</div>
-              <div className="text-sm text-gray-900 font-medium">Active Sensors</div>
+              <div className="text-sm text-gray-900 font-medium">{t('landing.hero.stats.activeSensors')}</div>
             </div>
             <div className="w-px h-12 bg-transparent"></div>
             <div className="text-center">
               <div className="text-4xl font-black mb-1 text-gray-900">24/7</div>
-              <div className="text-sm text-gray-900 font-semibold">Monitoring</div>
+              <div className="text-sm text-gray-900 font-semibold">{t('landing.hero.stats.monitoring')}</div>
             </div>
           </div>
 
@@ -286,11 +286,11 @@ export const LandingPage = () => {
               onClick={() => document.getElementById('live-map')?.scrollIntoView({ behavior: 'smooth' })}
               className="group px-8 py-4 flex items-center bg-accent-500 hover:bg-accent-400 text-gray-100 font-bold rounded-full transition-all duration-300 shadow-lg hover:shadow-accent-500/25 hover:scale-105 justify-center space-x-2 shadow-white/20"
             >
-              <span>View Live Map</span>
+              <span>{t('landing.hero.viewMap')}</span>
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
             </button>
-            
-            <button 
+
+            <button
               onClick={() => {
                 if (!user) {
                   try { window.sessionStorage.setItem('openReportAfterLogin', '1'); } catch (_) {}
@@ -303,7 +303,7 @@ export const LandingPage = () => {
               className="px-8 py-4  bg-black/5 hover:bg-black/10 text-gray-900 font-bold rounded-full border border-white/10 transition-all duration-300 flex items-center justify-center space-x-2 backdrop-blur-xl"
             >
               <Plus className="w-4 h-4" />
-              <span>Submit Report</span>
+              <span>{t('landing.hero.submitReport')}</span>
             </button>
           </div>
 
@@ -321,13 +321,13 @@ export const LandingPage = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl sm:text-5xl font-black mb-4">
-              <span className="text-gray-900">Live Flood</span>{' '}
+              <span className="text-gray-900">{t('landing.liveMap.title')}</span>{' '}
               <span className="bg-accent-500 bg-clip-text text-transparent">
-                Monitoring
+                {t('landing.liveMap.titleHighlight')}
               </span>
             </h2>
             <p className="text-xl text-black/70 max-w-2xl mx-auto">
-              Real-time flood data across North Caloocan with verified community reports and sensor readings
+              {t('landing.liveMap.subtitle')}
             </p>
           </div>
 
@@ -345,17 +345,17 @@ export const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl sm:text-5xl font-black mb-6">
-                <span className="text-gray-900">Why</span>{' '}
+                <span className="text-gray-900">{t('landing.whyFloodsense.title')}</span>{' '}
                 <span className="bg-accent-500  bg-clip-text text-transparent">
-                  FloodSense?
+                  {t('landing.whyFloodsense.titleHighlight')}
                 </span>
               </h2>
               <div className="space-y-6">
                 <p className="text-xl text-black/70 font-normal leading-relaxed">
-                  Traditional systems are often too slow. FloodSense uses IoT sensors to provide real-time, street-level data, enabling proactive safety decisions when they matter most.
+                  {t('landing.whyFloodsense.reason1')}
                 </p>
                 <p className="text-xl text-black/70 font-normal leading-relaxed">
-                  We bridge technology and community. By merging sensor precision with verified resident reports, we create a resilient network that protects North Caloocan together.
+                  {t('landing.whyFloodsense.reason2')}
                 </p>
               </div>
             </div>
@@ -375,7 +375,7 @@ export const LandingPage = () => {
 
           {/* The FloodSense Impact Section */}
           <div className="mb-20">
-            <h2 className="text-3xl sm:text-4xl font-black text-center mb-16 text-gray-900">The FloodSense Impact</h2>
+            <h2 className="text-3xl sm:text-4xl font-black text-center mb-16 text-gray-900">{t('landing.impact.title')}</h2>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
               {impactFeatures.map((feature) => (
@@ -397,27 +397,27 @@ export const LandingPage = () => {
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-accent-500/10 to-accent-600/5">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl sm:text-5xl font-black mb-6">
-            <span className="text-gray-900">Ready to Stay</span>{' '}
+            <span className="text-gray-900">{t('landing.cta.title')}</span>{' '}
             <span className="bg-accent-500 bg-clip-text text-transparent">
-              Flood-Safe?
+              {t('landing.cta.titleHighlight')}
             </span>
           </h2>
           <p className="text-xl text-black/70 mb-8 max-w-2xl mx-auto">
-            Join thousands of North Caloocan residents who trust FloodSense for real-time flood intelligence.
+            {t('landing.cta.subtitle')}
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/feed"
               className="px-8 py-4 bg-accent-500 hover:bg-accent-600 text-gray-100 font-bold rounded-full transition-all duration-300 shadow-lg hover:shadow-accent-500/25   hover:scale-105"
             >
-              Explore Live Data
+              {t('landing.cta.exploreData')}
             </Link>
             <Link
               to="/learn"
               className="px-8 py-4 bg-black/5 hover:bg-black/10 text-gray-900 font-bold rounded-full border border-black/10 transition-all duration-300 backdrop-blur-sm"
             >
-              Learn More
+              {t('landing.cta.learnMore')}
             </Link>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useContext, useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../contexts/AuthContext';
 import ReportList from '../components/reports/ReportList';
 import SensorDashboard from '../components/sensors/SensorDashboard';
@@ -16,6 +17,7 @@ import { ReportsChart } from '../components/analytics/ReportsChart';
 import { SensorChart } from '../components/analytics/SensorChart';
 
 const FeedPage = () => {
+  const { t } = useTranslation();
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -161,8 +163,8 @@ const FeedPage = () => {
               <div className="flex items-center gap-2.5">
                 <WifiOff className="w-4 h-4 text-amber-600 flex-shrink-0" />
                 <span className="text-amber-800 font-semibold text-sm">
-                  You're offline —{' '}
-                  <span className="font-normal text-amber-700">displaying last cached data. Live updates are paused.</span>
+                  {t('feed.offline.title')} —{' '}
+                  <span className="font-normal text-amber-700">{t('feed.offline.subtitle')}</span>
                 </span>
               </div>
               <button
@@ -170,7 +172,7 @@ const FeedPage = () => {
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm flex-shrink-0"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
-                Retry
+                {t('feed.offline.retry')}
               </button>
             </div>
           </div>
@@ -184,17 +186,17 @@ const FeedPage = () => {
               <div className="space-y-3">
                 <div className="inline-flex items-center gap-2.5 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-1.5 backdrop-blur-sm">
                   <WifiOff className="w-3.5 h-3.5 text-amber-600" />
-                  <span className="text-xs font-black text-amber-700 tracking-widest uppercase">Offline Mode</span>
+                  <span className="text-xs font-black text-amber-700 tracking-widest uppercase">{t('feed.status.offline')}</span>
                 </div>
                 <h1 className="text-4xl lg:text-5xl font-black leading-tight">
-                  <span className="text-gray-900">Flood Intelligence</span>
+                  <span className="text-gray-900">{t('feed.title')}</span>
                   <br />
                   <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-                    Dashboard
+                    {t('feed.titleHighlight')}
                   </span>
                 </h1>
                 <p className="text-base text-gray-900/60 max-w-xl">
-                  You're viewing data from your last session. Restore your connection to get live flood reports and sensor readings.
+                  {t('feed.offline.viewingCached')}
                 </p>
               </div>
 
@@ -203,7 +205,7 @@ const FeedPage = () => {
                 className="group flex items-center gap-3 px-6 py-3.5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl transition-all duration-300 shadow-lg shadow-orange-500/25 hover:scale-105 active:scale-95"
               >
                 <RefreshCw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
-                Restore Connection
+                {t('feed.offline.restoreConnection')}
               </button>
             </div>
           </div>
@@ -265,12 +267,12 @@ const FeedPage = () => {
                     <Database className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-black text-gray-900">Cached Flood Reports</h2>
-                    <p className="text-gray-900/50 text-sm">{offlineItems.length} reports stored locally</p>
+                    <h2 className="text-xl font-black text-gray-900">{t('feed.offline.cachedReports')}</h2>
+                    <p className="text-gray-900/50 text-sm">{offlineItems.length} {t('feed.offline.reportsStored')}</p>
                   </div>
                 </div>
                 <span className="px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full text-amber-700 text-xs font-bold tracking-wide uppercase">
-                  Read-only
+                  {t('feed.status.readOnly')}
                 </span>
               </div>
             </div>
@@ -281,16 +283,16 @@ const FeedPage = () => {
                   <div className="w-20 h-20 bg-gray-900/5 rounded-full flex items-center justify-center mb-6 border border-gray-900/10">
                     <Database className="w-8 h-8 text-gray-900/20" />
                   </div>
-                  <h3 className="text-xl font-black text-gray-900 mb-2">No Cached Data</h3>
+                  <h3 className="text-xl font-black text-gray-900 mb-2">{t('feed.offline.noCachedData')}</h3>
                   <p className="text-gray-900/50 text-sm max-w-sm mb-6">
-                    No reports were saved before going offline. Reconnect to load and cache the latest flood data.
+                    {t('feed.offline.noCachedMessage')}
                   </p>
                   <button
                     onClick={handleRefresh}
                     className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl transition-all duration-300 shadow-lg shadow-orange-500/25 hover:scale-105"
                   >
                     <RefreshCw className="w-4 h-4" />
-                    Try to Reconnect
+                    {t('feed.offline.tryReconnect')}
                   </button>
                 </div>
               ) : (
@@ -302,7 +304,7 @@ const FeedPage = () => {
                     >
                       {/* Offline badge */}
                       <div className="absolute top-3 right-3 px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-full">
-                        <span className="text-amber-700 text-xs font-bold tracking-wide">CACHED</span>
+                        <span className="text-amber-700 text-xs font-bold tracking-wide">{t('feed.offline.cached')}</span>
                       </div>
 
                       <div className="flex items-start gap-3 mb-4">
@@ -335,7 +337,7 @@ const FeedPage = () => {
                       <div className="flex items-center justify-between pt-3 border-t border-gray-900/8">
                         <div className="flex items-center gap-1.5">
                           <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-                          <span className="text-emerald-700 text-xs font-semibold">Verified</span>
+                          <span className="text-emerald-700 text-xs font-semibold">{t('feed.offline.verified')}</span>
                         </div>
                         <span className="text-gray-900/30 text-xs">
                           {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
@@ -378,17 +380,17 @@ const FeedPage = () => {
             <div className="space-y-3">
               <div className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-full px-5 py-2 backdrop-blur-sm">
                 <Activity className="w-4 h-4 text-orange-500 animate-pulse" />
-                <span className="text-sm font-bold text-orange-400 tracking-wide">LIVE MONITORING</span>
+                <span className="text-sm font-bold text-orange-400 tracking-wide">{t('feed.status.liveMonitoring')}</span>
               </div>
               <h1 className="text-4xl lg:text-5xl font-black leading-tight">
-                <span className="text-gray-900">Flood Intelligence</span>
+                <span className="text-gray-900">{t('feed.title')}</span>
                 <br />
                 <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-                  Dashboard
+                  {t('feed.titleHighlight')}
                 </span>
               </h1>
               <p className="text-lg text-gray-900/70 max-w-2xl">
-                Monitor real-time flood conditions, sensor data, and community reports across North Caloocan in one unified dashboard.
+                {t('feed.subtitle')}
               </p>
             </div>
 
@@ -403,7 +405,7 @@ const FeedPage = () => {
               className="group px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-gray-50 font-bold rounded-xl transition-all duration-300 shadow-lg shadow-orange-500/25 hover:scale-105 flex items-center space-x-3"
             >
               <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-              <span>Submit Report</span>
+              <span>{t('feed.submitReport')}</span>
             </button>
           </div>
         </div>
@@ -413,10 +415,10 @@ const FeedPage = () => {
           <div className="flex flex-wrap gap-3 bg-white/5 backdrop-blur-sm rounded-2xl border border-gray-900/30 p-3">
           
             {[
-              { id: 'map', label: 'Live Map', icon: Map, color: 'from-orange-500 to-red-500' },
-              { id: 'analytics', label: 'Analytics', icon: TrendingUp, color: 'from-orange-500 to-red-500' }, // NEW TAB
-              { id: 'sensors', label: 'Sensor Network', icon: Radio, color: 'from-orange-500 to-red-500' },
-              { id: 'reports', label: 'Community Reports', icon: Users, color: 'from-orange-500 to-red-500' }
+              { id: 'map', label: t('feed.tabs.liveMap'), icon: Map, color: 'from-orange-500 to-red-500' },
+              { id: 'analytics', label: t('feed.tabs.analytics'), icon: TrendingUp, color: 'from-orange-500 to-red-500' },
+              { id: 'sensors', label: t('feed.tabs.sensors'), icon: Radio, color: 'from-orange-500 to-red-500' },
+              { id: 'reports', label: t('feed.tabs.reports'), icon: Users, color: 'from-orange-500 to-red-500' }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -451,13 +453,13 @@ const FeedPage = () => {
                         <Map className="w-7 h-7 text-gray-50" />
                       </div>
                       <div>
-                        <h2 className="text-2xl font-black text-gray-900">Live Flood Map</h2>
-                        <p className="text-gray-900/60 text-sm">Interactive map showing validated flood zones and sensor locations</p>
+                        <h2 className="text-2xl font-black text-gray-900">{t('feed.liveMap.title')}</h2>
+                        <p className="text-gray-900/60 text-sm">{t('feed.liveMap.subtitle')}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2 px-4 py-2 bg-green-500/10 rounded-full border border-green-500/20">
                       <Activity className="w-4 h-4 text-green-500 animate-pulse" />
-                      <span className="text-green-400 text-sm font-semibold">Live</span>
+                      <span className="text-green-400 text-sm font-semibold">{t('feed.liveMap.live')}</span>
                     </div>
                   </div>
 
@@ -468,15 +470,15 @@ const FeedPage = () => {
                           <div className="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
                             <AlertTriangle className="w-10 h-10 text-amber-500" />
                           </div>
-                          <h3 className="text-2xl font-bold text-gray-900">Slow Connection Detected</h3>
+                          <h3 className="text-2xl font-bold text-gray-900">{t('feed.liveMap.slowConnection.title')}</h3>
                           <p className="text-gray-900/70">
-                            The live map is temporarily hidden to improve performance. You can still view it, but loading may be slow.
+                            {t('feed.liveMap.slowConnection.message')}
                           </p>
                           <button
                             className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-gray-900 font-bold transition-all duration-300 hover:scale-105"
                             onClick={() => setForceShowMap(true)}
                           >
-                            Load Map Anyway
+                            {t('feed.liveMap.slowConnection.loadAnyway')}
                           </button>
                         </div>
                       </div>
@@ -510,8 +512,8 @@ const FeedPage = () => {
                       <Radio className="w-7 h-7 text-gray-50" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-black text-gray-900">Sensor Network</h2>
-                      <p className="text-gray-900/60 text-sm">Real-time water level data from IoT sensors across the city</p>
+                      <h2 className="text-2xl font-black text-gray-900">{t('feed.sensors.title')}</h2>
+                      <p className="text-gray-900/60 text-sm">{t('feed.sensors.subtitle')}</p>
                     </div>
                   </div>
 
@@ -529,8 +531,8 @@ const FeedPage = () => {
                       <Users className="w-7 h-7 text-gray-50" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-black text-gray-900">Community Reports</h2>
-                      <p className="text-gray-900/60 text-sm">Barangay-validated flood reports submitted by local residents</p>
+                      <h2 className="text-2xl font-black text-gray-900">{t('feed.communityReports.title')}</h2>
+                      <p className="text-gray-900/60 text-sm">{t('feed.communityReports.subtitle')}</p>
                     </div>
                   </div>
 
@@ -556,7 +558,7 @@ const FeedPage = () => {
                   <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
                     <TrendingUp className="w-6 h-6 text-gray-50" />
                   </div>
-                  <h3 className="text-xl font-black text-gray-900">Quick Stats</h3>
+                  <h3 className="text-xl font-black text-gray-900">{t('feed.stats.quickStats') || 'Quick Stats'}</h3>
                 </div>
 
                 <div className="space-y-4">
@@ -567,8 +569,8 @@ const FeedPage = () => {
                           <CheckCircle className="w-6 h-6 text-gray-900" />
                         </div>
                         <div>
-                          <div className="text-gray-900 font-bold">Verified Reports</div>
-                          <div className="text-gray-900/60 text-sm">Today</div>
+                          <div className="text-gray-900 font-bold">{t('feed.stats.verifiedReports')}</div>
+                          <div className="text-gray-900/60 text-sm">{t('feed.stats.today')}</div>
                         </div>
                       </div>
                       <div className="text-3xl font-black text-gray-900">{validatedReports.length}</div>
@@ -582,8 +584,8 @@ const FeedPage = () => {
                           <AlertTriangle className="w-6 h-6 text-gray-900" />
                         </div>
                         <div>
-                          <div className="text-gray-900 font-bold">Active Alerts</div>
-                          <div className="text-gray-900/60 text-sm">Needs attention</div>
+                          <div className="text-gray-900 font-bold">{t('feed.stats.activeAlerts')}</div>
+                          <div className="text-gray-900/60 text-sm">{t('feed.stats.needsAttention')}</div>
                         </div>
                       </div>
                       <div className="text-3xl font-black text-gray-900">
@@ -599,8 +601,8 @@ const FeedPage = () => {
                           <Droplets className="w-6 h-6 text-gray-900" />
                         </div>
                         <div>
-                          <div className="text-gray-900 font-bold">Sensors Online</div>
-                          <div className="text-gray-900/60 text-sm">24/7 monitoring</div>
+                          <div className="text-gray-900 font-bold">{t('feed.stats.sensorsOnline')}</div>
+                          <div className="text-gray-900/60 text-sm">{t('feed.stats.monitoring')}</div>
                         </div>
                       </div>
                       <div className="text-3xl font-black text-gray-900">{sensorReadings.length}</div>
@@ -615,14 +617,14 @@ const FeedPage = () => {
                   <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-500 rounded-xl flex items-center justify-center">
                     <Shield className="w-6 h-6 text-gray-50" />
                   </div>
-                  <h3 className="text-xl font-black text-gray-900">Emergency Contacts</h3>
+                  <h3 className="text-xl font-black text-gray-900">{t('feed.emergency.title')}</h3>
                 </div>
 
                 <div className="space-y-3">
                   {[
-                    { name: 'Barangay Emergency', number: '(02) 8282-1234', icon: Home },
-                    { name: 'Rescue Team', number: '(02) 8282-5678', icon: Shield },
-                    { name: 'Medical Emergency', number: '(02) 8282-9012', icon: Ambulance }
+                    { name: t('feed.emergency.barangay'), number: '(02) 8282-1234', icon: Home },
+                    { name: t('feed.emergency.rescue'), number: '(02) 8282-5678', icon: Shield },
+                    { name: t('feed.emergency.medical'), number: '(02) 8282-9012', icon: Ambulance }
                   ].map((contact, index) => (
                     <button
                       key={index}
@@ -647,7 +649,7 @@ const FeedPage = () => {
                 <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
                   <p className="text-red-300 text-xs font-semibold flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-red-400" />
-                    For life-threatening emergencies, dial 911 immediately
+                    {t('feed.emergency.warningText')}
                   </p>
                 </div>
               </div>

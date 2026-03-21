@@ -1,11 +1,13 @@
 import { Outlet, Link, useNavigate, useLocation, NavLink as RouterLink, Navigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { useSocket } from '../../hooks/useSocket';
 import { useToast } from '../../contexts/ToastContext';
 import { Droplets } from 'lucide-react';
 import Footer from './Footer';
 import ChatBubble from '../chatbot/ChatBubble';
+import LanguageSwitcher from './LanguageSwitcher';
 
 // Custom NavLink component with active state styling
 const NavLink = ({ to, children, className = '' }) => {
@@ -26,6 +28,7 @@ const NavLink = ({ to, children, className = '' }) => {
 };
 
 export const Layout = () => {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { connected } = useSocket();
   const navigate = useNavigate();
@@ -125,15 +128,17 @@ export const Layout = () => {
             {/* Centered Navigation Pills */}
             <nav className="hidden lg:flex flex-1 justify-center items-center">
               <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-sm px-2 py-2 rounded-full border border-white/10 shadow-inner">
-                <NavLink to="/">Home</NavLink>
-                <NavLink to="/feed">Feed</NavLink>
-                <NavLink to="/learn">Learn</NavLink>
-                <NavLink to="/about">About</NavLink>
-                <NavLink to="/contact">Contact</NavLink>
+                <NavLink to="/">{t('nav.home')}</NavLink>
+                <NavLink to="/feed">{t('nav.feed')}</NavLink>
+                <NavLink to="/learn">{t('nav.learn')}</NavLink>
+                <NavLink to="/about">{t('nav.about')}</NavLink>
+                <NavLink to="/contact">{t('nav.contact')}</NavLink>
               </div>
             </nav>
 
             <div className="flex items-center gap-4">
+              {/* Language Switcher */}
+              <LanguageSwitcher />
               {/* Refined Connection Status */}
               <div className="hidden lg:flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-full border border-white/10 shadow-inner">
                 <div className="relative">
@@ -266,7 +271,7 @@ export const Layout = () => {
                           <svg className="w-4 h-4 shrink-0" style={{ color: '#c54914' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
-                          <span>My Profile</span>
+                          <span>{t('nav.profile')}</span>
                         </Link>
 
                         {/* Sign out */}
@@ -280,7 +285,7 @@ export const Layout = () => {
                           <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                           </svg>
-                          <span>Sign out</span>
+                          <span>{t('nav.logout')}</span>
                         </button>
                       </div>
                     </div>
@@ -304,7 +309,7 @@ export const Layout = () => {
                       to="/auth/register"
                       className="px-6 py-2.5 text-sm font-semibold rounded-full bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-400 hover:to-accent-500 text-white shadow-lg shadow-accent-500/25 transition-all duration-300 tracking-wide hover:scale-105 active:scale-95"
                     >
-                      Sign Up
+                      {t('nav.register')}
                     </Link>
                   </div>
                 </div>
@@ -334,7 +339,7 @@ export const Layout = () => {
                 onClick={handleLogout}
                 className="text-red-400 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-red-500/10 transition-all duration-200 active:scale-95"
               >
-                Sign out
+                {t('nav.logout')}
               </button>
             </div>
           ) : (
@@ -344,24 +349,24 @@ export const Layout = () => {
                 onClick={() => setMenuOpen(false)}
                 className="flex items-center justify-center px-6 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg transition-all duration-200 active:scale-95 w-full"
               >
-                Sign Up
+                {t('nav.register')}
               </Link>
             </div>
           )}
 
           {/* Nav links */}
           <nav className="py-2">
-            <RouterLink to="/" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">Home</RouterLink>
-            <RouterLink to="/feed" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">Feed</RouterLink>
-            <RouterLink to="/learn" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">Learn</RouterLink>
-            <RouterLink to="/about" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">About</RouterLink>
-            <RouterLink to="/contact" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">Contact Us</RouterLink>
+            <RouterLink to="/" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">{t('nav.home')}</RouterLink>
+            <RouterLink to="/feed" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">{t('nav.feed')}</RouterLink>
+            <RouterLink to="/learn" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">{t('nav.learn')}</RouterLink>
+            <RouterLink to="/about" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">{t('nav.about')}</RouterLink>
+            <RouterLink to="/contact" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">{t('nav.contact')}</RouterLink>
 
             {user && (user.role === 'admin' || user.role === 'superadmin') && (
               <>
                 <div className="my-2 border-t border-white/10"></div>
-                <RouterLink to="/admin/reports" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">Reports</RouterLink>
-                <RouterLink to="/admin/users" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">Users</RouterLink>
+                <RouterLink to="/admin/reports" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">{t('admin.reports')}</RouterLink>
+                <RouterLink to="/admin/users" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">{t('admin.users')}</RouterLink>
               </>
             )}
           </nav>

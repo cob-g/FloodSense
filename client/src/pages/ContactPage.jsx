@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Mail, MapPin, Phone, Send, MessageSquare, Users, Building, Code, AlertCircle, Loader2 } from 'lucide-react';
 import { api } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 
 const ContactPage = () => {
+  const { t } = useTranslation();
   const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,18 +27,18 @@ const ContactPage = () => {
     e.preventDefault();
     
     if (!formData.name || !formData.email || !formData.subject || !formData.category || !formData.message) {
-      toast.error('Incomplete Form', 'Please fill in all required fields before submitting.');
+      toast.error('Incomplete Form', t('contact.toast.incomplete'));
       return;
     }
 
     setIsSubmitting(true);
     try {
       await api.post('/contact', formData);
-      toast.success('Message Sent', 'Thank you! We\'ll get back to you within 24–48 hours.');
+      toast.success('Message Sent', t('contact.toast.success'));
       setFormData({ name: '', email: '', subject: '', category: '', message: '' });
     } catch (error) {
       console.error('Contact form error:', error);
-      toast.error('Failed to Send', error.message || 'Something went wrong. Please try again.');
+      toast.error('Failed to Send', error.message || t('contact.toast.error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -45,26 +47,26 @@ const ContactPage = () => {
   const contactReasons = [
     {
       icon: <Building className="w-6 h-6" />,
-      title: "Partnership Inquiries",
-      description: "Collaborate with us on research, deployment, or community initiatives",
+      title: t('contact.reasons.partnership.title'),
+      description: t('contact.reasons.partnership.description'),
       gradient: "from-orange-500 to-red-500"
     },
     {
       icon: <Code className="w-6 h-6" />,
-      title: "Technical Support",
-      description: "Get assistance with the platform, sensors, or data integration",
+      title: t('contact.reasons.technical.title'),
+      description: t('contact.reasons.technical.description'),
       gradient: "from-red-500 to-orange-600"
     },
     {
       icon: <MessageSquare className="w-6 h-6" />,
-      title: "General Feedback",
-      description: "Share your thoughts, suggestions, or report issues with the system",
+      title: t('contact.reasons.feedback.title'),
+      description: t('contact.reasons.feedback.description'),
       gradient: "from-orange-600 to-orange-500"
     },
     {
       icon: <Users className="w-6 h-6" />,
-      title: "Community Engagement",
-      description: "Learn how to become a validator or contribute to FloodSense",
+      title: t('contact.reasons.community.title'),
+      description: t('contact.reasons.community.description'),
       gradient: "from-red-600 to-orange-500"
     }
   ];
@@ -72,20 +74,20 @@ const ContactPage = () => {
   const contactInfo = [
     {
       icon: <Mail className="w-5 h-5" />,
-      label: "Email Address",
+      label: t('contact.information.email'),
       value: "floodsense.caloocan@gmail.com",
       link: "mailto:floodsense.caloocan@gmail.com"
     },
     {
       icon: <MapPin className="w-5 h-5" />,
-      label: "Location",
-      value: "North Caloocan City, Metro Manila, Philippines",
+      label: t('contact.information.location'),
+      value: t('contact.information.locationValue'),
       link: null
     },
     {
       icon: <Phone className="w-5 h-5" />,
-      label: "Response Time",
-      value: "Within 24-48 hours on business days",
+      label: t('contact.information.responseTime'),
+      value: t('contact.information.responseTimeValue'),
       link: null
     }
   ];
@@ -103,20 +105,19 @@ const ContactPage = () => {
           <div className="mb-8">
             <div className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-full px-6 py-3 backdrop-blur-sm mb-6">
               <MessageSquare className="w-5 h-5 text-orange-500" />
-              <span className="text-sm font-semibold text-orange-400 tracking-wide">GET IN TOUCH</span>
+              <span className="text-sm font-semibold text-orange-400 tracking-wide">{t('contact.badge')}</span>
             </div>
-            
+
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black mb-6 leading-tight">
-              We'd Love to
+              {t('contact.hero.title')}
               <br />
               <span className="bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 bg-clip-text text-transparent">
-                Hear From You
+                {t('contact.hero.titleHighlight')}
               </span>
             </h1>
-            
+
             <p className="text-xl text-gray-900 max-w-3xl mx-auto leading-relaxed">
-              Whether you're a researcher, local official, community member, or developer—
-              your input helps us build a stronger, more resilient FloodSense system.
+              {t('contact.hero.subtitle')}
             </p>
           </div>
         </section>
@@ -125,9 +126,9 @@ const ContactPage = () => {
         <section className="mb-32">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-black mb-4">
-              How Can We <span className="text-orange-500">Help?</span>
+              {t('contact.howCanWeHelp.title')} <span className="text-orange-500">{t('contact.howCanWeHelp.titleHighlight')}</span>
             </h2>
-            <p className="text-gray-900 text-lg">Select the reason that best describes your inquiry</p>
+            <p className="text-gray-900 text-lg">{t('contact.howCanWeHelp.subtitle')}</p>
           </div>
           
           <div className="grid md:grid-cols-2 gap-6 mb-12">
@@ -160,11 +161,10 @@ const ContactPage = () => {
             <div className="lg:col-span-2 space-y-8">
               <div>
                 <h2 className="text-3xl font-black mb-4">
-                  Contact <span className="text-orange-500">Information</span>
+                  {t('contact.information.title')} <span className="text-orange-500">{t('contact.information.titleHighlight')}</span>
                 </h2>
                 <p className="text-gray-900 leading-relaxed mb-8">
-                  Reach out to us directly through any of the channels below. 
-                  We're committed to responding promptly to all inquiries.
+                  {t('contact.information.description')}
                 </p>
               </div>
 
@@ -191,31 +191,28 @@ const ContactPage = () => {
                 ))}
               </div>
 
-              {/* Important Notice */}
               <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6">
                 <div className="flex gap-3">
                   <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="font-bold text-orange-400 mb-2">Important Note</h4>
+                    <h4 className="font-bold text-orange-400 mb-2">{t('contact.information.importantNote')}</h4>
                     <p className="text-sm text-gray-900 leading-relaxed">
-                      For urgent flood-related emergencies, please contact your local barangay 
-                      office or dial the emergency hotline 911 immediately.
+                      {t('contact.information.emergencyNote')}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Contact Form - Right Side */}
             <div className="lg:col-span-3">
               <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 lg:p-10 border border-gray-900/30">
-                <h3 className="text-2xl font-bold mb-6">Send Us a Message</h3>
-                
+                <h3 className="text-2xl font-bold mb-6">{t('contact.form.title')}</h3>
+
                 <div className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold mb-2 text-gray-900">
-                        Full Name <span className="text-orange-500">*</span>
+                        {t('contact.form.fullName')} <span className="text-orange-500">{t('contact.form.required')}</span>
                       </label>
                       <input
                         type="text"
@@ -223,13 +220,13 @@ const ContactPage = () => {
                         value={formData.name}
                         onChange={handleChange}
                         className="w-full px-4 py-3 bg-white/5 border border-gray-900/30 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors"
-                        placeholder="Juan Dela Cruz"
+                        placeholder={t('contact.form.placeholders.name')}
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-semibold mb-2 text-gray-900">
-                        Email Address <span className="text-orange-500">*</span>
+                        {t('contact.form.emailAddress')} <span className="text-orange-500">{t('contact.form.required')}</span>
                       </label>
                       <input
                         type="email"
@@ -237,7 +234,7 @@ const ContactPage = () => {
                         value={formData.email}
                         onChange={handleChange}
                         className="w-full px-4 py-3 bg-white/5 border border-gray-900/30 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors"
-                        placeholder="juan@example.com"
+                        placeholder={t('contact.form.placeholders.email')}
                       />
                     </div>
                   </div>
@@ -245,7 +242,7 @@ const ContactPage = () => {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold mb-2 text-gray-900">
-                        Category <span className="text-orange-500">*</span>
+                        {t('contact.form.category')} <span className="text-orange-500">{t('contact.form.required')}</span>
                       </label>
                       <select
                         name="category"
@@ -253,18 +250,18 @@ const ContactPage = () => {
                         onChange={handleChange}
                         className="w-full px-4 py-3 bg-white/5 border border-gray-900/30 rounded-xl text-gray-900 focus:outline-none focus:border-orange-500/50 transition-colors"
                       >
-                        <option value="" className="bg-gray-50">Select a category</option>
-                        <option value="partnership" className="bg-gray-50">Partnership Inquiry</option>
-                        <option value="technical" className="bg-gray-50">Technical Support</option>
-                        <option value="feedback" className="bg-gray-50">General Feedback</option>
-                        <option value="community" className="bg-gray-50">Community Engagement</option>
-                        <option value="other" className="bg-gray-50">Other</option>
+                        <option value="" className="bg-gray-50">{t('contact.form.categories.select')}</option>
+                        <option value="partnership" className="bg-gray-50">{t('contact.form.categories.partnership')}</option>
+                        <option value="technical" className="bg-gray-50">{t('contact.form.categories.technical')}</option>
+                        <option value="feedback" className="bg-gray-50">{t('contact.form.categories.feedback')}</option>
+                        <option value="community" className="bg-gray-50">{t('contact.form.categories.community')}</option>
+                        <option value="other" className="bg-gray-50">{t('contact.form.categories.other')}</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-sm font-semibold mb-2 text-gray-900">
-                        Subject <span className="text-orange-500">*</span>
+                        {t('contact.form.subject')} <span className="text-orange-500">{t('contact.form.required')}</span>
                       </label>
                       <input
                         type="text"
@@ -272,14 +269,14 @@ const ContactPage = () => {
                         value={formData.subject}
                         onChange={handleChange}
                         className="w-full px-4 py-3 bg-white/5 border border-gray-900/30 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors"
-                        placeholder="Brief subject line"
+                        placeholder={t('contact.form.placeholders.subject')}
                       />
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold mb-2 text-gray-900">
-                      Message <span className="text-orange-500">*</span>
+                      {t('contact.form.message')} <span className="text-orange-500">{t('contact.form.required')}</span>
                     </label>
                     <textarea
                       name="message"
@@ -287,7 +284,7 @@ const ContactPage = () => {
                       onChange={handleChange}
                       rows="6"
                       className="w-full px-4 py-3 bg-white/5 border border-gray-900/30 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-colors resize-none"
-                      placeholder="Tell us more about your inquiry..."
+                      placeholder={t('contact.form.placeholders.message')}
                     ></textarea>
                   </div>
 
@@ -299,12 +296,12 @@ const ContactPage = () => {
                     {isSubmitting ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        Sending...
+                        {t('contact.form.sending')}
                       </>
                     ) : (
                       <>
                         <Send className="w-5 h-5" />
-                        Send Message
+                        {t('contact.form.sendButton')}
                       </>
                     )}
                   </button>
@@ -319,14 +316,13 @@ const ContactPage = () => {
         <section className="mb-32">
           <div className="bg-gradient-to-br from-orange-500/10 via-red-500/5 to-transparent backdrop-blur-md border border-orange-500/20 rounded-3xl p-12 lg:p-16 text-center">
             <h2 className="text-3xl lg:text-4xl font-black mb-4">
-              Have a <span className="text-orange-500">Quick Question?</span>
+              {t('contact.quickQuestion.title')} <span className="text-orange-500">{t('contact.quickQuestion.titleHighlight')}</span>
             </h2>
             <p className="text-lg text-gray-900 max-w-2xl mx-auto leading-relaxed mb-8">
-              Many common questions are already answered in our Learn section. 
-              Check out our comprehensive guides and documentation before reaching out.
+              {t('contact.quickQuestion.subtitle')}
             </p>
             <button className="bg-white/10 hover:bg-white/20 border border-gray-900/30 hover:border-orange-500/50 text-gray-900 px-8 py-4 rounded-xl font-bold transition-all duration-300 hover:scale-105">
-              Visit Learning Resources
+              {t('contact.quickQuestion.visitResources')}
             </button>
           </div>
         </section>
