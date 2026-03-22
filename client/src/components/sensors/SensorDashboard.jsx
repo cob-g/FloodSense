@@ -103,10 +103,10 @@ function SensorDashboard() {
 
   // Get flood status based on distance (lower distance = higher water level)
   const getFloodStatus = (distance) => {
-    if (distance < 40) return { text: 'Not Passable', color: 'text-red-400', bg: 'bg-red-500/10' };
-    if (distance < 60) return { text: 'Heavy Vehicles Only', color: 'text-amber-400', bg: 'bg-amber-500/10' };
+    if (distance < 40) return { text: 'Not Passable', color: 'text-red-600', bg: 'bg-red-500/10' };
+    if (distance < 60) return { text: 'Heavy Vehicles Only', color: 'text-amber-600', bg: 'bg-amber-500/10' };
 
-    return { text: 'Passable', color: 'text-green-400', bg: 'bg-green-500/10' };
+    return { text: 'Passable', color: 'text-green-600', bg: 'bg-green-500/10' };
   };
 
   // Format time since last reading
@@ -122,72 +122,52 @@ function SensorDashboard() {
     return `${Math.floor(seconds / 86400)}d ago`;
   };
 
-  // Sort sensors: active first, then inactive
-  const sortedSensors = [...sensors].sort((a, b) => {
-    const aActive = a.isActive ? 1 : 0;
-    const bActive = b.isActive ? 1 : 0;
-    return bActive - aActive;
-  });
+  // Filter to show only online sensors
+  const onlineSensors = sensors.filter(sensor => sensor.isActive);
 
   return (
     <div className="h-full flex flex-col">
       {/* Scrollable Sensors List */}
       <div className="flex-1 overflow-y-auto pr-2 space-y-3">
-        {sortedSensors.length > 0 ? (
-          sortedSensors.map((sensor) => {
-            const isActive = sensor.isActive;
-            const floodStatus = isActive ? getFloodStatus(sensor.distance) : { text: 'N/A', color: 'text-gray-400', bg: 'bg-gray-500/10' };
-            const deviceStatus = isActive ? 'Online' : 'Offline';
-            const deviceStatusColor = isActive ? 'bg-green-500/10 text-green-400 border-green-500/30' : 'bg-gray-500/10 text-gray-400 border-gray-500/30';
-            
+        {onlineSensors.length > 0 ? (
+          onlineSensors.map((sensor) => {
+            const floodStatus = getFloodStatus(sensor.distance);
+
             return (
-              <div 
-                key={sensor.sensorId} 
-                className={`rounded-xl p-4 transition-all duration-300 hover:shadow-lg group cursor-pointer ${
-                  isActive 
-                    ? 'bg-white/5 hover:bg-white/10 border border-white/10' 
-                    : 'bg-white/3 hover:bg-white/5 border border-white/5 opacity-70'
-                }`}
+              <div
+                key={sensor.sensorId}
+                className="rounded-xl p-4 transition-all duration-300 hover:shadow-lg group cursor-pointer bg-white/60 hover:bg-white/80 border border-gray-900/10 hover:border-orange-500/30"
               >
                 {/* Header with Location and Status Badges */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold border ${floodStatus.bg} ${floodStatus.color}`}>
+                      <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold border ${floodStatus.bg} ${floodStatus.color} border-opacity-30`}>
                         {floodStatus.text}
                       </span>
-                      <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold border ${deviceStatusColor}`}>
-                        {deviceStatus}
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-semibold border bg-green-500/10 text-green-600 border-green-500/30">
+                        Online
                       </span>
-                      {isActive && <span className="text-xs text-white/50">{getTimeSinceUpdate(sensor.timestamp)}</span>}
+                      <span className="text-xs text-gray-900/50">{getTimeSinceUpdate(sensor.timestamp)}</span>
                     </div>
-                    <h3 className={`font-bold text-base group-hover:text-accent transition-colors ${
-                      isActive ? 'text-white' : 'text-white/60'
-                    }`}>
+                    <h3 className="font-bold text-base text-gray-900 group-hover:text-orange-500 transition-colors">
                       {sensor.locationName || 'Sensor Location'}
                     </h3>
                   </div>
                 </div>
 
                 {/* Water Level */}
-                {isActive ? (
-                  <div className="bg-white/5 rounded-lg p-2.5 border border-white/10">
-                    <span className="text-xs text-white/50 block mb-1">Current Water Level</span>
-                    <span className="font-bold text-white text-sm">{sensor.distance} cm</span>
-                  </div>
-                ) : (
-                  <div className="bg-white/5 rounded-lg p-2.5 border border-white/10">
-                    <span className="text-xs text-white/50 block mb-1">Current Water Level</span>
-                    <span className="font-bold text-white/40 text-sm">No data</span>
-                  </div>
-                )}
+                <div className="bg-gray-900/5 rounded-lg p-2.5 border border-gray-900/10">
+                  <span className="text-xs text-gray-900/60 block mb-1">Current Water Level</span>
+                  <span className="font-bold text-gray-900 text-sm">{sensor.distance} cm</span>
+                </div>
               </div>
             );
           })
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-900 text-sm">No sensors available</p>
-            <p className="text-gray-900 text-xs mt-2">Waiting for sensor data...</p>
+            <p className="text-gray-900 text-sm font-semibold">No online sensors</p>
+            <p className="text-gray-900/60 text-xs mt-2">Waiting for sensor data...</p>
           </div>
         )}
       </div>
