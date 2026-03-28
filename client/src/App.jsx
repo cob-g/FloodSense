@@ -1,81 +1,217 @@
- import { Routes, Route, Navigate } from 'react-router-dom';
- import { ThemeProvider } from './contexts/ThemeContext';
- import PrivateRoute from './components/auth/PrivateRoute';
- import ProtectedRoute from './components/common/ProtectedRoute';
- import AdminLayout from './components/admin/AdminLayout';
- import AdminDashboard from './pages/admin/AdminDashboard';
- import AdminFeed from './pages/admin/AdminFeed';
- import AdminUsers from './pages/admin/AdminUsers';
- import AdminSensors from './pages/admin/AdminSensors';
- import AdminWeekly from './pages/admin/AdminWeekly';
- import AdminWeeklyPrint from './pages/admin/AdminWeeklyPrint';
- import AdminFallbacks from './pages/admin/AdminFallbacks';
- import Layout from './components/common/Layout';
- import LandingPage from './pages/LandingPage';
- import LearnPage from './pages/LearnPage';
- import AboutPage from './pages/AboutPage';
- import ContactPage from './pages/ContactPage';
- import FeedPage from './pages/FeedPage';
- import LoginPage from './pages/auth/LoginPage';
- import RegisterPage from './pages/auth/RegisterPage';
- import NotFoundPage from './pages/NotFoundPage';
- import ProfilePage from './pages/profile/ProfilePage';
+import { lazy, Suspense } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from './contexts/ThemeContext';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import { PageLoader } from './components/common/LoadingSpinner';
+
+// Eagerly loaded components (critical path)
+import Layout from './components/common/Layout';
+import PrivateRoute from './components/auth/PrivateRoute';
+import ProtectedRoute from './components/common/ProtectedRoute';
+
+// Lazily loaded pages (code splitting)
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const FeedPage = lazy(() => import('./pages/FeedPage'));
+const LearnPage = lazy(() => import('./pages/LearnPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'));
+const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+
+// Admin pages (separate chunk)
+const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminFeed = lazy(() => import('./pages/admin/AdminFeed'));
+const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'));
+const AdminSensors = lazy(() => import('./pages/admin/AdminSensors'));
+const AdminWeekly = lazy(() => import('./pages/admin/AdminWeekly'));
+const AdminWeeklyPrint = lazy(() => import('./pages/admin/AdminWeeklyPrint'));
+const AdminFallbacks = lazy(() => import('./pages/admin/AdminFallbacks'));
+
+/**
+ * Suspense wrapper with page loader
+ */
+const SuspenseWrapper = ({ children }) => (
+  <Suspense fallback={<PageLoader />}>
+    {children}
+  </Suspense>
+);
 
 function App() {
   return (
-    <ThemeProvider>
-          <Routes>
-            {/* Public site layout */}
-            <Route element={<Layout />}>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/feed" element={<FeedPage />} />
-              <Route 
-                path="/profile" 
-                element={
-                  <PrivateRoute>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <Routes>
+          {/* Public site layout */}
+          <Route element={<Layout />}>
+            <Route
+              path="/"
+              element={
+                <SuspenseWrapper>
+                  <LandingPage />
+                </SuspenseWrapper>
+              }
+            />
+            <Route
+              path="/feed"
+              element={
+                <SuspenseWrapper>
+                  <FeedPage />
+                </SuspenseWrapper>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <SuspenseWrapper>
                     <ProfilePage />
-                  </PrivateRoute>
-                } 
-              />
-              <Route path="/learn" element={<LearnPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-            </Route>
+                  </SuspenseWrapper>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/learn"
+              element={
+                <SuspenseWrapper>
+                  <LearnPage />
+                </SuspenseWrapper>
+              }
+            />
+            <Route
+              path="/about"
+              element={
+                <SuspenseWrapper>
+                  <AboutPage />
+                </SuspenseWrapper>
+              }
+            />
+            <Route
+              path="/contact"
+              element={
+                <SuspenseWrapper>
+                  <ContactPage />
+                </SuspenseWrapper>
+              }
+            />
+          </Route>
+
           {/* Admin print-friendly route (outside AdminLayout) */}
           <Route
             path="/admin/weekly/print"
             element={
               <ProtectedRoute requireAdmin>
-                <AdminWeeklyPrint />
+                <SuspenseWrapper>
+                  <AdminWeeklyPrint />
+                </SuspenseWrapper>
               </ProtectedRoute>
             }
           />
-            {/* Admin Route Group */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute requireAdmin>
+
+          {/* Admin Route Group */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requireAdmin>
+                <SuspenseWrapper>
                   <AdminLayout />
-                </ProtectedRoute>
+                </SuspenseWrapper>
+              </ProtectedRoute>
+            }
+          >
+            {/* Default admin landing */}
+            <Route
+              index
+              element={
+                <SuspenseWrapper>
+                  <AdminFeed />
+                </SuspenseWrapper>
               }
-            >
-              {/* Default admin landing */}
-              <Route index element={<AdminFeed />} />
-              {/* Admin sections */}
-              <Route path="feed" element={<AdminFeed />} />
-              <Route path="reports" element={<AdminDashboard />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="weekly" element={<AdminWeekly />} />
-              <Route path="fallbacks" element={<AdminFallbacks />} />
-              {/* Optional: sensors not yet implemented, fallback to dashboard */}
-              <Route path="sensors" element={<AdminSensors />} />
-            </Route>
-            <Route path="/auth/login" element={<LoginPage />} />
-            <Route path="/auth/register" element={<RegisterPage />} />
-            <Route path="/404" element={<NotFoundPage />} />
-            <Route path="*" element={<Navigate to="/404" replace />} />
-          </Routes>
-    </ThemeProvider>
+            />
+            {/* Admin sections */}
+            <Route
+              path="feed"
+              element={
+                <SuspenseWrapper>
+                  <AdminFeed />
+                </SuspenseWrapper>
+              }
+            />
+            <Route
+              path="reports"
+              element={
+                <SuspenseWrapper>
+                  <AdminDashboard />
+                </SuspenseWrapper>
+              }
+            />
+            <Route
+              path="users"
+              element={
+                <SuspenseWrapper>
+                  <AdminUsers />
+                </SuspenseWrapper>
+              }
+            />
+            <Route
+              path="weekly"
+              element={
+                <SuspenseWrapper>
+                  <AdminWeekly />
+                </SuspenseWrapper>
+              }
+            />
+            <Route
+              path="fallbacks"
+              element={
+                <SuspenseWrapper>
+                  <AdminFallbacks />
+                </SuspenseWrapper>
+              }
+            />
+            <Route
+              path="sensors"
+              element={
+                <SuspenseWrapper>
+                  <AdminSensors />
+                </SuspenseWrapper>
+              }
+            />
+          </Route>
+
+          {/* Auth routes */}
+          <Route
+            path="/auth/login"
+            element={
+              <SuspenseWrapper>
+                <LoginPage />
+              </SuspenseWrapper>
+            }
+          />
+          <Route
+            path="/auth/register"
+            element={
+              <SuspenseWrapper>
+                <RegisterPage />
+              </SuspenseWrapper>
+            }
+          />
+
+          {/* 404 */}
+          <Route
+            path="/404"
+            element={
+              <SuspenseWrapper>
+                <NotFoundPage />
+              </SuspenseWrapper>
+            }
+          />
+          <Route path="*" element={<Navigate to="/404" replace />} />
+        </Routes>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
