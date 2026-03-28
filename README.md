@@ -11,6 +11,7 @@ A comprehensive flood monitoring and reporting system designed for community use
 - **Real-time Flood Reporting**: Community members can report flood conditions with photos and location data
 - **Administrative Validation**: Admin users can validate, reject, or request more information on reports
 - **Interactive Map**: Location-based flood reports with severity indicators
+- **Multi-language Support**: Full English and Tagalog translations for all pages
 - **Role-based Access Control**: User, Admin, and Super Admin roles
 - **Rate Limiting**: Prevents spam reporting (3-minute cooldown between reports)
 - **Real-time Updates**: Socket.IO integration for live updates
@@ -32,7 +33,7 @@ A comprehensive flood monitoring and reporting system designed for community use
 - **State Management**: React Query for server state
 - **Maps**: React Leaflet for interactive maps
 - **Routing**: React Router DOM
-- **Internationalization**: i18next for multi-language support
+- **Internationalization**: i18next for multi-language support (English & Tagalog fully implemented)
 
 ## 🚀 Quick Start
 
@@ -311,7 +312,7 @@ For support and questions:
 - [ ] Weather API integration
 - [ ] SMS notifications
 - [ ] Advanced analytics dashboard
-- [ ] Multi-language support
+- [x] Multi-language support (English & Tagalog)
 - [ ] PWA capabilities
 - [ ] Automated report verification using AI
 - [ ] Integration with government systems
