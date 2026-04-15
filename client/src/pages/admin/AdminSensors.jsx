@@ -140,7 +140,14 @@ export default function AdminSensors() {
             <textarea name="notes" value={form.notes} onChange={onChange} rows={2} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" />
           </div>
           <div className="md:col-span-3 flex justify-end">
-            <button type="submit" disabled={createMut.isLoading} className="px-4 py-2 rounded-lg bg-accent-orange text-space-black font-semibold disabled:opacity-60">{createMut.isLoading ? 'Saving…' : 'Add Sensor'}</button>
+            <button
+              type="submit"
+              disabled={createMut.isLoading}
+              className="px-4 py-2.5 rounded-xl text-white font-medium text-sm transition-all duration-300 shadow-[0_4px_16px_rgba(197,73,20,0.3)] hover:-translate-y-0.5 shrink-0 whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{ background: 'linear-gradient(135deg, #c54914 0%, #7a2200 100%)' }}
+            >
+              {createMut.isLoading ? 'Saving…' : 'Add Sensor'}
+            </button>
           </div>
         </form>
       </div>

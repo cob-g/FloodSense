@@ -9,6 +9,18 @@ import { getIO } from '../socket.js';
 
 const router = express.Router();
 
+function startOfDay(d) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function endOfDay(d) {
+  const x = new Date(d);
+  x.setHours(23, 59, 59, 999);
+  return x;
+}
+
 // Apply general rate limiting to all report routes
 router.use(generalRateLimit);
 
@@ -160,6 +172,9 @@ router.get('/', async (req, res) => {
     const {
       status,
       severity,
+      scope,
+      start,
+      end,
       limit = 20,
       skip = 0,
       sortBy = 'createdAt',
@@ -177,6 +192,53 @@ router.get('/', async (req, res) => {
       ...(severity && { severity }),
       ...(photos === 'true' && { 'photos.0': { $exists: true } }),
     };
+
+    // Optional additive date filtering for admin/report scope use-cases.
+    // Backward-compatible default: no date filter unless start/end are provided
+    // or scope=weekly is explicitly requested.
+    const normalizedScope = String(scope || '').toLowerCase();
+    const shouldApplyDateRange = Boolean(start || end || normalizedScope === 'weekly');
+
+    if (shouldApplyDateRange) {
+      const now = new Date();
+
+      let parsedStart = null;
+      let parsedEnd = null;
+
+      if (start) {
+        parsedStart = new Date(start);
+        if (Number.isNaN(parsedStart.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid start date. Use a valid date format (e.g., YYYY-MM-DD).'
+          });
+        }
+      }
+
+      if (end) {
+        parsedEnd = new Date(end);
+        if (Number.isNaN(parsedEnd.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid end date. Use a valid date format (e.g., YYYY-MM-DD).'
+          });
+        }
+      }
+
+      const resolvedEnd = parsedEnd ? endOfDay(parsedEnd) : endOfDay(now);
+      const resolvedStart = parsedStart
+        ? startOfDay(parsedStart)
+        : startOfDay(new Date(resolvedEnd.getTime() - 6 * 24 * 60 * 60 * 1000));
+
+      if (resolvedStart > resolvedEnd) {
+        return res.status(400).json({
+          success: false,
+          message: 'start date must be before or equal to end date.'
+        });
+      }
+
+      query.createdAt = { $gte: resolvedStart, $lte: resolvedEnd };
+    }
 
     // Add geospatial query if coordinates are provided
     if (lng && lat) {

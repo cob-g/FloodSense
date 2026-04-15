@@ -13,8 +13,14 @@ const Section = ({ title, children }) => (
 
 export default function AdminWeeklyPrint() {
   const [params] = useSearchParams();
-  const { data: wr, isLoading, error } = useWeeklyReport();
+  const communityScope = params.get('communityScope') === 'all-time' ? 'all-time' : 'weekly';
+  const scopeLabel = communityScope === 'all-time' ? 'All-time' : 'This week';
+  const { data: wr, isLoading, error } = useWeeklyReport({ communityScope });
   const weekly = wr?.data;
+  const reportScopeLabel = weekly?.header?.reportScopeLabel || weekly?.iotWaterLevel?.scopeLabel || scopeLabel;
+  const alertEmptyText = reportScopeLabel === 'All-time'
+    ? 'No alerts recorded for all-time data.'
+    : 'No alerts recorded for this week.';
 
   useEffect(() => {
     if (params.get('auto') === '1' && weekly && !isLoading && !error) {
@@ -43,6 +49,7 @@ export default function AdminWeeklyPrint() {
                 <div><strong>System:</strong> {weekly.header?.systemName}</div>
                 <div><strong>Community/Barangay:</strong> {weekly.header?.community}</div>
                 <div><strong>Date range:</strong> {weekly.header?.dateRange}</div>
+                <div><strong>Report scope:</strong> {reportScopeLabel}</div>
               </div>
               <div>
                 <div><strong>Generated on:</strong> {new Date(weekly.header?.generatedOn || Date.now()).toLocaleString()}</div>
@@ -52,7 +59,7 @@ export default function AdminWeeklyPrint() {
             </div>
           </Section>
 
-          <Section title="IoT Water Level Summary">
+          <Section title={`IoT Water Level Summary (${reportScopeLabel})`}>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div><strong>Average (cm):</strong> {weekly.iotWaterLevel?.overall?.averageCm ?? '—'}</div>
               <div><strong>Max (cm):</strong> {weekly.iotWaterLevel?.overall?.maxCm ?? '—'}</div>
@@ -62,7 +69,7 @@ export default function AdminWeeklyPrint() {
             <div className="text-xs text-black/70"><em>Note:</em> {weekly.iotWaterLevel?.note}</div>
           </Section>
 
-          <Section title="Community Reports Summary">
+          <Section title={`Community Reports Summary (${reportScopeLabel})`}>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div><strong>Total Reports:</strong> {weekly.communityReports?.totalReports ?? 0}</div>
               <div><strong>Verified:</strong> {weekly.communityReports?.verified ?? 0}</div>
@@ -110,9 +117,9 @@ export default function AdminWeeklyPrint() {
             </div>
           </Section>
 
-          <Section title="Alerts and Warnings">
+          <Section title={`Alerts and Warnings (${reportScopeLabel})`}>
             <div className="space-y-1">
-              {(weekly.alerts || []).length === 0 && <div>No alerts recorded for this period.</div>}
+              {(weekly.alerts || []).length === 0 && <div>{alertEmptyText}</div>}
               {(weekly.alerts || []).map((a, idx) => (
                 <div key={idx} className="flex items-center justify-between">
                   <div>
@@ -135,7 +142,7 @@ export default function AdminWeeklyPrint() {
             <div className="text-xs text-black/70 mt-2"><em>Note:</em> {weekly.offlineSync?.note}</div>
           </Section>
 
-          <Section title="Insights">
+          <Section title={`Insights (${reportScopeLabel})`}>
             <div>{weekly.insights?.summaryText}</div>
             <div className="mt-2 text-xs flex gap-3">
               {weekly.insights?.waterLevelChangePct != null && (

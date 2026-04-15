@@ -8,14 +8,43 @@ export const AdminDashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [filter, setFilter] = useState('UNVERIFIED'); // UNVERIFIED, VALIDATED, REJECTED, all
+  const [reportScope, setReportScope] = useState('all-time'); // all-time, weekly
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(0);
 
-  const { data: allData } = useReports({ limit: 1000 }); // For global stats
+  const scopeFilters = reportScope === 'weekly' ? { scope: 'weekly' } : {};
+
+  const { data: allData } = useReports({ limit: 1000, ...scopeFilters }); // For scoped stats
   const { data, isLoading: reportsLoading } = useReports({
     status: filter === 'all' ? undefined : filter,
-    limit: 100,
+    limit: pageSize,
+    skip: currentPage * pageSize,
+    ...scopeFilters,
   });
 
   const reports = data?.data?.reports || [];
+  const pagination = data?.data?.pagination || {
+    total: 0,
+    limit: pageSize,
+    skip: currentPage * pageSize,
+    hasMore: false,
+  };
+  const scopeLabel = reportScope === 'weekly' ? 'This Week' : 'All Time';
+
+  const handleFilterChange = (nextFilter) => {
+    setFilter(nextFilter);
+    setCurrentPage(0);
+  };
+
+  const handleScopeChange = (nextScope) => {
+    setReportScope(nextScope);
+    setCurrentPage(0);
+  };
+
+  const handlePageSizeChange = (nextSize) => {
+    setPageSize(nextSize);
+    setCurrentPage(0);
+  };
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -40,6 +69,13 @@ export const AdminDashboard = () => {
     }
   }, [user, loading, navigate]);
 
+  // If page becomes empty after data updates, recover to first page.
+  useEffect(() => {
+    if (!reportsLoading && currentPage > 0 && reports.length === 0) {
+      setCurrentPage(0);
+    }
+  }, [reportsLoading, currentPage, reports.length]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -61,6 +97,33 @@ export const AdminDashboard = () => {
         <p className="text-white/60">
           Welcome back, {user.name}! Manage and validate flood reports.
         </p>
+      </div>
+
+      {/* Scope Selector */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="text-xs uppercase tracking-wider text-white/50">Reports Scope</div>
+        <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-1">
+          <button
+            onClick={() => handleScopeChange('all-time')}
+            className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+              reportScope === 'all-time'
+                ? 'bg-gradient-to-r from-[#c54914] to-[#7a2200] text-white shadow-[0_4px_12px_rgba(197,73,20,0.3)]'
+                : 'text-white/70 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            All Time
+          </button>
+          <button
+            onClick={() => handleScopeChange('weekly')}
+            className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+              reportScope === 'weekly'
+                ? 'bg-gradient-to-r from-[#c54914] to-[#7a2200] text-white shadow-[0_4px_12px_rgba(197,73,20,0.3)]'
+                : 'text-white/70 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            This Week
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -92,7 +155,7 @@ export const AdminDashboard = () => {
             <svg className="w-16 h-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
           <h3 className="text-sm font-medium text-white/50 mb-3 uppercase tracking-wider">
-            Rejected Reports
+            Rejected Reports ({scopeLabel})
           </h3>
           <p className="text-4xl font-black text-red-400 drop-shadow-[0_2px_12px_rgba(248,113,113,0.3)]">{stats.rejected}</p>
           <p className="text-[13px] font-semibold text-red-400/60 mt-2">INVALIDATED</p>
@@ -106,7 +169,7 @@ export const AdminDashboard = () => {
             Total Reports
           </h3>
           <p className="text-4xl font-black text-white drop-shadow-[0_2px_12px_rgba(255,255,255,0.2)]">{stats.total}</p>
-          <p className="text-[13px] font-semibold text-white/40 mt-2">ALL TIME</p>
+          <p className="text-[13px] font-semibold text-white/40 mt-2">{scopeLabel.toUpperCase()}</p>
         </div>
       </div>
 
@@ -117,9 +180,18 @@ export const AdminDashboard = () => {
             <h2 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: 'Goodly, sans-serif' }}>
               Reports Review
             </h2>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="text-white/70 text-sm">Show</label>
+              <select
+                value={pageSize}
+                onChange={(e) => handlePageSizeChange(parseInt(e.target.value, 10))}
+                className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+              </select>
               <button
-                onClick={() => setFilter('UNVERIFIED')}
+                onClick={() => handleFilterChange('UNVERIFIED')}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 border ${
                   filter === 'UNVERIFIED'
                     ? 'bg-gradient-to-r from-[#c54914] to-[#7a2200] text-white border-transparent shadow-[0_4px_12px_rgba(197,73,20,0.3)]'
@@ -129,7 +201,7 @@ export const AdminDashboard = () => {
                 Pending
               </button>
               <button
-                onClick={() => setFilter('VALIDATED')}
+                onClick={() => handleFilterChange('VALIDATED')}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 border ${
                   filter === 'VALIDATED'
                     ? 'bg-gradient-to-r from-[#c54914] to-[#7a2200] text-white border-transparent shadow-[0_4px_12px_rgba(197,73,20,0.3)]'
@@ -139,7 +211,7 @@ export const AdminDashboard = () => {
                 Validated
               </button>
               <button
-                onClick={() => setFilter('REJECTED')}
+                onClick={() => handleFilterChange('REJECTED')}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 border ${
                   filter === 'REJECTED'
                     ? 'bg-gradient-to-r from-[#c54914] to-[#7a2200] text-white border-transparent shadow-[0_4px_12px_rgba(197,73,20,0.3)]'
@@ -149,7 +221,7 @@ export const AdminDashboard = () => {
                 Rejected
               </button>
               <button
-                onClick={() => setFilter('all')}
+                onClick={() => handleFilterChange('all')}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 border ${
                   filter === 'all'
                     ? 'bg-gradient-to-r from-[#c54914] to-[#7a2200] text-white border-transparent shadow-[0_4px_12px_rgba(197,73,20,0.3)]'
@@ -163,6 +235,31 @@ export const AdminDashboard = () => {
         </div>
 
         <AdminReportsTable reports={reports} loading={reportsLoading} />
+
+        {!reportsLoading && pagination.total > 0 && (
+          <div className="px-6 py-4 border-t border-white/5 bg-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="text-sm text-white/60">
+              Showing {pagination.skip + 1}-{Math.min(pagination.skip + reports.length, pagination.total)} of {pagination.total}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-white/50">Page {currentPage + 1}</span>
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+                disabled={currentPage === 0}
+                className="px-3 py-2 rounded-lg text-sm font-semibold bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage((p) => p + 1)}
+                disabled={!pagination.hasMore}
+                className="px-3 py-2 rounded-lg text-sm font-semibold bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

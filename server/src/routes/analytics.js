@@ -15,9 +15,15 @@ function endOfDay(d) {
   x.setHours(23, 59, 59, 999);
   return x;
 }
+function formatDate(dt) {
+  return dt.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+}
 function formatRange(start, end) {
-  const fmt = (dt) => dt.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
-  return `${fmt(start)} – ${fmt(end)}`;
+  return `${formatDate(start)} – ${formatDate(end)}`;
+}
+function formatAllTimeRange(start, end) {
+  if (!start) return `All time – ${formatDate(end)}`;
+  return `All time (from ${formatDate(start)}) – ${formatDate(end)}`;
 }
 function toISODate(d) {
   const x = new Date(d);
@@ -33,24 +39,27 @@ function computePercentChange(curr, prev) {
 // Reusable weekly report builder used by API and export endpoints
 async function buildWeeklyReport(query, user) {
   const now = new Date();
-  let { start, end, barangay } = query;
+  let { start, end, barangay, communityScope = 'weekly' } = query;
+  const normalizedCommunityScope = String(communityScope).toLowerCase() === 'all-time' ? 'all-time' : 'weekly';
+  const hasExplicitStart = typeof start === 'string' && start.trim().length > 0;
+  const hasExplicitEnd = typeof end === 'string' && end.trim().length > 0;
   const warnThreshold = Number(query.warnThresholdCm ?? process.env.SENSOR_ALERT_THRESHOLD_CM ?? 50);
   const critThreshold = Number(query.critThresholdCm ?? process.env.SENSOR_CRITICAL_THRESHOLD_CM ?? 90);
 
-  const endDate = end ? endOfDay(new Date(end)) : endOfDay(now);
-  const startDate = start ? startOfDay(new Date(start)) : startOfDay(new Date(endDate.getTime() - 6 * 24 * 60 * 60 * 1000));
-
-  const header = {
-    systemName: 'FloodSense Weekly Report',
-    community: barangay || 'All',
-    dateRange: formatRange(startDate, endDate),
-    generatedOn: new Date().toISOString(),
-    generatedBy: user?.name || user?.email || 'Admin',
-    systemStatus: 'Online',
-  };
+  const endDate = hasExplicitEnd ? endOfDay(new Date(end)) : endOfDay(now);
+  const requestedStartDate = hasExplicitStart
+    ? startOfDay(new Date(start))
+    : startOfDay(new Date(endDate.getTime() - 6 * 24 * 60 * 60 * 1000));
+  const useAllTimeWindow = normalizedCommunityScope === 'all-time' && !hasExplicitStart;
+  const periodScope = useAllTimeWindow ? 'all-time' : 'weekly';
+  const periodScopeLabel = useAllTimeWindow ? 'All-time' : 'This week';
 
   // IoT Water Level Summary
-  const sensorMatch = { timestamp: { $gte: startDate, $lte: endDate } };
+  const sensorMatch = {
+    timestamp: useAllTimeWindow
+      ? { $lte: endDate }
+      : { $gte: requestedStartDate, $lte: endDate },
+  };
   const sensorAgg = await SensorData.aggregate([
     { $match: sensorMatch },
     { $group: {
@@ -79,20 +88,31 @@ async function buildWeeklyReport(query, user) {
   const daysAboveThreshold = sensorAgg.filter(d => (d.max ?? 0) > warnThreshold).length;
 
   // Daily series
-  const dayKeys = [];
-  for (let d = new Date(startDate); d <= endDate; d = new Date(d.getTime() + 24*60*60*1000)) {
-    dayKeys.push(toISODate(d));
+  let sensorDaily;
+  if (useAllTimeWindow) {
+    sensorDaily = sensorAgg.map(day => ({
+      date: day._id,
+      avg: day.avg ?? null,
+      min: day.min ?? null,
+      max: day.max ?? null,
+      count: day.count ?? 0,
+    }));
+  } else {
+    const dayKeys = [];
+    for (let d = new Date(requestedStartDate); d <= endDate; d = new Date(d.getTime() + 24*60*60*1000)) {
+      dayKeys.push(toISODate(d));
+    }
+    sensorDaily = dayKeys.map(key => {
+      const found = sensorAgg.find(a => a._id === key);
+      return {
+        date: key,
+        avg: found?.avg ?? null,
+        min: found?.min ?? null,
+        max: found?.max ?? null,
+        count: found?.count ?? 0,
+      };
+    });
   }
-  const sensorDaily = dayKeys.map(key => {
-    const found = sensorAgg.find(a => a._id === key);
-    return {
-      date: key,
-      avg: found?.avg ?? null,
-      min: found?.min ?? null,
-      max: found?.max ?? null,
-      count: found?.count ?? 0,
-    };
-  });
 
   // Alerts from thresholds and offline gaps
   const alerts = [];
@@ -132,6 +152,8 @@ async function buildWeeklyReport(query, user) {
 
   const iotWaterLevel = {
     note: 'Current schema has no sensor ID or location; aggregations are overall for all readings.',
+    scope: periodScope,
+    scopeLabel: periodScopeLabel,
     thresholdCm: warnThreshold,
     criticalThresholdCm: critThreshold,
     overall: {
@@ -145,12 +167,35 @@ async function buildWeeklyReport(query, user) {
   };
 
   // Community Reports Summary
-  const reportMatch = { isActive: true, createdAt: { $gte: startDate, $lte: endDate } };
-  if (barangay) reportMatch.barangay = new RegExp(barangay, 'i');
-  const reports = await Report.find(reportMatch).select('createdAt status severity barangay').lean();
+  const weeklyReportMatch = { isActive: true, createdAt: { $gte: requestedStartDate, $lte: endDate } };
+  if (barangay) weeklyReportMatch.barangay = new RegExp(barangay, 'i');
+
+  const communityReportMatch =
+    useAllTimeWindow
+      ? {
+          isActive: true,
+          createdAt: { $lte: endDate },
+          ...(barangay ? { barangay: new RegExp(barangay, 'i') } : {}),
+        }
+      : weeklyReportMatch;
+
+  const reports = await Report.find(communityReportMatch).select('createdAt status severity barangay').lean();
 
   const totalReports = reports.length;
   const statusCounts = reports.reduce((acc, r) => { acc[r.status] = (acc[r.status]||0)+1; return acc; }, {});
+  const earliestReportDate = reports.reduce((earliest, r) => {
+    const createdAt = new Date(r.createdAt);
+    if (!earliest || createdAt < earliest) return createdAt;
+    return earliest;
+  }, null);
+
+  const earliestSensorDate = sensorDaily[0]?.date ? startOfDay(new Date(sensorDaily[0].date)) : null;
+  const firstAvailableDate = [earliestSensorDate, earliestReportDate ? startOfDay(earliestReportDate) : null]
+    .filter(Boolean)
+    .sort((a, b) => a.getTime() - b.getTime())[0] || null;
+  const periodStartDate = useAllTimeWindow
+    ? (firstAvailableDate || startOfDay(endDate))
+    : requestedStartDate;
 
   // Map severities to buckets
   const severityMap = { Low: 'Minor Flood', Medium: 'Moderate Flood', High: 'Severe Flood', Critical: 'Severe Flood' };
@@ -172,6 +217,8 @@ async function buildWeeklyReport(query, user) {
   const peakHours = [...hourCounts].sort((a,b)=>b.count-a.count).slice(0,3);
 
   const communityReports = {
+    scope: periodScope,
+    scopeLabel: periodScopeLabel,
     totalReports,
     verified: statusCounts['VALIDATED'] || 0,
     unverified: statusCounts['UNVERIFIED'] || 0,
@@ -181,20 +228,24 @@ async function buildWeeklyReport(query, user) {
     peakHours,
   };
 
-  // Insights (week over week)
-  const prevStart = startOfDay(new Date(startDate.getTime() - 7*24*60*60*1000));
-  const prevEnd = endOfDay(new Date(endDate.getTime() - 7*24*60*60*1000));
+  const header = {
+    systemName: 'FloodSense Weekly Report',
+    community: barangay || 'All',
+    dateRange: useAllTimeWindow
+      ? formatAllTimeRange(periodStartDate, endDate)
+      : formatRange(periodStartDate, endDate),
+    reportScope: periodScope,
+    reportScopeLabel: periodScopeLabel,
+    communityScope: normalizedCommunityScope,
+    communityScopeLabel: normalizedCommunityScope === 'all-time' ? 'All-time' : 'This week',
+    generatedOn: new Date().toISOString(),
+    generatedBy: user?.name || user?.email || 'Admin',
+    systemStatus: 'Online',
+  };
 
-  const prevSensorAgg = await SensorData.aggregate([
-    { $match: { timestamp: { $gte: prevStart, $lte: prevEnd } } },
-    { $group: { _id: null, avg: { $avg: '$distance' }, count: { $sum: 1 } } }
-  ]);
-  const prevReportsCount = await Report.countDocuments({ isActive:true, createdAt: { $gte: prevStart, $lte: prevEnd }, ...(barangay ? { barangay: new RegExp(barangay, 'i') } : {}) });
-
+  // Insights
   const avgCurr = sensorOverallAgg[0]?.avg ?? null;
-  const avgPrev = prevSensorAgg[0]?.avg ?? null;
   const reportsCurr = totalReports;
-  const reportsPrev = prevReportsCount ?? null;
 
   function insightsNumberText(pct, label) {
     if (pct == null || !Number.isFinite(pct)) return `${label} data is insufficient for comparison`;
@@ -204,16 +255,45 @@ async function buildWeeklyReport(query, user) {
     return `${label} remained stable compared to last week`;
   }
 
-  const insights = {
-    waterLevelChangePct: computePercentChange(avgCurr ?? 0, avgPrev ?? 0),
-    engagementChangePct: computePercentChange(reportsCurr ?? 0, reportsPrev ?? 0),
-    summaryText: (() => {
-      const wl = insightsNumberText(computePercentChange(avgCurr ?? 0, avgPrev ?? 0), 'water levels');
-      const eg = insightsNumberText(computePercentChange(reportsCurr ?? 0, reportsPrev ?? 0), 'community engagement');
-      const criticalCount = alerts.filter(a => a.alertType === 'Critical').length;
-      return `This week, ${wl}. ${eg}. ${criticalCount > 0 ? `There ${criticalCount === 1 ? 'was' : 'were'} ${criticalCount} critical alert${criticalCount === 1 ? '' : 's'}.` : 'No critical alerts recorded.'}`;
-    })()
-  };
+  const criticalCount = alerts.filter(a => a.alertType === 'Critical').length;
+  let insights;
+  if (useAllTimeWindow) {
+    const averageSummary = Number.isFinite(avgCurr)
+      ? `average water level measured ${avgCurr.toFixed(1)} cm`
+      : 'average water level data is unavailable';
+    const engagementSummary = `${reportsCurr} community report${reportsCurr === 1 ? '' : 's'} logged`;
+    insights = {
+      scope: periodScope,
+      scopeLabel: periodScopeLabel,
+      waterLevelChangePct: null,
+      engagementChangePct: null,
+      summaryText: `Across all-time records, ${averageSummary}, with ${engagementSummary}. ${criticalCount > 0 ? `There ${criticalCount === 1 ? 'was' : 'were'} ${criticalCount} critical alert${criticalCount === 1 ? '' : 's'}.` : 'No critical alerts recorded.'}`,
+    };
+  } else {
+    const prevStart = startOfDay(new Date(periodStartDate.getTime() - 7*24*60*60*1000));
+    const prevEnd = endOfDay(new Date(endDate.getTime() - 7*24*60*60*1000));
+    const prevSensorAgg = await SensorData.aggregate([
+      { $match: { timestamp: { $gte: prevStart, $lte: prevEnd } } },
+      { $group: { _id: null, avg: { $avg: '$distance' }, count: { $sum: 1 } } }
+    ]);
+    const prevReportsCount = await Report.countDocuments({ isActive:true, createdAt: { $gte: prevStart, $lte: prevEnd }, ...(barangay ? { barangay: new RegExp(barangay, 'i') } : {}) });
+
+    const avgPrev = prevSensorAgg[0]?.avg ?? null;
+    const reportsPrev = prevReportsCount ?? null;
+    const waterLevelChangePct = computePercentChange(avgCurr ?? 0, avgPrev ?? 0);
+    const engagementChangePct = computePercentChange(reportsCurr ?? 0, reportsPrev ?? 0);
+    insights = {
+      scope: periodScope,
+      scopeLabel: periodScopeLabel,
+      waterLevelChangePct,
+      engagementChangePct,
+      summaryText: (() => {
+        const wl = insightsNumberText(waterLevelChangePct, 'water levels');
+        const eg = insightsNumberText(engagementChangePct, 'community engagement');
+        return `This week, ${wl}. ${eg}. ${criticalCount > 0 ? `There ${criticalCount === 1 ? 'was' : 'were'} ${criticalCount} critical alert${criticalCount === 1 ? '' : 's'}.` : 'No critical alerts recorded.'}`;
+      })()
+    };
+  }
 
   const offlineSync = {
     available: false,
@@ -230,11 +310,12 @@ async function buildWeeklyReport(query, user) {
     generator: 'FloodSense IoT Monitoring System',
   };
 
-  return { header, iotWaterLevel, communityReports, alerts, offlineSync, insights, footer, startDate, endDate };
+  return { header, iotWaterLevel, communityReports, alerts, offlineSync, insights, footer, startDate: periodStartDate, endDate };
 }
 
 // GET /api/admin/weekly-report
-// Query: start=YYYY-MM-DD, end=YYYY-MM-DD, barangay=string, warnThresholdCm, critThresholdCm
+// Query: start=YYYY-MM-DD, end=YYYY-MM-DD, barangay=string,
+//        warnThresholdCm, critThresholdCm, communityScope=weekly|all-time
 router.get('/weekly-report', authenticate, requireAdmin, async (req, res) => {
   try {
     const data = await buildWeeklyReport(req.query, req.user);
@@ -266,6 +347,8 @@ router.get('/weekly-report/export', authenticate, requireAdmin, async (req, res)
       Object.entries({ avg: d.avg, min: d.min, max: d.max, count: d.count }).forEach(([k,v]) => pushKV('iot_daily', d.date, k, v));
     });
     Object.entries(communityReports.bySeverity || {}).forEach(([sev, cnt]) => pushKV('reports_severity', sev, 'count', cnt));
+    pushKV('reports', '', 'scope', communityReports.scope || 'weekly');
+    pushKV('reports', '', 'scopeLabel', communityReports.scopeLabel || 'This week');
     pushKV('reports', '', 'totalReports', communityReports.totalReports);
     pushKV('reports', '', 'verified', communityReports.verified);
     pushKV('reports', '', 'unverified', communityReports.unverified);

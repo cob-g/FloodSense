@@ -132,7 +132,7 @@ export const AdminFallbacks = () => {
         </div>
         <div className="flex gap-2">
           <input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Search name/notes" className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-white/50"/>
-          <button onClick={openCreate} className="px-4 py-2 bg-accent-orange hover:bg-bright-orange text-space-black font-semibold rounded-lg">Add Place</button>
+          <button onClick={openCreate} className="px-4 py-2 duration-300 transition-all rounded-xl shadow-[0_4px_16px_rgba(197,73,20,0.3)] hover:-translate-y-0.5 shrink-0 whitespace-nowrap" style={{ background: 'linear-gradient(135deg, #c54914 0%, #7a2200 100%)' }}>Add Place</button>
         </div>
       </div>
 
