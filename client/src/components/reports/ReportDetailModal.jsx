@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { formatDate, formatCoordinates } from '../../utils/helpers';
 import { STATUS_LABELS } from '../../utils/constants';
 import { useAuth } from '../../hooks/useAuth';
 import { useDeleteReport } from '../../hooks/useReports';
 import { useToast } from '../../contexts/ToastContext';
+import ReportDeleteConfirmModal from '../admin/ReportDeleteConfirmModal';
 import { createPortal } from 'react-dom';
 import { MapPin, Droplets, Navigation, User, Calendar, FileText, ShieldAlert, Waves, Trash2, X } from 'lucide-react';
 
@@ -39,6 +41,8 @@ export const ReportDetailModal = ({ report, onClose }) => {
   const { user } = useAuth();
   const deleteReport = useDeleteReport();
   const toast = useToast();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const isDeleting = deleteReport.isLoading;
 
   const sev     = severityGradient[report.severity] || severityGradient.Low;
   const sevChip = severityChip[report.severity]     || severityChip.Low;
@@ -46,41 +50,48 @@ export const ReportDetailModal = ({ report, onClose }) => {
   const pass    = passStyle[report.passability]     || { bg: '#f9fafb', color: '#374151', border: '#e5e7eb' };
   const hasPhotos = report.photos?.length > 0;
 
+  const closeDeleteConfirm = () => {
+    if (isDeleting) return;
+    setShowDeleteConfirm(false);
+  };
+
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this report?')) {
-      try {
-        await deleteReport.mutateAsync(report._id);
-        onClose();
-      } catch (error) {
-        toast.error('Failed to delete report: ' + error.message);
-      }
+    try {
+      await deleteReport.mutateAsync(report._id);
+      toast.success('Report deleted successfully');
+      setShowDeleteConfirm(false);
+      onClose();
+    } catch (error) {
+      toast.error('Failed to delete report: ' + (error?.message || 'Unknown error'));
     }
   };
 
   const canDelete = user?.role === 'admin' || user?.role === 'superadmin';
 
-  return createPortal(
-    <div
-      className="fixed inset-0 flex items-center justify-center p-4 z-[3000]"
-      style={{
-        background: 'rgba(20, 8, 0, 0.55)',
-        backdropFilter: 'blur(16px) saturate(140%)',
-        WebkitBackdropFilter: 'blur(16px) saturate(140%)',
-      }}
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full max-w-2xl my-4 rounded-[2rem] overflow-hidden flex flex-col"
-        style={{
-          maxHeight: '92vh',
-          background: 'rgba(255,252,249,0.72)',
-          backdropFilter: 'blur(40px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-          border: '1px solid rgba(255,255,255,0.85)',
-          boxShadow: '0 32px 80px rgba(122,34,0,0.22), 0 8px 24px rgba(197,73,20,0.12), inset 0 1.5px 0 rgba(255,255,255,0.95)',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
+  return (
+    <>
+      {createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4 z-[3000]"
+          style={{
+            background: 'rgba(20, 8, 0, 0.55)',
+            backdropFilter: 'blur(16px) saturate(140%)',
+            WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+          }}
+          onClick={onClose}
+        >
+          <div
+            className="relative w-full max-w-2xl my-4 rounded-[2rem] overflow-hidden flex flex-col"
+            style={{
+              maxHeight: '92vh',
+              background: 'rgba(255,252,249,0.72)',
+              backdropFilter: 'blur(40px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+              border: '1px solid rgba(255,255,255,0.85)',
+              boxShadow: '0 32px 80px rgba(122,34,0,0.22), 0 8px 24px rgba(197,73,20,0.12), inset 0 1.5px 0 rgba(255,255,255,0.95)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
         {/* Top shimmer line */}
         <div
           className="absolute top-0 left-0 right-0 pointer-events-none z-10"
@@ -292,21 +303,31 @@ export const ReportDetailModal = ({ report, onClose }) => {
           {/* Admin delete */}
           {canDelete && (
             <button
-              onClick={handleDelete}
-              disabled={deleteReport.isLoading}
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isDeleting}
               className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl text-sm font-bold transition-all duration-200 hover:shadow-md disabled:opacity-50"
               style={{ background: '#fff1f2', border: '1px solid #fecdd3', color: '#9f1239' }}
             >
               <Trash2 className="w-4 h-4" />
-              {deleteReport.isLoading ? 'Deleting...' : 'Delete Report'}
+              {isDeleting ? 'Deleting...' : 'Delete Report'}
             </button>
           )}
 
           <div className="h-1" />
         </div>
-      </div>
-    </div>,
-    document.body
+          </div>
+        </div>,
+        document.body
+      )}
+
+      <ReportDeleteConfirmModal
+        open={showDeleteConfirm}
+        report={report}
+        onClose={closeDeleteConfirm}
+        onConfirm={handleDelete}
+        isPending={isDeleting}
+      />
+    </>
   );
 };
 

@@ -6,7 +6,7 @@ import ReportList from '../components/reports/ReportList';
 import SensorDashboard from '../components/sensors/SensorDashboard';
 import { useReports } from '../hooks/useReports';
 import { useSensors } from '../hooks/useSensors';
-import { MapView } from '../components/map/MapView';
+import LazyMapView from '../components/map/LazyMapView';
 import ReportSubmissionForm from '../components/reports/ReportSubmissionForm';
 import { useNetwork } from '../hooks/useNetwork';
 import { useFallbacks } from '../hooks/useFallbacks';
@@ -24,15 +24,26 @@ const FeedPage = () => {
   const [showReportForm, setShowReportForm] = useState(false);
   const [activeTab, setActiveTab] = useState('map'); // Add 'analytics' option
 
-  // Fetch all reports (auto-refresh every 30s) - matching LandingPage
-  const { data: reportsData, isLoading: reportsLoading, error: reportsError } = useReports({}, {
-    refetchInterval: 30000,
+  // Fetch all reports (auto-refresh every 15s) - matching LandingPage
+  const {
+    data: reportsData,
+    isLoading: reportsLoading,
+    isFetching: reportsFetching,
+    error: reportsError,
+    dataUpdatedAt: reportsUpdatedAt,
+  } = useReports({}, {
+    refetchInterval: 15000,
     refetchIntervalInBackground: true,
   });
 
-  // Fetch sensor data (auto-refresh every 30s) - matching LandingPage
-  const { data: sensorsRes } = useSensors({ withStatus: true }, {
-    refetchInterval: 30000,
+  // Fetch sensor data (auto-refresh every 15s) - matching LandingPage
+  const {
+    data: sensorsRes,
+    isFetching: sensorsFetching,
+    error: sensorsError,
+    dataUpdatedAt: sensorsUpdatedAt,
+  } = useSensors({ withStatus: true }, {
+    refetchInterval: 15000,
     refetchIntervalInBackground: true,
   });
 
@@ -58,6 +69,16 @@ const FeedPage = () => {
   const sensorReadings = useMemo(() => {
     return sensorsRes?.data || [];
   }, [sensorsRes?.data]);
+
+  const mapIsSyncing = reportsFetching || sensorsFetching;
+  const lastMapUpdateAt = Math.max(reportsUpdatedAt || 0, sensorsUpdatedAt || 0);
+  const mapLastUpdatedLabel = lastMapUpdateAt
+    ? new Date(lastMapUpdateAt).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
+    : null;
 
   // Auto-open report modal when navigated with intent from another page
   useEffect(() => {
@@ -457,11 +478,26 @@ const FeedPage = () => {
                         <p className="text-gray-900/60 text-sm">{t('feed.liveMap.subtitle')}</p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2 px-4 py-2 bg-green-500/10 rounded-full border border-green-500/20">
-                      <Activity className="w-4 h-4 text-green-500 animate-pulse" />
-                      <span className="text-green-400 text-sm font-semibold">{t('feed.liveMap.live')}</span>
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex items-center space-x-2 px-4 py-2 bg-green-500/10 rounded-full border border-green-500/20">
+                        <Activity className="w-4 h-4 text-green-500 animate-pulse" />
+                        <span className="text-green-400 text-sm font-semibold">{t('feed.liveMap.live')}</span>
+                      </div>
+                      <div className="text-xs text-gray-900/60">
+                        {mapIsSyncing
+                          ? 'Syncing live map data...'
+                          : mapLastUpdatedLabel
+                          ? `Last updated ${mapLastUpdatedLabel}`
+                          : 'Waiting for first sync'}
+                      </div>
                     </div>
                   </div>
+
+                  {(reportsError || sensorsError) && (
+                    <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50/80 px-4 py-3 text-sm text-amber-800">
+                      Live map refresh is temporarily unavailable: {reportsError?.message || sensorsError?.message || 'Failed to fetch latest map data.'}
+                    </div>
+                  )}
 
                   <div className="h-[500px] lg:h-[600px] rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
                     {(!online || (isSlow && !forceShowMap)) ? (
@@ -483,11 +519,12 @@ const FeedPage = () => {
                         </div>
                       </div>
                     ) : (
-                      <MapView
+                      <LazyMapView
                         reports={validatedReports}
                         sensors={sensorReadings}
                         onMarkerClick={(report) => console.log('Clicked report:', report)}
-                        className="h-full"
+                        height="100%"
+                        className="w-full"
                       />
                     )}
                   </div>

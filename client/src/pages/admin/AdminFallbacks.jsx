@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useFallbacks, useCreateFallback, useUpdateFallback, useDeleteFallback } from '../../hooks/useFallbacks';
 import { useToast } from '../../contexts/ToastContext';
+import ReportDeleteConfirmModal from '../../components/admin/ReportDeleteConfirmModal';
 import { createPortal } from 'react-dom';
 
 const BARANGAYS = [
@@ -30,7 +31,9 @@ export const AdminFallbacks = () => {
   const [query, setQuery] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [fallbackToDelete, setFallbackToDelete] = useState(null);
   const [form, setForm] = useState({ name: '', barangay: '', notes: '', lat: '', lng: '' });
+  const isDeleting = deleteMut.isLoading;
 
   useEffect(() => {
     if (editing) {
@@ -100,11 +103,21 @@ export const AdminFallbacks = () => {
     }
   };
 
-  const confirmDelete = async (id) => {
-    if (!window.confirm('Delete this fallback place?')) return;
+  const openDeleteModal = (item) => {
+    setFallbackToDelete(item);
+  };
+
+  const closeDeleteModal = () => {
+    if (isDeleting) return;
+    setFallbackToDelete(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!fallbackToDelete?._id) return;
     try {
-      await deleteMut.mutateAsync(id);
-      toast.success('Deleted');
+      await deleteMut.mutateAsync(fallbackToDelete._id);
+      toast.success('Fallback place deleted');
+      setFallbackToDelete(null);
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Delete failed');
     }
@@ -152,7 +165,7 @@ export const AdminFallbacks = () => {
                       <button title="Edit" onClick={()=>openEdit(i)} className="w-9 h-9 rounded-lg hover:bg-white/10 flex items-center justify-center">
                         <svg className="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4h2a2 2 0 012 2v2m-1 5l3-3a2.121 2.121 0 10-3-3l-3 3m-1 1l-4 4v2h2l4-4"/></svg>
                       </button>
-                      <button title="Delete" onClick={()=>confirmDelete(i._id)} className="w-9 h-9 rounded-lg hover:bg-red-500/10 flex items-center justify-center">
+                      <button title="Delete" onClick={()=>openDeleteModal(i)} disabled={isDeleting} className="w-9 h-9 rounded-lg hover:bg-red-500/10 flex items-center justify-center disabled:opacity-50">
                         <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-1-2H10a1 1 0 00-1 1v1h8V6a1 1 0 00-1-1z"/></svg>
                       </button>
                     </div>
@@ -211,6 +224,18 @@ export const AdminFallbacks = () => {
           </div>
         </Modal>
       )}
+
+      <ReportDeleteConfirmModal
+        open={!!fallbackToDelete}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        isPending={isDeleting}
+        title="Delete Fallback Place"
+        description="This will remove the place from the fallback registry used by the admin panel."
+        itemLabel="Fallback Place"
+        itemValue={fallbackToDelete ? `${fallbackToDelete.name}${fallbackToDelete.barangay ? ` - ${fallbackToDelete.barangay}` : ''}` : undefined}
+        confirmText="Delete Place"
+      />
     </div>
   );
 };

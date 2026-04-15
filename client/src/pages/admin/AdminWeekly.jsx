@@ -225,6 +225,7 @@ function HeaderWithActions() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      toast.success('Weekly CSV exported');
     } catch (e) {
       toast.error('Failed to export CSV');
     }

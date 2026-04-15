@@ -36,7 +36,7 @@ export const Layout = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [online, setOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const { warning, info } = useToast();
-  const isFirstOnlineEffect = useRef(true);
+  const prevOnline = useRef(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
   useEffect(() => {
     const on = () => setOnline(true);
@@ -50,16 +50,15 @@ export const Layout = () => {
   }, []);
 
   useEffect(() => {
-    if (isFirstOnlineEffect.current) {
-      isFirstOnlineEffect.current = false;
-      return;
+    if (prevOnline.current !== online) {
+      if (online) {
+        info('You are back online');
+      } else {
+        warning('You are now offline');
+      }
+      prevOnline.current = online;
     }
-    if (online) {
-      info('You are back online');
-    } else {
-      warning('You are now offline');
-    }
-  }, [online]);
+  }, [online, info, warning]);
 
   const handleLogout = async () => {
     await logout();
@@ -116,6 +115,8 @@ export const Layout = () => {
                 <img
                   src="/logo.png"
                   alt="FloodSense Logo"
+                  width={64}
+                  height={64}
                   className="w-16 h-16 "
                 />
                 <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-accent-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

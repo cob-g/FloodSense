@@ -37,7 +37,8 @@ export const MapView = ({
   center = DEFAULT_MAP_CENTER, 
   zoom = DEFAULT_MAP_ZOOM,
   onMarkerClick,
-  className = ''
+  className = '',
+  style = {}
 }) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -46,6 +47,9 @@ export const MapView = ({
   const [clusterReady, setClusterReady] = useState(false);
 
   useEffect(() => {
+    let resizeObserver;
+    let resizeTimeout;
+
     // Initialize map
     if (!mapInstanceRef.current && mapRef.current) {
       const bounds = L.latLngBounds(NORTH_CALOOCAN_BOUNDS);
@@ -53,19 +57,21 @@ export const MapView = ({
       mapInstanceRef.current = L.map(mapRef.current, { 
         zoomControl: false,
         attributionControl: false,
-        maxBounds: bounds,
-        maxBoundsViscosity: 0.85,
-        minZoom: NORTH_CALOOCAN_MIN_ZOOM,
+        minZoom: 10,
       }).setView(center, zoom);
 
-      // Faint overlay outside North Caloocan — uses actual irregular polygon boundary
-      const world = [[-90, -180], [-90, 180], [90, 180], [90, -180]];
-      L.polygon([world, NORTH_CALOOCAN_POLYGON], {
-        color: 'none',
-        fillColor: '#000',
-        fillOpacity: 0.18,
-        interactive: false,
-      }).addTo(mapInstanceRef.current);
+      // Listen for container resize to avoid Leaflet gray-box half rendering issue
+      resizeObserver = new ResizeObserver(() => {
+        if (mapInstanceRef.current) {
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(() => {
+             mapInstanceRef.current?.invalidateSize();
+          }, 100);
+        }
+      });
+      resizeObserver.observe(mapRef.current);
+
+      // Faint overlay outside North Caloocan removed to prevent making map appear "cropped"
 
       // Colored inner barangay boundaries
       if (BARANGAYS && BARANGAYS.length > 0) {
@@ -178,6 +184,10 @@ export const MapView = ({
     }
 
     return () => {
+      clearTimeout(resizeTimeout);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
@@ -191,10 +201,12 @@ export const MapView = ({
     // Clear existing markers
     if (clusterGroupRef.current) {
       clusterGroupRef.current.clearLayers();
-    } else {
-      markersRef.current.forEach(marker => marker.remove());
-      markersRef.current = [];
     }
+    
+    // Always clear standalone markers to prevent them from persisting after a refresh
+    // while the cluster initializes
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
 
     // Minimal color scheme
     const statusConfig = {
@@ -392,15 +404,17 @@ export const MapView = ({
 
     // Default: always show North Caloocan
       mapInstanceRef.current.fitBounds(L.latLngBounds(NORTH_CALOOCAN_BOUNDS), { padding: [20, 20] });
-    }, [reports, sensors, onMarkerClick]);
+    }, [reports, sensors, onMarkerClick, clusterReady]);
 
   return (
-    <div className={`relative w-full h-full ${className}`} style={{ minHeight: '400px' }}>
+    <div className={`relative w-full h-full ${className}`} style={{ ...style, minHeight: style.minHeight || '400px', height: style.height || '100%', width: style.width || '100%' }}>
       <div 
         ref={mapRef} 
         className="w-full h-full rounded-lg overflow-hidden"
         style={{ 
-          minHeight: '400px',
+          minHeight: style.minHeight || '400px',
+          height: '100%',
+          width: '100%',
           zIndex: 0,
           position: 'relative'
         }}

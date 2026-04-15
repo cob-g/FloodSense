@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import gsap from 'gsap';
 
 import { useAuth } from '../hooks/useAuth';
-import MapView from '../components/map/MapView';
+import LazyMapView from '../components/map/LazyMapView';
 
 import { useReports } from '../hooks/useReports';
 import { useSensors } from '../hooks/useSensors';
@@ -40,24 +40,43 @@ export const LandingPage = () => {
   const statsRef = useRef(null);
   const buttonsRef = useRef(null);
 
-  // Fetch validated reports for the map (auto-refresh every 30s)
-  const { data: validatedData } = useReports({
+  // Fetch validated reports for the map (auto-refresh every 15s)
+  const {
+    data: validatedData,
+    isFetching: reportsFetching,
+    error: reportsError,
+    dataUpdatedAt: reportsUpdatedAt,
+  } = useReports({
     status: 'VALIDATED',
     limit: 100,
   }, {
-    refetchInterval: 30000,
+    refetchInterval: 15000,
     refetchIntervalInBackground: true,
   });
 
   const validatedReports = validatedData?.data?.reports || [];
 
-  // Fetch sensor data (auto-refresh every 30s)
-  const { data: sensorsRes } = useSensors({ withStatus: true }, {
-    refetchInterval: 30000,
+  // Fetch sensor data (auto-refresh every 15s)
+  const {
+    data: sensorsRes,
+    isFetching: sensorsFetching,
+    error: sensorsError,
+    dataUpdatedAt: sensorsUpdatedAt,
+  } = useSensors({ withStatus: true }, {
+    refetchInterval: 15000,
     refetchIntervalInBackground: true,
   });
 
   const sensorReadings = sensorsRes?.data || [];
+  const mapIsSyncing = reportsFetching || sensorsFetching;
+  const lastMapUpdateAt = Math.max(reportsUpdatedAt || 0, sensorsUpdatedAt || 0);
+  const mapLastUpdatedLabel = lastMapUpdateAt
+    ? new Date(lastMapUpdateAt).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
+    : null;
 
   const features = [
     {
@@ -329,11 +348,32 @@ export const LandingPage = () => {
             <p className="text-xl text-black/70 max-w-2xl mx-auto">
               {t('landing.liveMap.subtitle')}
             </p>
+            <div className="mt-3 flex items-center justify-center gap-2 text-sm text-black/60">
+              <Activity className={`w-4 h-4 ${mapIsSyncing ? 'animate-spin text-orange-500' : 'text-emerald-600'}`} />
+              <span>
+                {mapIsSyncing
+                  ? 'Syncing live map data...'
+                  : mapLastUpdatedLabel
+                  ? `Last updated ${mapLastUpdatedLabel}`
+                  : 'Waiting for first sync'}
+              </span>
+            </div>
           </div>
 
+          {(reportsError || sensorsError) && (
+            <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50/80 px-4 py-3 text-sm text-amber-800">
+              Live map refresh is temporarily unavailable: {reportsError?.message || sensorsError?.message || 'Failed to fetch latest map data.'}
+            </div>
+          )}
+
           <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-1 border border-white/10 shadow-2xl overflow-hidden">
-            <div className="w-full h-[600px] rounded-xl overflow-hidden">
-              <MapView reports={validatedReports} sensors={sensorReadings} className="h-full" />
+            <div className="w-full rounded-xl overflow-hidden">
+              <LazyMapView
+                reports={validatedReports}
+                sensors={sensorReadings}
+                height="600px"
+                className="w-full"
+              />
             </div>
           </div>
         </div>
@@ -362,9 +402,12 @@ export const LandingPage = () => {
             
             <div className="relative">
               <div className="relative z-10">
-                <img 
-                  src="/FS1.png" 
-                  alt="FloodSense Platform Preview" 
+                <img
+                  src="/FS1.png"
+                  alt="FloodSense Platform Preview"
+                  width={1080}
+                  height={1063}
+                  fetchpriority="high"
                   className="w-full h-auto rounded-2xl transform hover:scale-[1.02] transition-transform duration-700 ease-out"
                 />
               </div>

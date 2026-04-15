@@ -61,7 +61,7 @@ export const LoginPage = () => {
 
         {/* Top-left logo lockup */}
         <div className="relative z-10 flex items-center gap-2 px-7 pt-7">
-          <img src="/logo.png" alt="FloodSense" className="w-14 h-14 drop-shadow-md" />
+          <img src="/logo.png" alt="FloodSense" width={56} height={56} className="w-14 h-14 drop-shadow-md" />
           <span className="text-[1.5rem] font-black text-white tracking-tight" style={{ fontFamily: 'Goodly, sans-serif' }}>
             FloodSense
           </span>

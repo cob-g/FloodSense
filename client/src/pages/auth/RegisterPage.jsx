@@ -133,7 +133,7 @@ export const RegisterPage = () => {
           {/* Top: Logo + Brand */}
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-10">
-              <img src="/logo.png" alt="FloodSense" className="w-14 h-14 drop-shadow-lg" />
+              <img src="/logo.png" alt="FloodSense" width={56} height={56} className="w-14 h-14 drop-shadow-lg" />
               <h1 className="text-3xl font-black text-white" style={{ fontFamily: 'Goodly, sans-serif' }}>FloodSense</h1>
             </div>
             <h2 className="text-[38px] font-black text-white leading-tight mb-4">
@@ -167,7 +167,7 @@ export const RegisterPage = () => {
 
           {/* Mobile header */}
           <div className="lg:hidden flex items-center gap-3 mb-7">
-            <img src="/logo.png" alt="FloodSense" className="w-10 h-10" />
+            <img src="/logo.png" alt="FloodSense" width={40} height={40} className="w-10 h-10" />
             <span className="text-xl font-black text-[#7a2200]" style={{ fontFamily: 'Goodly, sans-serif' }}>FloodSense</span>
           </div>
 
