@@ -8,6 +8,7 @@ import { PageLoader } from './components/common/LoadingSpinner';
 import Layout from './components/common/Layout';
 import PrivateRoute from './components/auth/PrivateRoute';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import RealtimeNotifications from './components/common/RealtimeNotifications';
 
 // Lazily loaded pages (code splitting)
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -43,6 +44,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
+        <RealtimeNotifications />
         <Routes>
           {/* Public site layout */}
           <Route element={<Layout />}>
