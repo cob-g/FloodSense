@@ -201,8 +201,8 @@ export const AdminWeekly = () => {
                 }}
                 className="px-2 py-1 rounded-lg border border-white/20 bg-white/5 text-white/80 text-xs focus:outline-none focus:ring-1 focus:ring-white/30"
               >
-                <option value={10} className="bg-[#1c1410]">10</option>
-                <option value={25} className="bg-[#1c1410]">25</option>
+                <option value={10} style={{ color: '#111827', backgroundColor: '#ffffff' }}>10</option>
+                <option value={25} style={{ color: '#111827', backgroundColor: '#ffffff' }}>25</option>
               </select>
               <span className="text-xs px-2 py-1 rounded-lg border border-white/20 bg-white/5 text-white/75">
                 Scope: {reportScopeLabel}
@@ -304,11 +304,9 @@ function HeaderWithActions({ communityScope, onScopeChange }) {
       toast.error('Failed to export CSV');
     }
   };
-
   const printPDF = () => {
     navigate(`/admin/weekly/print?auto=1&communityScope=${encodeURIComponent(communityScope)}`);
   };
-
   return (
     <div className="mb-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start lg:gap-x-8">
       <div className="min-w-0 space-y-2 pr-1">

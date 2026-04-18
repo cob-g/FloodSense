@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { PageLoader } from './components/common/LoadingSpinner';
@@ -19,6 +19,8 @@ const ContactPage = lazy(() => import('./pages/ContactPage'));
 const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'));
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 // Admin pages (separate chunk)
@@ -40,11 +42,57 @@ const SuspenseWrapper = ({ children }) => (
   </Suspense>
 );
 
+/**
+ * Handles unknown auth-style links from older emails and redirects safely.
+ */
+const LegacyAuthRouteResolver = () => {
+  const location = useLocation();
+  const path = location.pathname.toLowerCase();
+  const params = new URLSearchParams(location.search);
+  const token = params.get('token')?.trim();
+
+  if (token) {
+    return <Navigate to={`/auth/reset-password?token=${encodeURIComponent(token)}`} replace />;
+  }
+
+  if (path.includes('forgot') || path.includes('recover')) {
+    return <Navigate to="/auth/forgot-password" replace />;
+  }
+
+  if (path.includes('reset') || path.includes('password')) {
+    return <Navigate to="/auth/reset-password" replace />;
+  }
+
+  return <Navigate to="/404" replace />;
+};
+
+/**
+ * If a token query is present anywhere in the URL, route to reset page.
+ * This handles malformed or legacy emailed paths that still include token.
+ */
+const TokenQueryRedirect = () => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const token = params.get('token')?.trim();
+  const path = location.pathname.toLowerCase();
+
+  if (!token) {
+    return null;
+  }
+
+  if (path === '/auth/reset-password') {
+    return null;
+  }
+
+  return <Navigate to={`/auth/reset-password?token=${encodeURIComponent(token)}`} replace />;
+};
+
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
         <RealtimeNotifications />
+        <TokenQueryRedirect />
         <Routes>
           {/* Public site layout */}
           <Route element={<Layout />}>
@@ -200,6 +248,72 @@ function App() {
               </SuspenseWrapper>
             }
           />
+          <Route
+            path="/auth/forgot-password"
+            element={
+              <SuspenseWrapper>
+                <ForgotPasswordPage />
+              </SuspenseWrapper>
+            }
+          />
+          <Route
+            path="/auth/reset-password"
+            element={
+              <SuspenseWrapper>
+                <ResetPasswordPage />
+              </SuspenseWrapper>
+            }
+          />
+
+          {/* Legacy password routes kept for older emailed links */}
+          <Route
+            path="/forgot-password"
+            element={
+              <SuspenseWrapper>
+                <ForgotPasswordPage />
+              </SuspenseWrapper>
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              <SuspenseWrapper>
+                <ResetPasswordPage />
+              </SuspenseWrapper>
+            }
+          />
+          <Route
+            path="/password-reset"
+            element={
+              <SuspenseWrapper>
+                <ResetPasswordPage />
+              </SuspenseWrapper>
+            }
+          />
+          <Route
+            path="/reset"
+            element={
+              <SuspenseWrapper>
+                <ResetPasswordPage />
+              </SuspenseWrapper>
+            }
+          />
+          <Route
+            path="/auth/password-reset"
+            element={
+              <SuspenseWrapper>
+                <ResetPasswordPage />
+              </SuspenseWrapper>
+            }
+          />
+          <Route
+            path="/auth/reset"
+            element={
+              <SuspenseWrapper>
+                <ResetPasswordPage />
+              </SuspenseWrapper>
+            }
+          />
 
           {/* 404 */}
           <Route
@@ -210,7 +324,7 @@ function App() {
               </SuspenseWrapper>
             }
           />
-          <Route path="*" element={<Navigate to="/404" replace />} />
+          <Route path="*" element={<LegacyAuthRouteResolver />} />
         </Routes>
       </ThemeProvider>
     </ErrorBoundary>

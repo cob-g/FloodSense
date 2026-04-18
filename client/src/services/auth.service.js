@@ -24,6 +24,14 @@ export const authService = {
   changePassword: async (passwords) => {
     return api.patch('/auth/change-password', passwords);
   },
+
+  forgotPassword: async (email) => {
+    return api.post('/auth/forgot-password', { email });
+  },
+
+  resetPassword: async (token, newPassword) => {
+    return api.post('/auth/reset-password', { token, newPassword });
+  },
 };
 
 export default authService;

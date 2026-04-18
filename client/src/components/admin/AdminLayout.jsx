@@ -67,7 +67,7 @@ export const AdminLayout = () => {
           <SidebarLink to="/admin/fallbacks" icon={MapPin}>Fallbacks</SidebarLink>
           <SidebarLink to="/admin/sensors" icon={Radio}>Sensors</SidebarLink>
           <SidebarLink to="/admin/weekly" icon={BarChart2}>Weekly</SidebarLink>
-          <SidebarLink to="/admin/users" icon={Users}>Users</SidebarLink>
+          <SidebarLink to="/admin/users" icon={Users}>Accounts</SidebarLink>
         </nav>
 
         <div className="p-5 border-t border-white/5 bg-[#140e0b]">
@@ -119,7 +119,7 @@ export const AdminLayout = () => {
             <SidebarLink to="/admin/fallbacks" icon={MapPin}>Fallbacks</SidebarLink>
             <SidebarLink to="/admin/sensors" icon={Radio}>Sensors</SidebarLink>
             <SidebarLink to="/admin/weekly" icon={BarChart2}>Weekly</SidebarLink>
-            <SidebarLink to="/admin/users" icon={Users}>Users</SidebarLink>
+            <SidebarLink to="/admin/users" icon={Users}>Accounts</SidebarLink>
           </nav>
           <div className="p-5 border-t border-white/5 bg-[#140e0b] mt-auto">
             <div className="flex items-center gap-3 mb-4 bg-white/5 p-2.5 rounded-xl border border-white/5 shadow-inner">

@@ -187,8 +187,8 @@ export const AdminDashboard = () => {
                 onChange={(e) => handlePageSizeChange(parseInt(e.target.value, 10))}
                 className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
               >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
+                <option value={10} style={{ color: '#111827', backgroundColor: '#ffffff' }}>10</option>
+                <option value={25} style={{ color: '#111827', backgroundColor: '#ffffff' }}>25</option>
               </select>
               <button
                 onClick={() => handleFilterChange('UNVERIFIED')}

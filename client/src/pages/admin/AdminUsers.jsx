@@ -15,7 +15,7 @@ const StatusBadge = ({ active }) => (
 
 function TinyRoleChart({ counts = { user: 0, admin: 0, superadmin: 0 }, height = 120 }) {
   const data = [
-    { label: 'User', value: counts.user || 0, color: '#60a5fa' },
+    { label: 'Account', value: counts.user || 0, color: '#60a5fa' },
     { label: 'Admin', value: counts.admin || 0, color: '#22c55e' },
     { label: 'Super', value: counts.superadmin || 0, color: '#a78bfa' },
   ];
@@ -66,7 +66,7 @@ export const AdminUsers = () => {
   const toggleActive = async (id, isActive) => {
     try {
       await updStatus.mutateAsync({ id, isActive });
-      toast.success(isActive ? 'User activated' : 'User deactivated');
+      toast.success(isActive ? 'Account activated' : 'Account deactivated');
     } catch (e) { toast.error(e?.message || 'Failed to update status'); }
   };
 
@@ -74,7 +74,7 @@ export const AdminUsers = () => {
     <div className="max-w-7xl mx-auto">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white">Users</h1>
+          <h1 className="text-2xl font-black text-white">Accounts</h1>
           <p className="text-white/60">Manage access with a simple, focused overview</p>
         </div>
         <div className="flex items-center gap-2">
@@ -84,7 +84,7 @@ export const AdminUsers = () => {
 
       {!isLoading && !error && (
         <div className="grid md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white/5 rounded-xl p-4 border border-white/10"><div className="text-xs text-white/60 mb-1">Total Users</div><div className="text-3xl font-black text-white">{counts.total ?? '—'}</div></div>
+          <div className="bg-white/5 rounded-xl p-4 border border-white/10"><div className="text-xs text-white/60 mb-1">Total Accounts</div><div className="text-3xl font-black text-white">{counts.total ?? '—'}</div></div>
           <div className="bg-white/5 rounded-xl p-4 border border-white/10"><div className="text-xs text-white/60 mb-1">Active</div><div className="text-3xl font-black text-white">{counts.active ?? '—'}</div></div>
           <div className="bg-white/5 rounded-xl p-4 border border-white/10"><div className="text-xs text-white/60 mb-1">Admins</div><div className="text-3xl font-black text-white">{counts.admins ?? '—'}</div></div>
         </div>
@@ -102,12 +102,12 @@ export const AdminUsers = () => {
       <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
         <div className="divide-y divide-white/10">
           {isLoading && <div className="px-4 py-6 text-white/70">Loading…</div>}
-          {error && <div className="px-4 py-6 text-red-400">Failed to load users</div>}
+          {error && <div className="px-4 py-6 text-red-400">Failed to load accounts</div>}
           {!isLoading && !error && users.map((u) => (
             <div key={u.id} className="p-4 flex items-center justify-between gap-4 hover:bg-white/5">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
-                  {u.name?.charAt(0)?.toUpperCase() || 'U'}
+                  {u.name?.charAt(0)?.toUpperCase() || 'A'}
                 </div>
                 <div className="min-w-0">
                   <div className="text-white font-semibold truncate">{u.name}</div>
