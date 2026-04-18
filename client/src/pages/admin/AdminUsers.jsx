@@ -121,9 +121,9 @@ export const AdminUsers = () => {
               <div className="flex items-center gap-2">
                 {currentUser?.role === 'superadmin' && (
                   <select value={u.role} onChange={(e)=>changeRole(u.id, e.target.value)} className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-sm text-white">
-                    <option value={USER_ROLES.USER}>{USER_ROLES.USER}</option>
-                    <option value={USER_ROLES.ADMIN}>{USER_ROLES.ADMIN}</option>
-                    <option value={USER_ROLES.SUPERADMIN}>{USER_ROLES.SUPERADMIN}</option>
+                    <option value={USER_ROLES.USER} style={{ color: '#111827', backgroundColor: '#ffffff' }}>{USER_ROLES.USER}</option>
+                    <option value={USER_ROLES.ADMIN} style={{ color: '#111827', backgroundColor: '#ffffff' }}>{USER_ROLES.ADMIN}</option>
+                    <option value={USER_ROLES.SUPERADMIN} style={{ color: '#111827', backgroundColor: '#ffffff' }}>{USER_ROLES.SUPERADMIN}</option>
                   </select>
                 )}
                 <button

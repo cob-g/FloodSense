@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from './useAuth';
 import { useSocket } from './useSocket';
 import { useToast } from '../contexts/ToastContext';
@@ -33,16 +34,18 @@ const formatDistance = (distance) => {
 
 export const useCriticalSensorNotifier = () => {
   const { user } = useAuth();
+  const { pathname } = useLocation();
   const { socket } = useSocket();
   const { warning } = useToast();
   const lastAlertRef = useRef(new Map());
+  const isAdminRoute = pathname.toLowerCase().startsWith('/admin');
 
   useEffect(() => {
     lastAlertRef.current.clear();
   }, [user?.id, user?._id]);
 
   useEffect(() => {
-    if (!socket || !user) return;
+    if (!socket || !user || isAdminRoute) return;
 
     const onSensorUpdate = (reading) => {
       const distance = Number(reading?.distance);
@@ -77,7 +80,7 @@ export const useCriticalSensorNotifier = () => {
     return () => {
       socket.off('update', onSensorUpdate);
     };
-  }, [socket, user, warning]);
+  }, [socket, user, warning, isAdminRoute]);
 };
 
 export default useCriticalSensorNotifier;
