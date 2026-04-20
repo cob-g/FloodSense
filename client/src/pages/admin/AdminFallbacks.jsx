@@ -9,6 +9,25 @@ const BARANGAYS = [
   'Barangay 176-A','Barangay 176-B','Barangay 176-C','Barangay 176-D','Barangay 176-E','Barangay 176-F','Barangay 178','Barangay 179','Barangay 180','Barangay 181','Barangay 182','Barangay 183','Barangay 184','Barangay 185','Barangay 186','Barangay 187','Barangay 188'
 ];
 
+const createEmptyForm = () => ({
+  name: '',
+  barangay: '',
+  priority: 0,
+  notes: '',
+  lat: '',
+  lng: '',
+});
+
+const getPriorityClass = (priority) => {
+  if (priority >= 70) {
+    return 'text-red-300 border-red-400/40 bg-red-400/10';
+  }
+  if (priority >= 40) {
+    return 'text-amber-300 border-amber-400/40 bg-amber-400/10';
+  }
+  return 'text-emerald-300 border-emerald-400/40 bg-emerald-400/10';
+};
+
 const Modal = ({ children, onClose }) =>
   createPortal(
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[3000] flex items-center justify-center p-4" onClick={onClose}>
@@ -29,33 +48,52 @@ export const AdminFallbacks = () => {
   const items = useMemo(() => data?.data?.places || data?.places || data?.data?.fallbacks || data?.fallbacks || [], [data]);
 
   const [query, setQuery] = useState('');
+  const [prioritySort, setPrioritySort] = useState('desc');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [fallbackToDelete, setFallbackToDelete] = useState(null);
-  const [form, setForm] = useState({ name: '', barangay: '', notes: '', lat: '', lng: '' });
-  const isDeleting = deleteMut.isLoading;
+  const [form, setForm] = useState(createEmptyForm);
+  const isDeleting = deleteMut.isLoading || deleteMut.isPending;
+  const isSaving = createMut.isPending || updateMut.isPending || createMut.isLoading || updateMut.isLoading;
 
   useEffect(() => {
     if (editing) {
       setForm({
         name: editing.name || '',
         barangay: editing.barangay || '',
+        priority: editing.priority ?? 0,
         notes: editing.notes || '',
         lat: editing.location?.coordinates?.[1] ?? '',
         lng: editing.location?.coordinates?.[0] ?? '',
       });
     } else {
-      setForm({ name: '', barangay: '', notes: '', lat: '', lng: '' });
+      setForm(createEmptyForm());
     }
   }, [editing]);
 
   const filtered = useMemo(() => {
-    return items.filter((i) => {
+    const next = items.filter((i) => {
       const q = (query || '').toLowerCase();
-      const matchQ = !q || i.name?.toLowerCase().includes(q) || i.notes?.toLowerCase().includes(q);
+      const matchQ = !q ||
+        i.name?.toLowerCase().includes(q) ||
+        i.notes?.toLowerCase().includes(q) ||
+        i.barangay?.toLowerCase().includes(q);
       return matchQ;
     });
-  }, [items, query]);
+
+    next.sort((left, right) => {
+      const leftPriority = Number(left.priority ?? 0);
+      const rightPriority = Number(right.priority ?? 0);
+
+      if (leftPriority !== rightPriority) {
+        return prioritySort === 'asc' ? leftPriority - rightPriority : rightPriority - leftPriority;
+      }
+
+      return (left.name || '').localeCompare(right.name || '');
+    });
+
+    return next;
+  }, [items, query, prioritySort]);
 
   const openCreate = () => { setEditing(null); setModalOpen(true); };
   const openEdit = (item) => { setEditing(item); setModalOpen(true); };
@@ -65,6 +103,7 @@ export const AdminFallbacks = () => {
     try {
       const name = (form.name || '').trim();
       const barangay = (form.barangay || '').trim();
+      const priority = Number(form.priority);
       const notes = (form.notes || '').trim();
       const lat = parseFloat(form.lat);
       const lng = parseFloat(form.lng);
@@ -82,21 +121,28 @@ export const AdminFallbacks = () => {
         return;
       }
 
+      if (!Number.isFinite(priority) || priority < 0 || priority > 100) {
+        toast.warning('Priority must be between 0 and 100');
+        return;
+      }
+
       const payload = {
         name,
-        category: editing?.category || 'other',
         barangay,
+        priority,
         notes,
         latitude: lat,
         longitude: lng,
       };
+
       if (editing) {
         await updateMut.mutateAsync({ id: editing._id, data: payload });
-        toast.success('Fallback place updated');
+        toast.success('Historical flood spot updated');
       } else {
         await createMut.mutateAsync(payload);
-        toast.success('Fallback place created');
+        toast.success('Historical flood spot created');
       }
+
       setModalOpen(false);
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Save failed');
@@ -116,7 +162,7 @@ export const AdminFallbacks = () => {
     if (!fallbackToDelete?._id) return;
     try {
       await deleteMut.mutateAsync(fallbackToDelete._id);
-      toast.success('Fallback place deleted');
+      toast.success('Historical flood spot deleted');
       setFallbackToDelete(null);
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Delete failed');
@@ -127,11 +173,15 @@ export const AdminFallbacks = () => {
     <div className="max-w-7xl mx-auto">
       <div className="mb-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white">Fallback Places</h1>
-          <p className="text-white/60">Manage verified flood spots used when offline</p>
+          <h1 className="text-2xl font-black text-white">Historical Flood Spots</h1>
+          <p className="text-white/60">Manage places that are commonly flooded and visible in offline Feed mode.</p>
         </div>
         <div className="flex gap-2">
-          <input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Search name/notes" className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-white/50"/>
+          <input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Search name, notes, barangay" className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-white/50"/>
+          <select value={prioritySort} onChange={(e) => setPrioritySort(e.target.value)} className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white">
+            <option value="desc" style={{ color: '#111827', backgroundColor: '#ffffff' }}>Priority: High to Low</option>
+            <option value="asc" style={{ color: '#111827', backgroundColor: '#ffffff' }}>Priority: Low to High</option>
+          </select>
           <button onClick={openCreate} className="px-4 py-2 duration-300 transition-all rounded-xl shadow-[0_4px_16px_rgba(197,73,20,0.3)] hover:-translate-y-0.5 shrink-0 whitespace-nowrap" style={{ background: 'linear-gradient(135deg, #c54914 0%, #7a2200 100%)' }}>Add Place</button>
         </div>
       </div>
@@ -143,6 +193,7 @@ export const AdminFallbacks = () => {
               <tr>
                 <th className="px-4 py-3 text-left text-sm text-white/70">Name</th>
                 <th className="px-4 py-3 text-left text-sm text-white/70">Barangay</th>
+                <th className="px-4 py-3 text-left text-sm text-white/70">Priority</th>
                 <th className="px-4 py-3 text-left text-sm text-white/70">Notes / Landmark</th>
                 <th className="px-4 py-3 text-left text-sm text-white/70">Actions</th>
 
@@ -150,15 +201,23 @@ export const AdminFallbacks = () => {
             </thead>
             <tbody className="divide-y divide-white/10">
               {isLoading && (
-                <tr><td className="px-4 py-6 text-white/70" colSpan={4}>Loading...</td></tr>
+                <tr><td className="px-4 py-6 text-white/70" colSpan={5}>Loading...</td></tr>
               )}
               {error && (
-                <tr><td className="px-4 py-6 text-red-400" colSpan={4}>Failed to load</td></tr>
+                <tr><td className="px-4 py-6 text-red-400" colSpan={5}>Failed to load</td></tr>
+              )}
+              {!isLoading && !error && filtered.length === 0 && (
+                <tr><td className="px-4 py-6 text-white/70" colSpan={5}>No historical flood spots found</td></tr>
               )}
               {!isLoading && !error && filtered.map((i) => (
                 <tr key={i._id} className="hover:bg-white/5">
                   <td className="px-4 py-3 font-medium text-white">{i.name}</td>
                   <td className="px-4 py-3 text-white/80">{i.barangay}</td>
+                  <td className="px-4 py-3 text-white/80">
+                    <span className={`text-xs px-2 py-1 rounded-lg border ${getPriorityClass(Number(i.priority ?? 0))}`}>
+                      {Number(i.priority ?? 0)}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 text-white/60">{i.notes || '—'}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1.5">
@@ -183,7 +242,7 @@ export const AdminFallbacks = () => {
         <Modal onClose={()=>setModalOpen(false)}>
           <div className="px-6 py-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-white">{editing ? 'Edit' : 'Add'} Fallback Place</h3>
+              <h3 className="text-xl font-bold text-white">{editing ? 'Edit' : 'Add'} Historical Flood Spot</h3>
               <button onClick={()=>setModalOpen(false)} className="w-9 h-9 rounded-lg hover:bg-white/10 flex items-center justify-center">
                 <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
@@ -197,9 +256,15 @@ export const AdminFallbacks = () => {
               <div>
                 <label className="block text-sm text-white/70 mb-1">Barangay</label>
                 <select value={form.barangay} onChange={(e)=>setForm({...form, barangay: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white" required>
-                  <option value="">Select barangay</option>
-                  {BARANGAYS.map(b => <option key={b} value={b}>{b}</option>)}
+                  <option value="" style={{ color: '#111827', backgroundColor: '#ffffff' }}>Select barangay</option>
+                  {BARANGAYS.map((b) => (
+                    <option key={b} value={b} style={{ color: '#111827', backgroundColor: '#ffffff' }}>{b}</option>
+                  ))}
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm text-white/70 mb-1">Priority (0-100)</label>
+                <input type="number" min="0" max="100" value={form.priority} onChange={(e)=>setForm({...form, priority: e.target.value})} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white" required />
               </div>
               <div className="sm:col-span-2">
                 <label className="block text-sm text-white/70 mb-1">Notes / Landmark</label>
@@ -216,7 +281,7 @@ export const AdminFallbacks = () => {
 
               <div className="sm:col-span-2 flex justify-end gap-2 mt-2">
                 <button type="button" onClick={()=>setModalOpen(false)} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white">Cancel</button>
-                <button type="submit" disabled={createMut.isPending || updateMut.isPending} className="px-4 py-2 bg-accent-orange hover:bg-bright-orange text-space-black font-semibold rounded-lg">
+                <button type="submit" disabled={isSaving} className="px-4 py-2 bg-accent-orange hover:bg-bright-orange text-space-black font-semibold rounded-lg disabled:opacity-60 disabled:cursor-not-allowed">
                   {editing ? 'Save Changes' : 'Create'}
                 </button>
               </div>
@@ -230,11 +295,11 @@ export const AdminFallbacks = () => {
         onClose={closeDeleteModal}
         onConfirm={confirmDelete}
         isPending={isDeleting}
-        title="Delete Fallback Place"
-        description="This will remove the place from the fallback registry used by the admin panel."
-        itemLabel="Fallback Place"
+        title="Delete Historical Flood Spot"
+        description="This will remove the location from the historical flood spot registry."
+        itemLabel="Historical Flood Spot"
         itemValue={fallbackToDelete ? `${fallbackToDelete.name}${fallbackToDelete.barangay ? ` - ${fallbackToDelete.barangay}` : ''}` : undefined}
-        confirmText="Delete Place"
+        confirmText="Delete Spot"
       />
     </div>
   );

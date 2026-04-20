@@ -1,5 +1,5 @@
 import User from '../models/User.js';
-import FallbackPlace from '../models/FallbackPlace.js';
+import FallbackPlace, { HISTORICAL_FALLBACK_CATEGORY } from '../models/FallbackPlace.js';
 
 // Seed admin user
 export const seedAdmin = async () => {
@@ -45,136 +45,109 @@ export const seedAdmin = async () => {
   }
 };
 
-// Seed sample fallback places
+// Seed sample historical flood spots
 export const seedFallbackPlaces = async () => {
   try {
-    console.log('🌱 Seeding sample fallback places...');
+    console.log('🌱 Seeding sample historical flood spots...');
     
-    // Check if fallback places already exist
+    // Check if historical flood spots already exist
     const existingPlaces = await FallbackPlace.countDocuments();
     if (existingPlaces > 0) {
-      console.log('✅ Fallback places already exist');
+      console.log('✅ Historical flood spots already exist');
       return;
     }
     
     // Get admin user to assign as creator
     const admin = await User.findOne({ role: 'superadmin' });
     if (!admin) {
-      console.log('⚠️  No admin user found, skipping fallback places seeding');
+      console.log('⚠️  No admin user found, skipping historical flood spots seeding');
       return;
     }
     
-    // Sample fallback places data
+    // Sample historical flood spots data
     const samplePlaces = [
       {
-        name: 'Barangay Hall',
+        name: 'Mindanao Ave near Barangay Hall',
         barangay: 'San Antonio',
         location: {
           type: 'Point',
           coordinates: [121.0244, 14.5547] // Manila coordinates as example
         },
-        category: 'government',
-        priority: 90,
-        notes: 'Main government office for San Antonio',
-        capacity: 100,
-        contactInfo: {
-          phone: '+63-2-1234-5678',
-          email: 'sanantonio@city.gov.ph'
-        },
-        operatingHours: '8:00 AM - 5:00 PM',
+        category: HISTORICAL_FALLBACK_CATEGORY,
+        priority: 82,
+        notes: 'Road section that frequently floods during heavy rain.',
         createdBy: admin._id
       },
       {
-        name: 'San Antonio Elementary School',
+        name: 'San Antonio Elementary Gate',
         barangay: 'San Antonio',
         location: {
           type: 'Point',
           coordinates: [121.0254, 14.5557]
         },
-        category: 'evacuation_center',
-        priority: 95,
-        notes: 'Primary evacuation center with large gymnasium',
-        capacity: 500,
-        contactInfo: {
-          phone: '+63-2-1234-5679'
-        },
-        operatingHours: '24/7 during emergencies',
+        category: HISTORICAL_FALLBACK_CATEGORY,
+        priority: 88,
+        notes: 'Usually waterlogged after sustained rainfall.',
         createdBy: admin._id
       },
       {
-        name: 'San Antonio Health Center',
+        name: 'San Antonio Health Center Corner',
         barangay: 'San Antonio',
         location: {
           type: 'Point',
           coordinates: [121.0234, 14.5537]
         },
-        category: 'hospital',
-        priority: 100,
-        notes: 'Primary healthcare facility',
-        capacity: 50,
-        contactInfo: {
-          phone: '+63-2-1234-5680',
-          email: 'health@sanantonio.gov.ph'
-        },
-        operatingHours: '24/7',
+        category: HISTORICAL_FALLBACK_CATEGORY,
+        priority: 92,
+        notes: 'Known flood accumulation point near drainage crossing.',
         createdBy: admin._id
       },
       {
-        name: 'Central Bridge',
+        name: 'Central Bridge Approach',
         barangay: 'San Antonio',
         location: {
           type: 'Point',
           coordinates: [121.0264, 14.5567]
         },
-        category: 'bridge',
-        priority: 70,
-        notes: 'Main bridge connecting to neighboring barangay',
+        category: HISTORICAL_FALLBACK_CATEGORY,
+        priority: 74,
+        notes: 'Approach road floods before river overflow warnings.',
         createdBy: admin._id
       },
       {
-        name: 'Barangay Santa Maria Hall',
+        name: 'Santa Maria Main Road Bend',
         barangay: 'Santa Maria',
         location: {
           type: 'Point',
           coordinates: [121.0344, 14.5647]
         },
-        category: 'government',
-        priority: 90,
-        notes: 'Government office for Santa Maria',
-        capacity: 80,
-        contactInfo: {
-          phone: '+63-2-1234-5681'
-        },
-        operatingHours: '8:00 AM - 5:00 PM',
+        category: HISTORICAL_FALLBACK_CATEGORY,
+        priority: 84,
+        notes: 'Regularly flooded curve with slow drainage.',
         createdBy: admin._id
       },
       {
-        name: 'Santa Maria Community Center',
+        name: 'Santa Maria Creekside Segment',
         barangay: 'Santa Maria',
         location: {
           type: 'Point',
           coordinates: [121.0354, 14.5657]
         },
-        category: 'evacuation_center',
-        priority: 85,
-        notes: 'Community center used for evacuations',
-        capacity: 300,
-        contactInfo: {
-          phone: '+63-2-1234-5682'
-        },
-        operatingHours: '24/7 during emergencies',
+        category: HISTORICAL_FALLBACK_CATEGORY,
+        priority: 90,
+        notes: 'Flood-prone strip along the creek after prolonged rain.',
         createdBy: admin._id
       }
     ];
     
-    // Create fallback places
+    // Create historical flood spots
     const createdPlaces = await FallbackPlace.insertMany(samplePlaces);
-    console.log(`✅ Created ${createdPlaces.length} sample fallback places`);
+    console.log(`✅ Created ${createdPlaces.length} sample historical flood spots`);
     
     return createdPlaces;
     
   } catch (error) {
-    console.error('❌ Error seeding fallback places:', error);
+    console.error('❌ Error seeding historical flood spots:', error);
     throw error;
   }
 };

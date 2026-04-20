@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
+export const HISTORICAL_FALLBACK_CATEGORY = 'historical_flood_spot';
+
 const FallbackPlaceSchema = new Schema({
   name: {
     type: String,
@@ -43,10 +45,10 @@ const FallbackPlaceSchema = new Schema({
   category: {
     type: String,
     enum: {
-      values: ['evacuation_center', 'hospital', 'school', 'government', 'landmark', 'bridge', 'road', 'other'],
-      message: 'Category must be one of: evacuation_center, hospital, school, government, landmark, bridge, road, other'
+      values: [HISTORICAL_FALLBACK_CATEGORY],
+      message: `Category must be: ${HISTORICAL_FALLBACK_CATEGORY}`
     },
-    default: 'landmark'
+    default: HISTORICAL_FALLBACK_CATEGORY
   },
   notes: {
     type: String,
@@ -106,13 +108,30 @@ const FallbackPlaceSchema = new Schema({
 FallbackPlaceSchema.index({ location: '2dsphere' });
 
 // Compound indexes for common queries
-FallbackPlaceSchema.index({ barangay: 1, category: 1, priority: -1 });
-FallbackPlaceSchema.index({ category: 1, isActive: 1, priority: -1 });
+FallbackPlaceSchema.index({ barangay: 1, priority: -1 });
+FallbackPlaceSchema.index({ isActive: 1, priority: -1 });
 FallbackPlaceSchema.index({ priority: -1, updatedAt: -1 });
 
-// Pre-save middleware to update the updatedAt field
+// Hard-cut semantics: every fallback entry is treated as a historical flood spot.
+FallbackPlaceSchema.pre('validate', function(next) {
+  this.category = HISTORICAL_FALLBACK_CATEGORY;
+  next();
+});
+
+// Keep updatedAt in sync for document saves.
 FallbackPlaceSchema.pre('save', function(next) {
   this.updatedAt = new Date();
+  next();
+});
+
+// Normalize category for bulk inserts (insertMany bypasses save middleware).
+FallbackPlaceSchema.pre('insertMany', function(next, docs) {
+  if (Array.isArray(docs)) {
+    docs.forEach((doc) => {
+      doc.category = HISTORICAL_FALLBACK_CATEGORY;
+      doc.updatedAt = new Date();
+    });
+  }
   next();
 });
 
@@ -133,27 +152,16 @@ FallbackPlaceSchema.statics.findNearby = function(longitude, latitude, maxDistan
 };
 
 // Static method to find places by barangay
-FallbackPlaceSchema.statics.findByBarangay = function(barangay, category = null) {
+FallbackPlaceSchema.statics.findByBarangay = function(barangay) {
   const query = { barangay, isActive: true };
-  if (category) query.category = category;
   return this.find(query).sort({ priority: -1, name: 1 });
 };
 
-// Static method to get evacuation centers
-FallbackPlaceSchema.statics.getEvacuationCenters = function(barangay = null) {
-  const query = { category: 'evacuation_center', isActive: true };
+// Static method to get historical flood spots
+FallbackPlaceSchema.statics.getHistoricalFloodSpots = function(barangay = null) {
+  const query = { isActive: true };
   if (barangay) query.barangay = barangay;
-  return this.find(query).sort({ priority: -1, capacity: -1 });
-};
-
-// Static method to get emergency facilities
-FallbackPlaceSchema.statics.getEmergencyFacilities = function(barangay = null) {
-  const query = { 
-    category: { $in: ['hospital', 'government', 'evacuation_center'] }, 
-    isActive: true 
-  };
-  if (barangay) query.barangay = barangay;
-  return this.find(query).sort({ priority: -1, category: 1 });
+  return this.find(query).sort({ priority: -1, barangay: 1, name: 1 });
 };
 
 // Static method to get all active places sorted by priority
@@ -187,17 +195,7 @@ FallbackPlaceSchema.virtual('displayName').get(function() {
 
 // Virtual for category display name
 FallbackPlaceSchema.virtual('categoryDisplay').get(function() {
-  const categoryMap = {
-    'evacuation_center': 'Evacuation Center',
-    'hospital': 'Hospital',
-    'school': 'School',
-    'government': 'Government Office',
-    'landmark': 'Landmark',
-    'bridge': 'Bridge',
-    'road': 'Road',
-    'other': 'Other'
-  };
-  return categoryMap[this.category] || this.category;
+  return 'Historical Flood Spot';
 });
 
 const FallbackPlace = mongoose.model('FallbackPlace', FallbackPlaceSchema);

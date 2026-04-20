@@ -34,6 +34,14 @@ export const reportsService = {
   getReportsByBarangay: async (barangay, params = {}) => {
     return api.get(`/reports/barangay/${barangay}`, { params });
   },
+
+  exportReports: async (format = 'csv') => {
+    return api.get('/reports/export', {
+      params: { format },
+      responseType: 'blob',
+      transformResponse: [(data) => data],
+    });
+  },
 };
 
 export default reportsService;

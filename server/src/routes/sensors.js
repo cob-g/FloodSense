@@ -1,7 +1,9 @@
 import express from 'express';
 import SensorData from '../models/SensorData.js';
 import Sensor from '../models/Sensor.js';
+import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { getIO } from '../socket.js';
+import { writeAdminLog, ADMIN_ACTIONS, ADMIN_ENTITIES } from '../services/adminAudit.service.js';
 
 const router = express.Router();
 
@@ -142,7 +144,7 @@ router.get('/sensors', async (req, res) => {
 // @route   POST /api/sensors
 // @desc    Create/register a new sensor (unique sensorId)
 // @access  Admin
-router.post('/sensors', async (req, res) => {
+router.post('/sensors', authenticate, requireAdmin, async (req, res) => {
   try {
     const {
       sensorId: sensorIdBody,
@@ -175,6 +177,21 @@ router.post('/sensors', async (req, res) => {
       longitude: Number.isFinite(lng) ? lng : null,
       mountHeight,
       notes: notes || null,
+    });
+
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.SENSOR_CREATED,
+      entityType: ADMIN_ENTITIES.SENSOR,
+      entityId: created._id,
+      entityLabel: `${created.sensorId}${created.locationName ? ` - ${created.locationName}` : ''}`,
+      metadata: {
+        sensorId: created.sensorId,
+        locationName: created.locationName,
+        latitude: created.latitude,
+        longitude: created.longitude,
+      },
     });
 
     res.status(201).json({ success: true, data: created });
@@ -228,26 +245,54 @@ router.get('/sensors/with-status', async (req, res) => {
 // @route   PUT /api/sensors/:id
 // @desc    Update sensor registry entry
 // @access  Admin
-router.put('/sensors/:id', async (req, res) => {
+router.put('/sensors/:id', authenticate, requireAdmin, async (req, res) => {
   try {
     const id = req.params.id;
     const { sensorId, locationName, latitude, longitude, mountHeight, notes } = req.body || {};
+
+    const existing = await Sensor.findById(id);
+    if (!existing) return res.status(404).json({ success: false, error: 'Sensor not found' });
 
     if (sensorId) {
       const dupe = await Sensor.findOne({ sensorId, _id: { $ne: id } });
       if (dupe) return res.status(409).json({ success: false, error: 'Sensor ID already exists' });
     }
 
-    const update = {};
-    if (sensorId != null) update.sensorId = sensorId;
-    if (locationName != null) update.locationName = locationName;
-    if (latitude != null) update.latitude = Number(latitude);
-    if (longitude != null) update.longitude = Number(longitude);
-    if (mountHeight != null) update.mountHeight = Number(mountHeight);
-    if (notes != null) update.notes = notes;
+    const before = {
+      sensorId: existing.sensorId,
+      locationName: existing.locationName,
+      latitude: existing.latitude,
+      longitude: existing.longitude,
+      mountHeight: existing.mountHeight,
+      notes: existing.notes,
+    };
 
-    const saved = await Sensor.findByIdAndUpdate(id, update, { new: true });
-    if (!saved) return res.status(404).json({ success: false, error: 'Sensor not found' });
+    if (sensorId != null) existing.sensorId = sensorId;
+    if (locationName != null) existing.locationName = locationName;
+    if (latitude != null) existing.latitude = Number(latitude);
+    if (longitude != null) existing.longitude = Number(longitude);
+    if (mountHeight != null) existing.mountHeight = Number(mountHeight);
+    if (notes != null) existing.notes = notes;
+
+    const saved = await existing.save();
+
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.SENSOR_UPDATED,
+      entityType: ADMIN_ENTITIES.SENSOR,
+      entityId: saved._id,
+      entityLabel: `${saved.sensorId}${saved.locationName ? ` - ${saved.locationName}` : ''}`,
+      changes: {
+        sensorId: { from: before.sensorId, to: saved.sensorId },
+        locationName: { from: before.locationName, to: saved.locationName },
+        latitude: { from: before.latitude, to: saved.latitude },
+        longitude: { from: before.longitude, to: saved.longitude },
+        mountHeight: { from: before.mountHeight, to: saved.mountHeight },
+        notes: { from: before.notes, to: saved.notes },
+      },
+    });
+
     res.json({ success: true, data: saved });
   } catch (error) {
     console.error('Error updating sensor:', error);
@@ -258,11 +303,25 @@ router.put('/sensors/:id', async (req, res) => {
 // @route   DELETE /api/sensors/:id
 // @desc    Delete sensor registry entry
 // @access  Admin
-router.delete('/sensors/:id', async (req, res) => {
+router.delete('/sensors/:id', authenticate, requireAdmin, async (req, res) => {
   try {
     const id = req.params.id;
     const removed = await Sensor.findByIdAndDelete(id);
     if (!removed) return res.status(404).json({ success: false, error: 'Sensor not found' });
+
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.SENSOR_DELETED,
+      entityType: ADMIN_ENTITIES.SENSOR,
+      entityId: removed._id,
+      entityLabel: `${removed.sensorId}${removed.locationName ? ` - ${removed.locationName}` : ''}`,
+      metadata: {
+        sensorId: removed.sensorId,
+        locationName: removed.locationName,
+      },
+    });
+
     res.json({ success: true, data: removed });
   } catch (error) {
     console.error('Error deleting sensor:', error);

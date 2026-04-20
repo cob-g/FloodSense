@@ -1,24 +1,24 @@
 import express from 'express';
-import FallbackPlace from '../models/FallbackPlace.js';
+import FallbackPlace, { HISTORICAL_FALLBACK_CATEGORY } from '../models/FallbackPlace.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { generalRateLimit } from '../middleware/rateLimiting.js';
+import { writeAdminLog, ADMIN_ACTIONS, ADMIN_ENTITIES } from '../services/adminAudit.service.js';
 
 const router = express.Router();
 
 // Apply general rate limiting to all fallback routes
 router.use(generalRateLimit);
 
-// Get all fallback places (public endpoint for offline mode)
+// Get all historical flood spots (public endpoint for offline mode)
 router.get('/', async (req, res) => {
   try {
     const {
       barangay,
-      category,
       limit = 50,
       skip = 0,
       lat,
       lng,
-      radius = 10000 // 10km default for fallback places
+      radius = 10000 // 10km default radius
     } = req.query;
 
     let places;
@@ -38,7 +38,6 @@ router.get('/', async (req, res) => {
       const query = { isActive: true };
       
       if (barangay) query.barangay = new RegExp(barangay, 'i');
-      if (category) query.category = category;
 
       places = await FallbackPlace.find(query)
         .populate('createdBy', 'name')
@@ -64,15 +63,15 @@ router.get('/', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get fallback places error:', error);
+    console.error('Get historical flood spots error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error while fetching fallback places.'
+      message: 'Internal server error while fetching historical flood spots.'
     });
   }
 });
 
-// Get single fallback place by ID
+// Get single historical flood spot by ID
 router.get('/:id', async (req, res) => {
   try {
     const place = await FallbackPlace.findById(req.params.id)
@@ -81,7 +80,7 @@ router.get('/:id', async (req, res) => {
     if (!place || !place.isActive) {
       return res.status(404).json({
         success: false,
-        message: 'Fallback place not found.'
+        message: 'Historical flood spot not found.'
       });
     }
 
@@ -91,54 +90,32 @@ router.get('/:id', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get fallback place error:', error);
+    console.error('Get historical flood spot error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error while fetching fallback place.'
+      message: 'Internal server error while fetching historical flood spot.'
     });
   }
 });
 
-// Get evacuation centers
-router.get('/category/evacuation-centers', async (req, res) => {
+// Get historical flood spots
+router.get('/category/historical-flood-spots', async (req, res) => {
   try {
     const { barangay } = req.query;
     
-    const centers = await FallbackPlace.getEvacuationCenters(barangay)
+    const places = await FallbackPlace.getHistoricalFloodSpots(barangay)
       .populate('createdBy', 'name');
 
     res.json({
       success: true,
-      data: { evacuationCenters: centers }
+      data: { places }
     });
 
   } catch (error) {
-    console.error('Get evacuation centers error:', error);
+    console.error('Get historical flood spots error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error while fetching evacuation centers.'
-    });
-  }
-});
-
-// Get emergency facilities
-router.get('/category/emergency-facilities', async (req, res) => {
-  try {
-    const { barangay } = req.query;
-    
-    const facilities = await FallbackPlace.getEmergencyFacilities(barangay)
-      .populate('createdBy', 'name');
-
-    res.json({
-      success: true,
-      data: { emergencyFacilities: facilities }
-    });
-
-  } catch (error) {
-    console.error('Get emergency facilities error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error while fetching emergency facilities.'
+      message: 'Internal server error while fetching historical flood spots.'
     });
   }
 });
@@ -147,9 +124,8 @@ router.get('/category/emergency-facilities', async (req, res) => {
 router.get('/barangay/:barangay', async (req, res) => {
   try {
     const { barangay } = req.params;
-    const { category } = req.query;
 
-    const places = await FallbackPlace.findByBarangay(barangay, category)
+    const places = await FallbackPlace.findByBarangay(barangay)
       .populate('createdBy', 'name');
 
     res.json({
@@ -157,7 +133,7 @@ router.get('/barangay/:barangay', async (req, res) => {
       data: {
         places,
         barangay,
-        category: category || 'all'
+        category: HISTORICAL_FALLBACK_CATEGORY,
       }
     });
 
@@ -170,7 +146,7 @@ router.get('/barangay/:barangay', async (req, res) => {
   }
 });
 
-// Create new fallback place (admin only)
+// Create new historical flood spot (admin only)
 router.post('/', authenticate, requireAdmin, async (req, res) => {
   try {
     const {
@@ -178,12 +154,8 @@ router.post('/', authenticate, requireAdmin, async (req, res) => {
       barangay,
       latitude,
       longitude,
-      category,
       priority,
-      notes,
-      capacity,
-      contactInfo,
-      operatingHours
+      notes
     } = req.body;
 
     // Validation
@@ -213,12 +185,9 @@ router.post('/', authenticate, requireAdmin, async (req, res) => {
         type: 'Point',
         coordinates: [lng, lat] // [longitude, latitude] for GeoJSON
       },
-      category: category || 'landmark',
+      category: HISTORICAL_FALLBACK_CATEGORY,
       priority: priority || 0,
       notes: notes?.trim() || '',
-      capacity: capacity || null,
-      contactInfo: contactInfo || {},
-      operatingHours: operatingHours?.trim() || '',
       createdBy: req.user._id
     };
 
@@ -227,14 +196,29 @@ router.post('/', authenticate, requireAdmin, async (req, res) => {
     // Populate creator info
     await place.populate('createdBy', 'name');
 
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.FALLBACK_CREATED,
+      entityType: ADMIN_ENTITIES.FALLBACK,
+      entityId: place._id,
+      entityLabel: `${place.name}${place.barangay ? ` - ${place.barangay}` : ''}`,
+      metadata: {
+        name: place.name,
+        barangay: place.barangay,
+        category: HISTORICAL_FALLBACK_CATEGORY,
+        priority: place.priority,
+      },
+    });
+
     res.status(201).json({
       success: true,
-      message: 'Fallback place created successfully.',
+      message: 'Historical flood spot created successfully.',
       data: { place }
     });
 
   } catch (error) {
-    console.error('Create fallback place error:', error);
+    console.error('Create historical flood spot error:', error);
     
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(err => err.message);
@@ -247,12 +231,12 @@ router.post('/', authenticate, requireAdmin, async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: 'Internal server error while creating fallback place.'
+      message: 'Internal server error while creating historical flood spot.'
     });
   }
 });
 
-// Update fallback place (admin only)
+// Update historical flood spot (admin only)
 router.patch('/:id', authenticate, requireAdmin, async (req, res) => {
   try {
     const {
@@ -260,31 +244,32 @@ router.patch('/:id', authenticate, requireAdmin, async (req, res) => {
       barangay,
       latitude,
       longitude,
-      category,
       priority,
-      notes,
-      capacity,
-      contactInfo,
-      operatingHours
+      notes
     } = req.body;
 
     const place = await FallbackPlace.findById(req.params.id);
     if (!place || !place.isActive) {
       return res.status(404).json({
         success: false,
-        message: 'Fallback place not found.'
+        message: 'Historical flood spot not found.'
       });
     }
+
+    const before = {
+      name: place.name,
+      barangay: place.barangay,
+      priority: place.priority,
+      notes: place.notes,
+      location: place.location?.coordinates || null,
+    };
 
     // Update fields
     if (name !== undefined) place.name = name.trim();
     if (barangay !== undefined) place.barangay = barangay.trim();
-    if (category !== undefined) place.category = category;
+    place.category = HISTORICAL_FALLBACK_CATEGORY;
     if (priority !== undefined) place.priority = priority;
     if (notes !== undefined) place.notes = notes.trim();
-    if (capacity !== undefined) place.capacity = capacity;
-    if (contactInfo !== undefined) place.contactInfo = contactInfo;
-    if (operatingHours !== undefined) place.operatingHours = operatingHours.trim();
 
     // Update location if coordinates provided
     if (latitude !== undefined && longitude !== undefined) {
@@ -307,14 +292,30 @@ router.patch('/:id', authenticate, requireAdmin, async (req, res) => {
     await place.save();
     await place.populate('createdBy', 'name');
 
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.FALLBACK_UPDATED,
+      entityType: ADMIN_ENTITIES.FALLBACK,
+      entityId: place._id,
+      entityLabel: `${place.name}${place.barangay ? ` - ${place.barangay}` : ''}`,
+      changes: {
+        name: { from: before.name, to: place.name },
+        barangay: { from: before.barangay, to: place.barangay },
+        priority: { from: before.priority, to: place.priority },
+        notes: { from: before.notes, to: place.notes },
+        location: { from: before.location, to: place.location?.coordinates || null },
+      },
+    });
+
     res.json({
       success: true,
-      message: 'Fallback place updated successfully.',
+      message: 'Historical flood spot updated successfully.',
       data: { place }
     });
 
   } catch (error) {
-    console.error('Update fallback place error:', error);
+    console.error('Update historical flood spot error:', error);
     
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(err => err.message);
@@ -327,7 +328,7 @@ router.patch('/:id', authenticate, requireAdmin, async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: 'Internal server error while updating fallback place.'
+      message: 'Internal server error while updating historical flood spot.'
     });
   }
 });
@@ -348,12 +349,28 @@ router.patch('/:id/priority', authenticate, requireAdmin, async (req, res) => {
     if (!place || !place.isActive) {
       return res.status(404).json({
         success: false,
-        message: 'Fallback place not found.'
+        message: 'Historical flood spot not found.'
       });
     }
 
+    const previousPriority = place.priority;
     await place.updatePriority(priority);
     await place.populate('createdBy', 'name');
+
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.FALLBACK_PRIORITY_UPDATED,
+      entityType: ADMIN_ENTITIES.FALLBACK,
+      entityId: place._id,
+      entityLabel: `${place.name}${place.barangay ? ` - ${place.barangay}` : ''}`,
+      changes: {
+        priority: {
+          from: previousPriority,
+          to: place.priority,
+        },
+      },
+    });
 
     res.json({
       success: true,
@@ -370,31 +387,50 @@ router.patch('/:id/priority', authenticate, requireAdmin, async (req, res) => {
   }
 });
 
-// Delete fallback place (soft delete - admin only)
+// Delete historical flood spot (soft delete - admin only)
 router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
   try {
     const place = await FallbackPlace.findById(req.params.id);
     if (!place || !place.isActive) {
       return res.status(404).json({
         success: false,
-        message: 'Fallback place not found.'
+        message: 'Historical flood spot not found.'
       });
     }
 
     // Soft delete
+    const previousIsActive = place.isActive;
     place.isActive = false;
     await place.save();
 
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.FALLBACK_DELETED,
+      entityType: ADMIN_ENTITIES.FALLBACK,
+      entityId: place._id,
+      entityLabel: `${place.name}${place.barangay ? ` - ${place.barangay}` : ''}`,
+      changes: {
+        isActive: {
+          from: previousIsActive,
+          to: place.isActive,
+        },
+      },
+      metadata: {
+        barangay: place.barangay,
+      },
+    });
+
     res.json({
       success: true,
-      message: 'Fallback place deleted successfully.'
+      message: 'Historical flood spot deleted successfully.'
     });
 
   } catch (error) {
-    console.error('Delete fallback place error:', error);
+    console.error('Delete historical flood spot error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error while deleting fallback place.'
+      message: 'Internal server error while deleting historical flood spot.'
     });
   }
 });

@@ -2,8 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 import { useAuth } from '../hooks/useAuth';
+import { useBlurryReveal } from '../hooks/useBlurryReveal';
 import LazyMapView from '../components/map/LazyMapView';
 
 import { useReports } from '../hooks/useReports';
@@ -32,7 +36,9 @@ export const LandingPage = () => {
   const navigate = useNavigate();
   const [activeFeature, setActiveFeature] = useState(0);
 
-  // Animation refs
+  // Container ref for blurry animation
+  const containerRef = useRef(null);
+  useBlurryReveal(containerRef, 'section:not(:first-of-type)'); // Animate sections except hero
   const heroRef = useRef(null);
   const headlineRef = useRef(null);
   const dropletRef = useRef(null);
@@ -126,31 +132,30 @@ export const LandingPage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // GSAP Hero Animation
+  // GSAP Animations (Hero & Scroll)
   useEffect(() => {
     const ctx = gsap.context(() => {
+      // Hero Animation - Smooth Blurry Reveal
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-      // 1. Headline Reveal with 3D feel
+      // 1. Headline Reveal
       if (headlineRef.current) {
         tl.from(headlineRef.current, {
-          y: 100,
+          y: 40,
+          filter: 'blur(12px)',
           autoAlpha: 0,
           duration: 1.2,
-          skewY: 2,
-          rotationX: 10,
-          transformOrigin: "0% 50% -50",
         });
       }
 
-      // 2. Droplet Bounce Entry
+      // 2. Droplet Entry
       if (dropletRef.current) {
         tl.from(dropletRef.current, {
-          y: -150,
+          y: 40,
+          filter: 'blur(12px)',
           autoAlpha: 0,
-          scale: 0,
+          scale: 0.9,
           duration: 1,
-          ease: 'bounce.out'
         }, '-=0.8');
       }
 
@@ -158,33 +163,33 @@ export const LandingPage = () => {
       if (textRef.current) {
         tl.from(textRef.current, {
           y: 30,
+          filter: 'blur(10px)',
           autoAlpha: 0,
           duration: 0.8,
         }, '-=0.6');
       }
 
-      // 4. Stats Pop In with Back Ease
+      // 4. Stats Fade In
       if (statsRef.current && statsRef.current.children) {
         tl.from(statsRef.current.children, {
-          scale: 0.5,
           y: 30,
-          autoAlpha: 0,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: 'back.out(2)'
-        }, '-=0.4');
-      }
-
-      // 5. Buttons Slide Up - Adjusted for snappier performance feel
-      if (buttonsRef.current && buttonsRef.current.children) {
-        tl.from(buttonsRef.current.children, {
-          y: 40,
+          filter: 'blur(10px)',
           autoAlpha: 0,
           duration: 0.8,
           stagger: 0.1,
-          ease: 'back.out(1.7)',
+        }, '-=0.6');
+      }
+
+      // 5. Buttons Fade Up
+      if (buttonsRef.current && buttonsRef.current.children) {
+        tl.from(buttonsRef.current.children, {
+          y: 30,
+          filter: 'blur(10px)',
+          autoAlpha: 0,
+          duration: 0.8,
+          stagger: 0.1,
           clearProps: 'all' 
-        }, '-=0.5');
+        }, '-=0.6');
       }
 
       // Continuous floating animation for droplet
@@ -199,13 +204,13 @@ export const LandingPage = () => {
         });
       }
 
-    }, heroRef);
+    }, heroRef); // Use heroRef as scope
 
     return () => ctx.revert();
   }, []);
 
   return (
-    <div className="min-h-screen bg-transparent text-black overflow-x-hidden">
+    <div ref={containerRef} className="min-h-screen bg-transparent text-black overflow-x-hidden">
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-space-950/80 backdrop-blur-lg border-b border-black/10">
         <div className="mx-auto px-4 sm:px-6">

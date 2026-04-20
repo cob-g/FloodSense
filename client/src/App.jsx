@@ -32,6 +32,7 @@ const AdminSensors = lazy(() => import('./pages/admin/AdminSensors'));
 const AdminWeekly = lazy(() => import('./pages/admin/AdminWeekly'));
 const AdminWeeklyPrint = lazy(() => import('./pages/admin/AdminWeeklyPrint'));
 const AdminFallbacks = lazy(() => import('./pages/admin/AdminFallbacks'));
+const AdminLogs = lazy(() => import('./pages/admin/AdminLogs'));
 
 /**
  * Suspense wrapper with page loader
@@ -227,6 +228,16 @@ function App() {
                 <SuspenseWrapper>
                   <AdminSensors />
                 </SuspenseWrapper>
+              }
+            />
+            <Route
+              path="logs"
+              element={
+                <ProtectedRoute requireSuperAdmin>
+                  <SuspenseWrapper>
+                    <AdminLogs />
+                  </SuspenseWrapper>
+                </ProtectedRoute>
               }
             />
           </Route>

@@ -15,9 +15,12 @@ import { useToast } from '../contexts/ToastContext';
 import { Map, Radio, Users, Plus, Activity, AlertTriangle, Droplets, Phone, Home, Ambulance, Shield, TrendingUp, CheckCircle, WifiOff, RefreshCw, MapPin, Clock, Database } from 'lucide-react';
 import { ReportsChart } from '../components/analytics/ReportsChart';
 import { SensorChart } from '../components/analytics/SensorChart';
+import { useBlurryReveal } from '../hooks/useBlurryReveal';
 
 const FeedPage = () => {
   const { t } = useTranslation();
+  const feedContainerRef = useRef(null);
+  useBlurryReveal(feedContainerRef, '.reveal-target');
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -389,14 +392,14 @@ const FeedPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-gray-900 overflow-x-hidden">
+    <div ref={feedContainerRef} className="min-h-screen bg-transparent text-gray-900 overflow-x-hidden">
       {/* Gradient Orbs Background */}
       <div className="fixed top-20 right-1/4 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-pulse pointer-events-none"></div>
       <div className="fixed bottom-0 left-1/4 w-96 h-96 bg-red-500/10 rounded-full blur-3xl animate-pulse delay-700 pointer-events-none"></div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         {/* Hero Header Section */}
-        <div className="mb-12">
+        <div className="reveal-target mb-12">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div className="space-y-3">
               <div className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-full px-5 py-2 backdrop-blur-sm">
@@ -433,7 +436,7 @@ const FeedPage = () => {
 
         {/* Interactive Navigation Tabs */}
         <div className="mb-10">
-          <div className="flex flex-wrap gap-3 bg-white/5 backdrop-blur-sm rounded-2xl border border-gray-900/30 p-3">
+          <div data-reveal-mode="blur-only" className="reveal-target flex flex-wrap gap-3 bg-white/5 backdrop-blur-sm rounded-2xl border border-gray-900/30 p-3">
           
             {[
               { id: 'map', label: t('feed.tabs.liveMap'), icon: Map, color: 'from-orange-500 to-red-500' },
@@ -460,7 +463,7 @@ const FeedPage = () => {
         </div>
 
         {/* Main Content Grid - Tab-based Display */}
-        <div className={`grid grid-cols-1 gap-6 lg:gap-8 ${activeTab !== 'reports' ? 'xl:grid-cols-12' : ''}`}>
+        <div className={`reveal-target grid grid-cols-1 gap-6 lg:gap-8 ${activeTab !== 'reports' ? 'xl:grid-cols-12' : ''}`}>
           {/* Main Content Area */}
           <div className={`space-y-6 ${activeTab !== 'reports' ? 'xl:col-span-8' : ''}`}>
 

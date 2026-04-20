@@ -1,3 +1,4 @@
+import { useLayoutEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 
 /**
@@ -44,21 +45,53 @@ const LoadingSpinner = ({
 /**
  * Page Loading Component - For route transitions
  */
-export const PageLoader = ({ text = 'Loading...' }) => (
-  <div className="min-h-[60vh] flex items-center justify-center">
-    <div className="text-center">
-      <div className="relative w-16 h-16 mx-auto mb-4">
-        {/* Outer ring */}
-        <div className="absolute inset-0 border-4 border-orange-100 rounded-full" />
-        {/* Spinning ring */}
-        <div className="absolute inset-0 border-4 border-transparent border-t-orange-500 rounded-full animate-spin" />
-        {/* Inner pulse */}
-        <div className="absolute inset-3 bg-orange-500/10 rounded-full animate-pulse" />
+export const PageLoader = ({ text = 'Loading...' }) => {
+  useLayoutEffect(() => {
+    if (typeof document === 'undefined' || !document.body) {
+      return undefined;
+    }
+
+    const body = document.body;
+    const rawCount = body.getAttribute('data-route-loading-count') ?? '0';
+    const parsedCount = Number.parseInt(rawCount, 10);
+    const currentCount = Number.isNaN(parsedCount) ? 0 : parsedCount;
+    const nextCount = currentCount + 1;
+
+    body.setAttribute('data-route-loading-count', String(nextCount));
+    body.setAttribute('data-route-loading', 'true');
+
+    return () => {
+      const mountedCountRaw = body.getAttribute('data-route-loading-count') ?? '0';
+      const mountedCountParsed = Number.parseInt(mountedCountRaw, 10);
+      const mountedCount = Number.isNaN(mountedCountParsed) ? 0 : mountedCountParsed;
+      const updatedCount = Math.max(0, mountedCount - 1);
+
+      if (updatedCount === 0) {
+        body.removeAttribute('data-route-loading-count');
+        body.removeAttribute('data-route-loading');
+        return;
+      }
+
+      body.setAttribute('data-route-loading-count', String(updatedCount));
+    };
+  }, []);
+
+  return (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="text-center">
+        <div className="relative w-16 h-16 mx-auto mb-4">
+          {/* Outer ring */}
+          <div className="absolute inset-0 border-4 border-orange-100 rounded-full" />
+          {/* Spinning ring */}
+          <div className="absolute inset-0 border-4 border-transparent border-t-orange-500 rounded-full animate-spin" />
+          {/* Inner pulse */}
+          <div className="absolute inset-3 bg-orange-500/10 rounded-full animate-pulse" />
+        </div>
+        <p className="text-gray-600 font-medium">{text}</p>
       </div>
-      <p className="text-gray-600 font-medium">{text}</p>
     </div>
-  </div>
-);
+  );
+};
 
 /**
  * Inline Loading - For buttons or small areas

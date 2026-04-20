@@ -2,6 +2,7 @@ import express from 'express';
 import SensorData from '../models/SensorData.js';
 import Report from '../models/Report.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { writeAdminLog, ADMIN_ACTIONS, ADMIN_ENTITIES } from '../services/adminAudit.service.js';
 
 const router = express.Router();
 
@@ -367,6 +368,22 @@ router.get('/weekly-report/export', authenticate, requireAdmin, async (req, res)
       return /[",\n]/.test(s) ? `"${s}"` : s;
     };
     const csv = [headers.join(',')].concat(rows.map(r => headers.map(h => escape(r[h])).join(','))).join('\n');
+
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.WEEKLY_REPORT_EXPORTED,
+      entityType: ADMIN_ENTITIES.ANALYTICS,
+      entityId: `weekly-report-${format}`,
+      entityLabel: `Weekly report export (${format.toUpperCase()})`,
+      metadata: {
+        format,
+        startDate: from,
+        endDate: to,
+        communityScope: req.query.communityScope || 'weekly',
+      },
+    });
+
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', `attachment; filename=weekly-report_${from}_to_${to}.csv`);
     return res.status(200).send(csv);

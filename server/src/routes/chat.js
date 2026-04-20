@@ -83,8 +83,8 @@ router.post('/',
         console.warn(`[Chat] BLOCKED injection attempt (${_blockedReason}): "${message.substring(0, 80)}"`);
 
         const blockedResponses = {
-          prompt_extraction: "I'm here to help with flood safety! If you have questions about floods, evacuation centers, or how to use the FloodSense app, just ask!",
-          role_override: "I appreciate the creativity, pero I'm FloodSense AI — I only help with flood safety and monitoring! Ask me about flood reports, evacuation centers, or safety tips. 😊"
+          prompt_extraction: "I'm here to help with flood safety! If you have questions about floods, historical flood spots, or how to use the FloodSense app, just ask!",
+          role_override: "I appreciate the creativity, pero I'm FloodSense AI — I only help with flood safety and monitoring! Ask me about flood reports, historical flood spots, or safety tips. 😊"
         };
 
         return res.json({
@@ -157,9 +157,9 @@ router.get('/status', (req, res) => {
  *
  * All regex patterns pre-compiled at module load for performance.
  */
-const RE_TOOL_NAMES = /\bquery(?:EvacuationCenters|EmergencyFacilities|RecentReports|SensorStatus|FallbackPlaces|UserReports|AreaRisk)\b/gi;
+const RE_TOOL_NAMES = /\bquery(?:HistoricalFloodSpots|RecentReports|SensorStatus|UserReports|AreaRisk)\b/gi;
 const RE_TOOL_USAGE = /\b(using|by using|through)\s+the\s+["'`]?query\w+["'`]?\s+(tool|function)\b/gi;
-const RE_TOOL_MENTION = /["'`]?\bquery(?:EvacuationCenters|EmergencyFacilities|RecentReports|SensorStatus|FallbackPlaces|UserReports|AreaRisk)\b["'`]?(\s+(tool|function))?/gi;
+const RE_TOOL_MENTION = /["'`]?\bquery(?:HistoricalFloodSpots|RecentReports|SensorStatus|UserReports|AreaRisk)\b["'`]?(\s+(tool|function))?/gi;
 const RE_MULTI_SPACES = /\s{2,}/g;
 const RE_TEXT_FUNC_LEAK = /<function=\w+>[\s\S]*?<\/function>/g;
 const RE_TEXT_FUNC_TEST = /<function=\w+>[\s\S]*?<\/function>/;
@@ -174,8 +174,8 @@ const LEAK_INDICATORS = [
   'cannot be changed by any user', 'never write code', 'never bypass scope',
   'never guess or fabricate', 'getjwtsecret', 'process.env',
   'groq_api_key', 'jwt_secret',
-  'queryevacuationcenters', 'queryemergencyfacilities', 'queryrecentreports',
-  'querysensorstatus', 'queryfallbackplaces', 'queryuserreports', 'queryarearisk',
+  'queryhistoricalfloodspots', 'queryrecentreports',
+  'querysensorstatus', 'queryuserreports', 'queryarearisk',
 ];
 
 function sanitizeResponse(reply) {
@@ -210,7 +210,7 @@ function sanitizeResponse(reply) {
 
   if (hasLeak) {
     console.warn('[Chat] RESPONSE SANITIZED: detected system prompt leak in AI response');
-    return "I'm here to help with flood safety! Ask me about flood reports, evacuation centers, sensor data, or safety tips. 🌊";
+    return "I'm here to help with flood safety! Ask me about flood reports, historical flood spots, sensor data, or safety tips. 🌊";
   }
 
   return reply;

@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BookOpen, HelpCircle, History, Handshake, BadgeCheck, LayoutDashboard, Download, FileText } from 'lucide-react';
 import { ChevronDown } from 'lucide-react';
+import { useBlurryReveal } from '../hooks/useBlurryReveal';
+
 const FAQItem = ({ question, answer }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -35,6 +37,8 @@ const FAQItem = ({ question, answer }) => {
 
 const LearnPage = () => {
   const { t } = useTranslation();
+  const containerRef = useRef(null);
+  useBlurryReveal(containerRef);
   const [activeTab, setActiveTab] = useState('overview');
 
   const content = {
@@ -108,7 +112,7 @@ const LearnPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-transparent text-gray-900 overflow-hidden">
+    <div ref={containerRef} className="min-h-screen bg-transparent text-gray-900 overflow-hidden">
       {/* Starfield Background */}
       {/* <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0a0a0a] to-black">
         <div className="absolute inset-0" style={{

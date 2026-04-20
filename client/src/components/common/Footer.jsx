@@ -3,7 +3,7 @@ import { Droplets } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="relative border-t border-white/10 py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <footer data-site-footer="public" className="site-footer relative border-t border-white/10 py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
       {/* Background matching navbar */}
       <div
         className="absolute inset-0 pointer-events-none"

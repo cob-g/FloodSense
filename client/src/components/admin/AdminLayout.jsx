@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { 
@@ -8,6 +8,7 @@ import {
   Radio, 
   BarChart2, 
   Users,
+  History,
   LogOut,
   X,
   Menu
@@ -33,6 +34,7 @@ const SidebarLink = ({ to, children, icon: Icon, end }) => (
 export const AdminLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -68,6 +70,9 @@ export const AdminLayout = () => {
           <SidebarLink to="/admin/sensors" icon={Radio}>Sensors</SidebarLink>
           <SidebarLink to="/admin/weekly" icon={BarChart2}>Weekly</SidebarLink>
           <SidebarLink to="/admin/users" icon={Users}>Accounts</SidebarLink>
+          {user?.role === 'superadmin' && (
+            <SidebarLink to="/admin/logs" icon={History}>Activity Logs</SidebarLink>
+          )}
         </nav>
 
         <div className="p-5 border-t border-white/5 bg-[#140e0b]">
@@ -120,6 +125,9 @@ export const AdminLayout = () => {
             <SidebarLink to="/admin/sensors" icon={Radio}>Sensors</SidebarLink>
             <SidebarLink to="/admin/weekly" icon={BarChart2}>Weekly</SidebarLink>
             <SidebarLink to="/admin/users" icon={Users}>Accounts</SidebarLink>
+            {user?.role === 'superadmin' && (
+              <SidebarLink to="/admin/logs" icon={History}>Activity Logs</SidebarLink>
+            )}
           </nav>
           <div className="p-5 border-t border-white/5 bg-[#140e0b] mt-auto">
             <div className="flex items-center gap-3 mb-4 bg-white/5 p-2.5 rounded-xl border border-white/5 shadow-inner">
@@ -159,8 +167,10 @@ export const AdminLayout = () => {
       </header>
 
       {/* Content */}
-      <main className="md:pl-64 pt-16 md:pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <Outlet />
+      <main className="md:pl-64 pt-16 md:pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
+        <div key={location.pathname} className="reveal-target">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

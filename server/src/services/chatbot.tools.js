@@ -51,25 +51,8 @@ export const toolDefinitions = [
   {
     type: 'function',
     function: {
-      name: 'queryEvacuationCenters',
-      description: 'Find evacuation centers, optionally filtered by barangay name. Returns name, barangay, capacity, contact info, and coordinates.',
-      parameters: {
-        type: 'object',
-        properties: {
-          barangay: {
-            type: 'string',
-            description: 'The barangay name to filter by (optional). If not provided, returns all evacuation centers.'
-          }
-        },
-        required: []
-      }
-    }
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'queryEmergencyFacilities',
-      description: 'Find emergency facilities like hospitals, government offices, and evacuation centers, optionally filtered by barangay.',
+      name: 'queryHistoricalFloodSpots',
+      description: 'Find historical flood spots, optionally filtered by barangay. Returns locations commonly flooded in past events.',
       parameters: {
         type: 'object',
         properties: {
@@ -114,28 +97,6 @@ export const toolDefinitions = [
           sensorId: {
             anyOf: [{ type: 'string' }, { type: 'null' }],
             description: 'Specific sensor ID to check (optional). If not provided or null, returns all active sensors with latest readings.'
-          }
-        },
-        required: []
-      }
-    }
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'queryFallbackPlaces',
-      description: 'Find places/facilities by category and barangay. Categories include: evacuation_center, hospital, school, government, landmark, bridge, road, other.',
-      parameters: {
-        type: 'object',
-        properties: {
-          barangay: {
-            type: 'string',
-            description: 'The barangay name to filter by (optional).'
-          },
-          category: {
-            type: 'string',
-            enum: ['evacuation_center', 'hospital', 'school', 'government', 'landmark', 'bridge', 'road', 'other'],
-            description: 'The category of place to search for (optional).'
           }
         },
         required: []
@@ -201,20 +162,14 @@ export async function executeTool(toolName, args, user = null) {
 
     let result;
     switch (toolName) {
-      case 'queryEvacuationCenters':
-        result = await handleQueryEvacuationCenters(args);
-        break;
-      case 'queryEmergencyFacilities':
-        result = await handleQueryEmergencyFacilities(args);
+      case 'queryHistoricalFloodSpots':
+        result = await handleQueryHistoricalFloodSpots(args);
         break;
       case 'queryRecentReports':
         result = await handleQueryRecentReports(args);
         break;
       case 'querySensorStatus':
         result = await handleQuerySensorStatus(args);
-        break;
-      case 'queryFallbackPlaces':
-        result = await handleQueryFallbackPlaces(args);
         break;
       case 'queryUserReports':
         result = await handleQueryUserReports(args, user);
@@ -299,64 +254,32 @@ function reportRiskLevel(score) {
   return 'LOW';
 }
 
-async function handleQueryEvacuationCenters({ barangay }) {
-  const query = { category: 'evacuation_center', isActive: true };
+async function handleQueryHistoricalFloodSpots({ barangay }) {
+  const query = { isActive: true };
   if (barangay) query.barangay = new RegExp(barangay, 'i');
 
-  const centers = await FallbackPlace.find(query)
-    .sort({ priority: -1, capacity: -1 })
-    .limit(10)
-    .lean();
-
-  if (centers.length === 0) {
-    return JSON.stringify({
-      found: 0,
-      message: barangay
-        ? `No evacuation centers registered in ${barangay}. Contact your barangay DRRM officer for evacuation information.`
-        : 'No evacuation centers have been registered in the system yet.'
-    });
-  }
-
-  return JSON.stringify({
-    found: centers.length,
-    evacuationCenters: centers.map(c => ({
-      name: c.name,
-      barangay: c.barangay,
-      capacity: c.capacity || 'N/A',
-      contact: c.contactInfo?.phone || 'N/A',
-      notes: c.notes || null
-    }))
-  });
-}
-
-async function handleQueryEmergencyFacilities({ barangay }) {
-  const query = {
-    category: { $in: ['hospital', 'government', 'evacuation_center'] },
-    isActive: true
-  };
-  if (barangay) query.barangay = new RegExp(barangay, 'i');
-
-  const facilities = await FallbackPlace.find(query)
-    .sort({ priority: -1, category: 1 })
+  const places = await FallbackPlace.find(query)
+    .sort({ priority: -1, name: 1 })
     .limit(15)
     .lean();
 
-  if (facilities.length === 0) {
+  if (places.length === 0) {
     return JSON.stringify({
       found: 0,
       message: barangay
-        ? `No emergency facilities registered in ${barangay}.`
-        : 'No emergency facilities have been registered yet.'
+        ? `No historical flood spots recorded in ${barangay}.`
+        : 'No historical flood spots are registered in the system yet.'
     });
   }
 
   return JSON.stringify({
-    found: facilities.length,
-    facilities: facilities.map(f => ({
-      name: f.name,
-      category: f.category.replace('_', ' '),
-      barangay: f.barangay,
-      contact: f.contactInfo?.phone || 'N/A'
+    found: places.length,
+    historicalFloodSpots: places.map((place) => ({
+      name: place.name,
+      barangay: place.barangay,
+      priority: place.priority ?? 0,
+      notes: place.notes || null,
+      updatedAt: place.updatedAt || place.createdAt || null,
     }))
   });
 }
@@ -474,34 +397,6 @@ async function handleQuerySensorStatus({ sensorId }) {
     found: sensorsWithReadings.length,
     sensors: sensorsWithReadings,
     ...(noReadingCount > 0 && { note: `${noReadingCount} sensor(s) have no readings yet.` })
-  });
-}
-
-async function handleQueryFallbackPlaces({ barangay, category }) {
-  const query = { isActive: true };
-  if (barangay) query.barangay = new RegExp(barangay, 'i');
-  if (category) query.category = category;
-
-  const places = await FallbackPlace.find(query)
-    .sort({ priority: -1, name: 1 })
-    .limit(15)
-    .lean();
-
-  if (places.length === 0) {
-    return JSON.stringify({
-      found: 0,
-      message: 'No places found matching your criteria.'
-    });
-  }
-
-  return JSON.stringify({
-    found: places.length,
-    places: places.map(p => ({
-      name: p.name,
-      category: p.category.replace('_', ' '),
-      barangay: p.barangay,
-      contact: p.contactInfo?.phone || null
-    }))
   });
 }
 

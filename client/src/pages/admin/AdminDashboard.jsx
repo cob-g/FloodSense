@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useReports } from '../../hooks/useReports';
+import { useToast } from '../../contexts/ToastContext';
+import { reportsService } from '../../services/reports.service';
 import AdminReportsTable from '../../components/admin/AdminReportsTable';
 
 export const AdminDashboard = () => {
@@ -11,6 +13,8 @@ export const AdminDashboard = () => {
   const [reportScope, setReportScope] = useState('all-time'); // all-time, weekly
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(0);
+  const [isExporting, setIsExporting] = useState(false);
+  const toast = useToast();
 
   const scopeFilters = reportScope === 'weekly' ? { scope: 'weekly' } : {};
 
@@ -44,6 +48,30 @@ export const AdminDashboard = () => {
   const handlePageSizeChange = (nextSize) => {
     setPageSize(nextSize);
     setCurrentPage(0);
+  };
+
+  const handleExportAllReports = async () => {
+    if (isExporting) {
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      const blob = await reportsService.exportReports('csv');
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `all-reports_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('All reports exported');
+    } catch (error) {
+      toast.error(error?.message || 'Failed to export reports');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Calculate stats
@@ -229,6 +257,17 @@ export const AdminDashboard = () => {
                 }`}
               >
                 All Reports
+              </button>
+              <button
+                onClick={handleExportAllReports}
+                disabled={isExporting}
+                className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 border border-white/10 bg-white/5 text-white hover:bg-white/10 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                title="Export all active reports as CSV"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                {isExporting ? 'Exporting...' : 'Export All Reports (CSV)'}
               </button>
             </div>
           </div>

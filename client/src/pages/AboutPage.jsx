@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Droplets, Users, Target, Heart, MapPin, Award, Code, Database, Wifi, AlertTriangle, Zap, Shield } from 'lucide-react';
+import { useBlurryReveal } from '../hooks/useBlurryReveal';
 
-const AboutPage = () => {
+export const AboutPage = () => {
   const { t } = useTranslation();
+  const containerRef = useRef(null);
+  useBlurryReveal(containerRef);
   const [hoveredValue, setHoveredValue] = useState(null);
 
   const milestones = [
@@ -85,7 +88,7 @@ const AboutPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-transparent text-gray-900 overflow-hidden">
+    <div ref={containerRef} className="min-h-screen bg-transparent text-gray-900 overflow-hidden">
       {/* Starfield Background */}
       {/* <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0a0a0a] to-black">
         <div className="absolute inset-0" style={{

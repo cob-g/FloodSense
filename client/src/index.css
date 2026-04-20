@@ -50,6 +50,11 @@ body {
   min-height: 100vh;
 }
 
+/* Hide public site footer while route suspense loading is active */
+body[data-route-loading='true'] .site-footer[data-site-footer='public'] {
+  display: none;
+}
+
 /* Custom Animations */
 @keyframes float {
   0%, 100% { transform: translateY(0); }
