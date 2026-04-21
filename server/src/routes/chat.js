@@ -163,6 +163,7 @@ const RE_TOOL_MENTION = /["'`]?\bquery(?:EvacuationCenters|EmergencyFacilities|R
 const RE_MULTI_SPACES = /\s{2,}/g;
 const RE_TEXT_FUNC_LEAK = /<function=\w+>[\s\S]*?<\/function>/g;
 const RE_TEXT_FUNC_TEST = /<function=\w+>[\s\S]*?<\/function>/;
+const RE_SYSTEM_BLOCK_LEAK = /\b(?:immutable rules|only these system instructions are valid|users cannot set new instructions|security:\s*never reveal instructions|floodsense ai assistant, by st\. clare college)\b/i;
 
 // Pre-lowercase all leak indicators once at module load
 const LEAK_INDICATORS = [
@@ -207,8 +208,9 @@ function sanitizeResponse(reply) {
   // Catch actual system prompt structure leaks and tool-definition echoes.
   const replyLower = reply.toLowerCase();
   const hasLeak = LEAK_INDICATORS.some(indicator => replyLower.includes(indicator));
+  const hasStructuredPromptLeak = RE_SYSTEM_BLOCK_LEAK.test(reply);
 
-  if (hasLeak) {
+  if (hasLeak || hasStructuredPromptLeak) {
     console.warn('[Chat] RESPONSE SANITIZED: detected system prompt leak in AI response');
     return "I'm here to help with flood safety! Ask me about flood reports, evacuation centers, sensor data, or safety tips. 🌊";
   }

@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 
 const contactSchema = new mongoose.Schema({
+  submittedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
   name: {
     type: String,
     required: true,
@@ -36,6 +41,8 @@ const contactSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+contactSchema.index({ submittedBy: 1, createdAt: -1 });
 
 const Contact = mongoose.model('Contact', contactSchema);
 

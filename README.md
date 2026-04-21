@@ -225,6 +225,7 @@ VITE_APP_VERSION=1.0.0
 - **File Upload Security** with type and size restrictions
 - **CORS Protection** with environment-specific origins
 - **Helmet.js** for security headers
+- **Prompt Injection Defense (3-Layer)** for chatbot safety. See [PROMPT_INJECTION_DEFENSE_SIMPLE.md](PROMPT_INJECTION_DEFENSE_SIMPLE.md)
 
 ## 🔄 Real-time Features
 

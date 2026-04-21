@@ -21,8 +21,9 @@ const RE_EVENT_HANDLERS = /on\w+\s*=/gi;
 
 // CATEGORY 1: SYSTEM PROMPT EXTRACTION
 const EXTRACTION_REGEXES = [
-  /(?:repeat|display|print|show|output|reveal|dump|echo|share|paste|copy|tell me|give me|what(?:'s| is| are))\b.*\b(?:instructions?|prompts?|system|config(?:uration)?|setup|rules|guidelines|directives)/i,
+  /(?:repeat|display|print|show|output|reveal|dump|echo|share|paste|copy|tell me|give me|include|what(?:'s| is| are))\b.*\b(?:hidden|private|internal|secret)?\s*(?:instructions?|prompts?|system|config(?:uration)?|setup|rules|guidelines|directives)/i,
   /(?:starting with|beginning with|above this|before this|everything above|everything before|word for word|exactly as|without modification|as written)/i,
+  /(?:in|on)\s+(?:your\s+)?next\s+(?:reply|response|message)\b/i,
   /verbatim/i,
   /(?:list|enumerate|show|display|what|name|describe)\b.*\b(?:tools|functions|apis?|backend|capabilities|data sources)/i,
   /(?:tools|functions|apis?)\b.*\b(?:you (?:use|have|call|access)|available|internal)/i,

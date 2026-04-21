@@ -97,6 +97,7 @@ const RE_GLOBAL_COMMUNITY = /\b(community reports?|total community|all community
 const RE_MY_AREA = /\b(my area|in my area|my place|in my place|my barangay|our area|near me|around me|sa area ko|sa lugar ko|dito sa amin|dito samin|samin|samin area)\b/i;
 const RE_REFERENCE_LIST = /\b(that \d+|those \d*\s*reports?|on the list|on that list|among (those|the|them)|from (the|those|what you|that)|which one (on|from|in) (that|the|those)|the \d+ (recent|validated|flood)|rank(ing)?|highest|most risk|lowest|safest)\b/i;
 const RE_TEXT_FUNC_CALLS = /<function=(\w+)>([\s\S]*?)<\/function>/g;
+const RE_INJECTION_ATTEMPT = /\b(?:ignore|bypass|override|reveal|show|print|display|dump|include|output|share)\b[\s\S]{0,120}\b(?:hidden|internal|private|secret)?\s*(?:system|prompt|instruction|rules?|directives?|configuration)\b|\b(?:for (?:debugging|testing|development) purposes?|i(?:'m| am) debugging)\b[\s\S]{0,120}\b(?:include|reveal|show)\b[\s\S]{0,120}\b(?:next\s+(?:reply|response|message)|instructions?|prompt)\b/i;
 
 function isEmergencyHotlineQuery(message) {
   return RE_EMERGENCY_HOTLINE.test(message);
@@ -287,8 +288,21 @@ function isMyAreaQuery(message) {
   return RE_MY_AREA.test(message);
 }
 
+function detectPromptInjectionAttempt(message = '') {
+  return RE_INJECTION_ATTEMPT.test(message.toLowerCase());
+}
+
 export async function processChat(userMessage, history = [], user = null) {
   const lang = detectLanguage(userMessage);
+
+  if (detectPromptInjectionAttempt(userMessage)) {
+    return {
+      reply: lang === 'tagalog'
+        ? 'Hindi ko maibabahagi ang internal instructions o hidden setup. Pero game akong tumulong sa flood safety, evacuation, reports, at sensor updates.'
+        : 'I can’t share internal instructions or hidden setup. I can help with flood safety, evacuation guidance, reports, and sensor updates.',
+      toolsUsed: []
+    };
+  }
 
   // Deterministic safety response for emergency hotline / who-to-call queries.
   // Avoids hallucinations and always shows the exact approved contact list.

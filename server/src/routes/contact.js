@@ -1,13 +1,14 @@
 import express from 'express';
 import Contact from '../models/Contact.js';
 import { sendContactEmail } from '../services/email.service.js';
+import { optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // @route   POST /api/contact
 // @desc    Submit a contact form
 // @access  Public
-router.post('/', async (req, res) => {
+router.post('/', optionalAuth, async (req, res) => {
   try {
     const { name, email, subject, category, message } = req.body;
 
@@ -21,6 +22,7 @@ router.post('/', async (req, res) => {
 
     // Save to database
     const newContact = new Contact({
+      submittedBy: req.user?._id || null,
       name,
       email,
       subject,
