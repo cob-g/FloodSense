@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Mail, MapPin, Phone, Send, MessageSquare, Users, Building, Code, AlertCircle, Loader2 } from 'lucide-react';
 import { api } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
+import { useBlurryReveal } from '../hooks/useBlurryReveal';
 
 const ContactPage = () => {
   const { t } = useTranslation();
   const toast = useToast();
+  const containerRef = useRef(null);
+  useBlurryReveal(containerRef, 'section', true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -93,7 +96,7 @@ const ContactPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-transparent text-gray-900 overflow-hidden">
+    <div ref={containerRef} className="min-h-screen bg-transparent text-gray-900 overflow-hidden">
       {/* Gradient Orbs */}
       <div className="fixed top-20 right-1/4 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl animate-pulse"></div>
       <div className="fixed bottom-20 left-1/4 w-96 h-96 bg-red-500/20 rounded-full blur-3xl animate-pulse delay-700"></div>

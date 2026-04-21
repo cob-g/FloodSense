@@ -6,8 +6,21 @@ import Report from '../models/Report.js';
 import { authenticate, requireAdmin, requireOwnershipOrAdmin } from '../middleware/auth.js';
 import { reportRateLimit, generalRateLimit } from '../middleware/rateLimiting.js';
 import { getIO } from '../socket.js';
+import { writeAdminLog, ADMIN_ACTIONS, ADMIN_ENTITIES } from '../services/adminAudit.service.js';
 
 const router = express.Router();
+
+function startOfDay(d) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function endOfDay(d) {
+  const x = new Date(d);
+  x.setHours(23, 59, 59, 999);
+  return x;
+}
 
 // Apply general rate limiting to all report routes
 router.use(generalRateLimit);
@@ -160,6 +173,9 @@ router.get('/', async (req, res) => {
     const {
       status,
       severity,
+      scope,
+      start,
+      end,
       limit = 20,
       skip = 0,
       sortBy = 'createdAt',
@@ -177,6 +193,53 @@ router.get('/', async (req, res) => {
       ...(severity && { severity }),
       ...(photos === 'true' && { 'photos.0': { $exists: true } }),
     };
+
+    // Optional additive date filtering for admin/report scope use-cases.
+    // Backward-compatible default: no date filter unless start/end are provided
+    // or scope=weekly is explicitly requested.
+    const normalizedScope = String(scope || '').toLowerCase();
+    const shouldApplyDateRange = Boolean(start || end || normalizedScope === 'weekly');
+
+    if (shouldApplyDateRange) {
+      const now = new Date();
+
+      let parsedStart = null;
+      let parsedEnd = null;
+
+      if (start) {
+        parsedStart = new Date(start);
+        if (Number.isNaN(parsedStart.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid start date. Use a valid date format (e.g., YYYY-MM-DD).'
+          });
+        }
+      }
+
+      if (end) {
+        parsedEnd = new Date(end);
+        if (Number.isNaN(parsedEnd.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid end date. Use a valid date format (e.g., YYYY-MM-DD).'
+          });
+        }
+      }
+
+      const resolvedEnd = parsedEnd ? endOfDay(parsedEnd) : endOfDay(now);
+      const resolvedStart = parsedStart
+        ? startOfDay(parsedStart)
+        : startOfDay(new Date(resolvedEnd.getTime() - 6 * 24 * 60 * 60 * 1000));
+
+      if (resolvedStart > resolvedEnd) {
+        return res.status(400).json({
+          success: false,
+          message: 'start date must be before or equal to end date.'
+        });
+      }
+
+      query.createdAt = { $gte: resolvedStart, $lte: resolvedEnd };
+    }
 
     // Add geospatial query if coordinates are provided
     if (lng && lat) {
@@ -227,6 +290,115 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Export all active reports as CSV (admin only)
+router.get('/export', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const { format = 'csv' } = req.query;
+
+    if (String(format).toLowerCase() !== 'csv') {
+      return res.status(400).json({
+        success: false,
+        message: 'Only csv format is supported for reports export.'
+      });
+    }
+
+    const reports = await Report.find({ isActive: true })
+      .sort({ createdAt: -1 })
+      .populate('reporter', 'name email')
+      .populate('validatedBy', 'name email')
+      .lean();
+
+    const headers = [
+      'id',
+      'status',
+      'severity',
+      'depth',
+      'passability',
+      'barangay',
+      'address',
+      'latitude',
+      'longitude',
+      'description',
+      'reporterName',
+      'reporterEmail',
+      'validatedByName',
+      'validatedByEmail',
+      'validationNotes',
+      'validatedAt',
+      'createdAt',
+      'updatedAt'
+    ];
+
+    const formatDate = (value) => {
+      if (!value) return '';
+      const dt = new Date(value);
+      return Number.isNaN(dt.getTime()) ? '' : dt.toISOString();
+    };
+
+    const rows = reports.map((report) => {
+      const hasCoordinates = Array.isArray(report?.location?.coordinates);
+      const longitude = hasCoordinates ? report.location.coordinates[0] : '';
+      const latitude = hasCoordinates ? report.location.coordinates[1] : '';
+
+      return {
+        id: report._id,
+        status: report.status || '',
+        severity: report.severity || '',
+        depth: report.depth || '',
+        passability: report.passability || '',
+        barangay: report.barangay || '',
+        address: report.location?.address || '',
+        latitude,
+        longitude,
+        description: report.description || '',
+        reporterName: report.reporter?.name || '',
+        reporterEmail: report.reporter?.email || '',
+        validatedByName: report.validatedBy?.name || '',
+        validatedByEmail: report.validatedBy?.email || '',
+        validationNotes: report.validationNotes || '',
+        validatedAt: formatDate(report.validatedAt),
+        createdAt: formatDate(report.createdAt),
+        updatedAt: formatDate(report.updatedAt),
+      };
+    });
+
+    const escape = (value) => {
+      if (value == null) return '';
+      const serialized = String(value).replace(/"/g, '""');
+      return /[",\n]/.test(serialized) ? `"${serialized}"` : serialized;
+    };
+
+    const csv = [headers.join(',')]
+      .concat(rows.map((row) => headers.map((header) => escape(row[header])).join(',')))
+      .join('\n');
+
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.REPORTS_EXPORTED,
+      entityType: ADMIN_ENTITIES.REPORT,
+      entityId: `reports-export-${String(format).toLowerCase()}`,
+      entityLabel: 'All reports export (CSV)',
+      metadata: {
+        format: 'csv',
+        totalExported: reports.length,
+        scope: 'all',
+      },
+    });
+
+    const dateStamp = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=all-reports_${dateStamp}.csv`);
+    return res.status(200).send(csv);
+  } catch (error) {
+    console.error('Export reports error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error while exporting reports.'
+    });
+  }
+});
+
 // Validate report (admin only)
 router.patch('/:id/validate', authenticate, requireAdmin, async (req, res) => {
   try {
@@ -247,8 +419,28 @@ router.patch('/:id/validate', authenticate, requireAdmin, async (req, res) => {
       });
     }
 
+    const previousStatus = report.status;
     await report.validateReport(req.user._id, notes || '');
     await report.populate(['reporter', 'validatedBy']);
+
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.REPORT_VALIDATED,
+      entityType: ADMIN_ENTITIES.REPORT,
+      entityId: report._id,
+      entityLabel: report.location?.address || report.barangay || String(report._id),
+      notes: notes || null,
+      changes: {
+        status: {
+          from: previousStatus,
+          to: report.status,
+        },
+      },
+      metadata: {
+        barangay: report.barangay,
+      },
+    });
 
     // Emit real-time update
     const io = getIO();
@@ -308,8 +500,28 @@ router.patch('/:id/reject', authenticate, requireAdmin, async (req, res) => {
       });
     }
 
+    const previousStatus = report.status;
     await report.rejectReport(req.user._id, notes.trim());
     await report.populate(['reporter', 'validatedBy']);
+
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.REPORT_REJECTED,
+      entityType: ADMIN_ENTITIES.REPORT,
+      entityId: report._id,
+      entityLabel: report.location?.address || report.barangay || String(report._id),
+      notes: notes.trim(),
+      changes: {
+        status: {
+          from: previousStatus,
+          to: report.status,
+        },
+      },
+      metadata: {
+        barangay: report.barangay,
+      },
+    });
 
     // Emit real-time update
     const io = getIO();
@@ -403,8 +615,27 @@ router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
     }
 
     // Soft delete
+    const previousIsActive = report.isActive;
     report.isActive = false;
     await report.save();
+
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.REPORT_DELETED,
+      entityType: ADMIN_ENTITIES.REPORT,
+      entityId: report._id,
+      entityLabel: report.location?.address || report.barangay || String(report._id),
+      changes: {
+        isActive: {
+          from: previousIsActive,
+          to: report.isActive,
+        },
+      },
+      metadata: {
+        barangay: report.barangay,
+      },
+    });
 
     // Emit real-time update
     const io = getIO();

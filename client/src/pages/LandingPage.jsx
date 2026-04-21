@@ -2,9 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 import { useAuth } from '../hooks/useAuth';
-import MapView from '../components/map/MapView';
+import { useBlurryReveal } from '../hooks/useBlurryReveal';
+import LazyMapView from '../components/map/LazyMapView';
 
 import { useReports } from '../hooks/useReports';
 import { useSensors } from '../hooks/useSensors';
@@ -32,7 +36,9 @@ export const LandingPage = () => {
   const navigate = useNavigate();
   const [activeFeature, setActiveFeature] = useState(0);
 
-  // Animation refs
+  // Container ref for blurry animation
+  const containerRef = useRef(null);
+  useBlurryReveal(containerRef, 'section:not(:first-of-type)'); // Animate sections except hero
   const heroRef = useRef(null);
   const headlineRef = useRef(null);
   const dropletRef = useRef(null);
@@ -40,24 +46,43 @@ export const LandingPage = () => {
   const statsRef = useRef(null);
   const buttonsRef = useRef(null);
 
-  // Fetch validated reports for the map (auto-refresh every 30s)
-  const { data: validatedData } = useReports({
+  // Fetch validated reports for the map (auto-refresh every 15s)
+  const {
+    data: validatedData,
+    isFetching: reportsFetching,
+    error: reportsError,
+    dataUpdatedAt: reportsUpdatedAt,
+  } = useReports({
     status: 'VALIDATED',
     limit: 100,
   }, {
-    refetchInterval: 30000,
+    refetchInterval: 15000,
     refetchIntervalInBackground: true,
   });
 
   const validatedReports = validatedData?.data?.reports || [];
 
-  // Fetch sensor data (auto-refresh every 30s)
-  const { data: sensorsRes } = useSensors({ withStatus: true }, {
-    refetchInterval: 30000,
+  // Fetch sensor data (auto-refresh every 15s)
+  const {
+    data: sensorsRes,
+    isFetching: sensorsFetching,
+    error: sensorsError,
+    dataUpdatedAt: sensorsUpdatedAt,
+  } = useSensors({ withStatus: true }, {
+    refetchInterval: 15000,
     refetchIntervalInBackground: true,
   });
 
   const sensorReadings = sensorsRes?.data || [];
+  const mapIsSyncing = reportsFetching || sensorsFetching;
+  const lastMapUpdateAt = Math.max(reportsUpdatedAt || 0, sensorsUpdatedAt || 0);
+  const mapLastUpdatedLabel = lastMapUpdateAt
+    ? new Date(lastMapUpdateAt).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
+    : null;
 
   const features = [
     {
@@ -107,31 +132,30 @@ export const LandingPage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // GSAP Hero Animation
+  // GSAP Animations (Hero & Scroll)
   useEffect(() => {
     const ctx = gsap.context(() => {
+      // Hero Animation - Smooth Blurry Reveal
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-      // 1. Headline Reveal with 3D feel
+      // 1. Headline Reveal
       if (headlineRef.current) {
         tl.from(headlineRef.current, {
-          y: 100,
+          y: 40,
+          filter: 'blur(12px)',
           autoAlpha: 0,
           duration: 1.2,
-          skewY: 2,
-          rotationX: 10,
-          transformOrigin: "0% 50% -50",
         });
       }
 
-      // 2. Droplet Bounce Entry
+      // 2. Droplet Entry
       if (dropletRef.current) {
         tl.from(dropletRef.current, {
-          y: -150,
+          y: 40,
+          filter: 'blur(12px)',
           autoAlpha: 0,
-          scale: 0,
+          scale: 0.9,
           duration: 1,
-          ease: 'bounce.out'
         }, '-=0.8');
       }
 
@@ -139,33 +163,33 @@ export const LandingPage = () => {
       if (textRef.current) {
         tl.from(textRef.current, {
           y: 30,
+          filter: 'blur(10px)',
           autoAlpha: 0,
           duration: 0.8,
         }, '-=0.6');
       }
 
-      // 4. Stats Pop In with Back Ease
+      // 4. Stats Fade In
       if (statsRef.current && statsRef.current.children) {
         tl.from(statsRef.current.children, {
-          scale: 0.5,
           y: 30,
-          autoAlpha: 0,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: 'back.out(2)'
-        }, '-=0.4');
-      }
-
-      // 5. Buttons Slide Up - Adjusted for snappier performance feel
-      if (buttonsRef.current && buttonsRef.current.children) {
-        tl.from(buttonsRef.current.children, {
-          y: 40,
+          filter: 'blur(10px)',
           autoAlpha: 0,
           duration: 0.8,
           stagger: 0.1,
-          ease: 'back.out(1.7)',
+        }, '-=0.6');
+      }
+
+      // 5. Buttons Fade Up
+      if (buttonsRef.current && buttonsRef.current.children) {
+        tl.from(buttonsRef.current.children, {
+          y: 30,
+          filter: 'blur(10px)',
+          autoAlpha: 0,
+          duration: 0.8,
+          stagger: 0.1,
           clearProps: 'all' 
-        }, '-=0.5');
+        }, '-=0.6');
       }
 
       // Continuous floating animation for droplet
@@ -180,13 +204,13 @@ export const LandingPage = () => {
         });
       }
 
-    }, heroRef);
+    }, heroRef); // Use heroRef as scope
 
     return () => ctx.revert();
   }, []);
 
   return (
-    <div className="min-h-screen bg-transparent text-black overflow-x-hidden">
+    <div ref={containerRef} className="min-h-screen bg-transparent text-black overflow-x-hidden">
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-space-950/80 backdrop-blur-lg border-b border-black/10">
         <div className="mx-auto px-4 sm:px-6">
@@ -329,11 +353,32 @@ export const LandingPage = () => {
             <p className="text-xl text-black/70 max-w-2xl mx-auto">
               {t('landing.liveMap.subtitle')}
             </p>
+            <div className="mt-3 flex items-center justify-center gap-2 text-sm text-black/60">
+              <Activity className={`w-4 h-4 ${mapIsSyncing ? 'animate-spin text-orange-500' : 'text-emerald-600'}`} />
+              <span>
+                {mapIsSyncing
+                  ? 'Syncing live map data...'
+                  : mapLastUpdatedLabel
+                  ? `Last updated ${mapLastUpdatedLabel}`
+                  : 'Waiting for first sync'}
+              </span>
+            </div>
           </div>
 
+          {(reportsError || sensorsError) && (
+            <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50/80 px-4 py-3 text-sm text-amber-800">
+              Live map refresh is temporarily unavailable: {reportsError?.message || sensorsError?.message || 'Failed to fetch latest map data.'}
+            </div>
+          )}
+
           <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-1 border border-white/10 shadow-2xl overflow-hidden">
-            <div className="w-full h-[600px] rounded-xl overflow-hidden">
-              <MapView reports={validatedReports} sensors={sensorReadings} className="h-full" />
+            <div className="w-full rounded-xl overflow-hidden">
+              <LazyMapView
+                reports={validatedReports}
+                sensors={sensorReadings}
+                height="600px"
+                className="w-full"
+              />
             </div>
           </div>
         </div>
@@ -362,9 +407,12 @@ export const LandingPage = () => {
             
             <div className="relative">
               <div className="relative z-10">
-                <img 
-                  src="/FS1.png" 
-                  alt="FloodSense Platform Preview" 
+                <img
+                  src="/FS1.png"
+                  alt="FloodSense Platform Preview"
+                  width={1080}
+                  height={1063}
+                  fetchpriority="high"
                   className="w-full h-auto rounded-2xl transform hover:scale-[1.02] transition-transform duration-700 ease-out"
                 />
               </div>

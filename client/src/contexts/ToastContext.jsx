@@ -3,7 +3,11 @@ import { sileo } from 'sileo';
 
 const ToastContext = createContext(null);
 
-const FILL = '#1a0a00'; // deepest FloodSense brand dark — feels native to the system
+const getToastPayload = ({ message, description }) => ({
+    title: message,
+    description,
+    duration: description ? 5000 : 3000,
+  });
 
 export const useToast = () => {
   const context = useContext(ToastContext);
@@ -15,13 +19,14 @@ export const useToast = () => {
 
 export const ToastProvider = ({ children }) => {
   const showToast = useCallback((message, type = 'info', description) => {
-    sileo[type]?.({ title: message, description, fill: FILL, duration: description ? 5000 : 3000 }) ?? sileo.info({ title: message, description, fill: FILL, duration: description ? 5000 : 3000 });
+    const payload = getToastPayload({ message, description });
+    sileo[type]?.(payload) ?? sileo.info(payload);
   }, []);
 
-  const success = useCallback((message, description) => sileo.success({ title: message, description, fill: FILL, duration: description ? 5000 : 3000 }), []);
-  const error   = useCallback((message, description) => sileo.error({   title: message, description, fill: FILL, duration: description ? 5000 : 3000 }), []);
-  const warning = useCallback((message, description) => sileo.warning({ title: message, description, fill: FILL, duration: description ? 5000 : 3000 }), []);
-  const info    = useCallback((message, description) => sileo.info({    title: message, description, fill: FILL, duration: description ? 5000 : 3000 }), []);
+  const success = useCallback((message, description) => sileo.success(getToastPayload({ message, description })), []);
+  const error   = useCallback((message, description) => sileo.error(getToastPayload({ message, description })), []);
+  const warning = useCallback((message, description) => sileo.warning(getToastPayload({ message, description })), []);
+  const info    = useCallback((message, description) => sileo.info(getToastPayload({ message, description })), []);
 
   return (
     <ToastContext.Provider value={{ showToast, success, error, warning, info }}>

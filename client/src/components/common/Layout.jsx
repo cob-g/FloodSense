@@ -36,7 +36,7 @@ export const Layout = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [online, setOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const { warning, info } = useToast();
-  const isFirstOnlineEffect = useRef(true);
+  const prevOnline = useRef(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
   useEffect(() => {
     const on = () => setOnline(true);
@@ -50,21 +50,28 @@ export const Layout = () => {
   }, []);
 
   useEffect(() => {
-    if (isFirstOnlineEffect.current) {
-      isFirstOnlineEffect.current = false;
-      return;
+    if (prevOnline.current !== online) {
+      if (online) {
+        info('You are back online');
+      } else {
+        warning('You are now offline');
+      }
+      prevOnline.current = online;
     }
-    if (online) {
-      info('You are back online');
-    } else {
-      warning('You are now offline');
-    }
-  }, [online]);
+  }, [online, info, warning]);
 
   const handleLogout = async () => {
     await logout();
     window.location.href = '/';
   };
+
+  const mobileDrawerLinkClass = ({ isActive }) => (
+    `block w-[94%] mx-auto px-4 py-3 rounded-xl text-[15px] text-left font-bold border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c54914]/40 ${
+      isActive
+        ? 'bg-gradient-to-r from-[#ffdccc] to-[#fff2ea] text-[#9d3410] border-[#c54914]/50 shadow-sm'
+        : 'text-[#2f2b27] border-transparent hover:text-[#c54914] hover:bg-[#fff0e8]'
+    }`
+  );
 
   // Don't show navbar on auth pages
   if (location.pathname.startsWith('/auth')) {
@@ -116,6 +123,8 @@ export const Layout = () => {
                 <img
                   src="/logo.png"
                   alt="FloodSense Logo"
+                  width={64}
+                  height={64}
                   className="w-16 h-16 "
                 />
                 <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-accent-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -320,57 +329,88 @@ export const Layout = () => {
       </header>
 
       {/* Mobile Menu */}
-      <div className={`lg:hidden fixed top-[4.5rem] left-0 right-0 z-[1900] transition-all duration-300 ${menuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'}`}>
-        <div className="mx-4 rounded-2xl bg-space-900/98 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden">
-          {/* Accent bar */}
-          <div className="h-1 w-full bg-gradient-to-r from-accent-500 via-accent-400 to-accent-500"></div>
+      <div className={`lg:hidden fixed inset-0 z-[2100] ${menuOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+        {/* Backdrop */}
+        <div
+          className={`absolute inset-0 bg-black/45 transition-opacity duration-300 ${menuOpen ? 'opacity-100' : 'opacity-0'}`}
+          onClick={() => setMenuOpen(false)}
+        />
 
-          {/* User section or Auth buttons */}
-          {user ? (
-            <div className="px-4 py-3 flex items-center gap-3 border-b border-white/10">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center text-white font-bold shadow-md">
-                {user.name?.charAt(0)?.toUpperCase() || 'U'}
+        {/* Drawer panel */}
+        <aside className={`absolute inset-y-0 left-0 w-[86vw] max-w-sm bg-[#f8f6f3] bg-dot-pattern border-r border-black/10 shadow-[24px_0_48px_rgba(0,0,0,0.28)] transform transition-transform duration-300 ease-in-out flex flex-col overflow-hidden ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div
+            className="px-4 py-4 border-b border-black/10 flex items-center justify-between relative z-10 overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, #c54914 0%, #7a2200 100%)' }}
+          >
+            <div style={{ position: 'absolute', top: '-30px', right: '-30px', width: '90px', height: '90px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+            <div className="flex items-center gap-3 relative z-10">
+              <img src="/logo.png" alt="FloodSense" width={40} height={40} className="w-10 h-10 drop-shadow-md" />
+              <div>
+                <div className="text-[1.25rem] font-black tracking-tight leading-none text-white" style={{ fontFamily: 'Goodly, sans-serif' }}>FloodSense</div>
+                <div className="text-[10px] uppercase font-bold tracking-[0.18em] text-white/85 mt-1">Navigation</div>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-white/95 font-semibold truncate">{user.name}</div>
-                <div className="text-white/60 text-xs truncate">{user.email}</div>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="text-red-400 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-red-500/10 transition-all duration-200 active:scale-95"
-              >
-                {t('nav.logout')}
-              </button>
             </div>
-          ) : (
-            <div className="px-4 py-3 flex justify-center border-b border-white/10">
-              <Link
-                to="/auth/register"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center justify-center px-6 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg transition-all duration-200 active:scale-95 w-full"
-              >
-                {t('nav.register')}
-              </Link>
-            </div>
-          )}
+            <button
+              onClick={() => setMenuOpen(false)}
+              className="w-9 h-9 relative z-10 rounded-lg bg-black/20 hover:bg-black/35 text-white flex items-center justify-center transition-colors"
+              aria-label="Close menu"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
 
           {/* Nav links */}
-          <nav className="py-2">
-            <RouterLink to="/" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">{t('nav.home')}</RouterLink>
-            <RouterLink to="/feed" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">{t('nav.feed')}</RouterLink>
-            <RouterLink to="/learn" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">{t('nav.learn')}</RouterLink>
-            <RouterLink to="/about" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">{t('nav.about')}</RouterLink>
-            <RouterLink to="/contact" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">{t('nav.contact')}</RouterLink>
+          <nav className="p-4 space-y-2 flex-1 overflow-y-auto relative z-10">
+            <RouterLink to="/" end onClick={() => setMenuOpen(false)} className={mobileDrawerLinkClass}>{t('nav.home')}</RouterLink>
+            <RouterLink to="/feed" onClick={() => setMenuOpen(false)} className={mobileDrawerLinkClass}>{t('nav.feed')}</RouterLink>
+            <RouterLink to="/learn" onClick={() => setMenuOpen(false)} className={mobileDrawerLinkClass}>{t('nav.learn')}</RouterLink>
+            <RouterLink to="/about" onClick={() => setMenuOpen(false)} className={mobileDrawerLinkClass}>{t('nav.about')}</RouterLink>
+            <RouterLink to="/contact" onClick={() => setMenuOpen(false)} className={mobileDrawerLinkClass}>{t('nav.contact')}</RouterLink>
 
             {user && (user.role === 'admin' || user.role === 'superadmin') && (
               <>
-                <div className="my-2 border-t border-white/10"></div>
-                <RouterLink to="/admin/reports" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">{t('admin.reports')}</RouterLink>
-                <RouterLink to="/admin/users" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-white/90 hover:bg-white/10 transition-all duration-200 font-medium">{t('admin.users')}</RouterLink>
+                <div className="my-3 border-t border-black/10"></div>
+                <RouterLink to="/admin/reports" onClick={() => setMenuOpen(false)} className={mobileDrawerLinkClass}>{t('admin.reports')}</RouterLink>
+                <RouterLink to="/admin/users" onClick={() => setMenuOpen(false)} className={mobileDrawerLinkClass}>{t('admin.users')}</RouterLink>
               </>
             )}
           </nav>
-        </div>
+
+          <div className="p-4 border-t border-black/10 bg-white/70 backdrop-blur-sm mt-auto relative z-10">
+            {user ? (
+              <>
+                <div className="flex items-center gap-3 mb-3 bg-white p-2.5 rounded-xl border border-black/10 shadow-sm">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center text-white font-bold shadow-md">
+                    {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold text-[#211f1d] truncate leading-tight">{user.name}</div>
+                    <div className="text-[11px] text-[#6c655f] truncate mt-0.5">{user.email}</div>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-500 hover:text-white rounded-xl transition-all duration-300"
+                >
+                  {t('nav.logout')}
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="text-xs font-medium text-[#6c655f] mb-2">Create your FloodSense account</div>
+                <Link
+                  to="/auth/register"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-center px-6 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg transition-all duration-200 active:scale-95 w-full"
+                >
+                  {t('nav.register')}
+                </Link>
+              </>
+            )}
+          </div>
+        </aside>
       </div>
 
       {/* Main Content */}

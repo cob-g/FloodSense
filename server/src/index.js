@@ -270,7 +270,7 @@ mongoose.connect(MONGODB_URI)
         console.log(`   POST /api/auth/login - Login user`);
         console.log(`   GET  /api/reports - Get reports`);
         console.log(`   POST /api/reports - Create report`);
-        console.log(`   GET  /api/fallbacks - Get fallback places`);
+        console.log(`   GET  /api/fallbacks - Get historical flood spots`);
         console.log(`   POST /api/sensor-data - Submit sensor reading (ESP32)`);
         console.log(`   GET  /api/sensor-data - Get sensor readings`);
       }

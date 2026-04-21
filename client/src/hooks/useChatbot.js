@@ -23,7 +23,7 @@ function createMessage(role, content, extra = {}) {
 
 const WELCOME_MESSAGE = createMessage(
   'assistant',
-  'Hi! I\'m the FloodSense AI Assistant. I can help you with:\n\n• **Flood safety** tips and guidance\n• **Evacuation centers** and emergency facilities\n• **Current flood reports** in your area\n• **Sensor water levels** from IoT sensors\n• How to **use the FloodSense app**\n\nHow can I help you today?'
+  'Hi! I\'m the FloodSense AI Assistant. I can help you with:\n\n• **Flood safety** tips and guidance\n• **Historical flood spots** in your area\n• **Current flood reports** in your area\n• **Sensor water levels** from IoT sensors\n• How to **use the FloodSense app**\n\nHow can I help you today?'
 );
 
 export const useChatbot = () => {

@@ -1,18 +1,29 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../contexts/AuthContext';
-import { Droplets, AlertTriangle } from 'lucide-react';
+import { Droplets, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 
 export const LoginPage = () => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
+  const infoMessage = location.state?.message || '';
+
+  useEffect(() => {
+    const emailFromState = location.state?.email?.trim();
+    if (!emailFromState) {
+      return;
+    }
+
+    setFormData((prev) => (prev.email ? prev : { ...prev, email: emailFromState }));
+  }, [location.state?.email]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,7 +72,7 @@ export const LoginPage = () => {
 
         {/* Top-left logo lockup */}
         <div className="relative z-10 flex items-center gap-2 px-7 pt-7">
-          <img src="/logo.png" alt="FloodSense" className="w-14 h-14 drop-shadow-md" />
+          <img src="/logo.png" alt="FloodSense" width={56} height={56} className="w-14 h-14 drop-shadow-md" />
           <span className="text-[1.5rem] font-black text-white tracking-tight" style={{ fontFamily: 'Goodly, sans-serif' }}>
             FloodSense
           </span>
@@ -155,6 +166,12 @@ export const LoginPage = () => {
             </div>
           )}
 
+          {infoMessage && (
+            <div className="mb-5 p-3.5 rounded-2xl text-green-700 text-sm font-bold" style={{ background: 'rgba(236,253,245,0.85)', border: '1px solid #bbf7d0' }}>
+              {infoMessage}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
             <div>
               <label className="block text-[13px] font-bold text-[#3d2010] mb-1.5 ml-0.5 tracking-wide">
@@ -173,23 +190,35 @@ export const LoginPage = () => {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-[13px] font-bold text-[#3d2010] ml-0.5 tracking-wide">{t('auth.login.passwordLabel')}</label>
-                <span
+                <Link
+                  to="/auth/forgot-password"
                   className="text-[12px] font-semibold cursor-pointer transition-colors"
                   style={{ color: '#c54914' }}
                   onMouseEnter={e => e.target.style.color = '#7a2200'}
                   onMouseLeave={e => e.target.style.color = '#c54914'}
                 >
                   {t('auth.login.forgotPassword')}
-                </span>
+                </Link>
               </div>
-              <input
-                type="password"
-                required
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3.5 bg-white border border-[#e2d5cc] rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#c54914]/10 focus:border-[#c54914] transition-all text-[#1a0a00] font-medium placeholder-[#a08070] text-[15px]"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full px-4 py-3.5 pr-12 bg-white border border-[#e2d5cc] rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#c54914]/10 focus:border-[#c54914] transition-all text-[#1a0a00] font-medium placeholder-[#a08070] text-[15px]"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPassword}
+                  className="absolute inset-y-0 right-0 px-4 flex items-center justify-center text-[#a08070] hover:text-[#7a2200] focus:outline-none focus-visible:text-[#7a2200]"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <button

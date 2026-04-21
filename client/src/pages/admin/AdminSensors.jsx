@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useListSensorsWithStatus, useCreateSensor, useUpdateSensor, useDeleteSensor } from '../../hooks/useSensorRegistry';
 import { useToast } from '../../contexts/ToastContext';
+import ReportDeleteConfirmModal from '../../components/admin/ReportDeleteConfirmModal';
 
 export default function AdminSensors() {
   const { data, isLoading, error } = useListSensorsWithStatus();
@@ -9,6 +10,8 @@ export default function AdminSensors() {
   const deleteMut = useDeleteSensor();
   const sensors = data?.data || [];
   const toast = useToast();
+  const [sensorToDelete, setSensorToDelete] = useState(null);
+  const isDeleting = deleteMut.isLoading;
 
   const [form, setForm] = useState({
     sensorId: '',
@@ -38,6 +41,7 @@ export default function AdminSensors() {
         notes: form.notes?.trim() || undefined,
       });
       setForm({ sensorId: '', locationName: '', latitude: '', longitude: '', mountHeight: '', notes: '' });
+      toast.success('Sensor created');
     } catch (err) {
       toast.error(err?.error || err?.message || 'Failed to create sensor');
     }
@@ -73,15 +77,29 @@ export default function AdminSensors() {
         mountHeight: editForm.mountHeight !== '' ? Number(editForm.mountHeight) : null,
         notes: editForm.notes || null,
       }});
+      toast.success('Sensor updated');
       setEditingId(null);
     } catch (err) {
       toast.error(err?.error || err?.message || 'Failed to update sensor');
     }
   };
   const cancelEdit = () => setEditingId(null);
-  const deleteRow = async (s) => {
-    if (!confirm(`Delete sensor ${s.sensorId}? This cannot be undone.`)) return;
-    try { await deleteMut.mutateAsync(s._id); } catch (err) { toast.error(err?.error || err?.message || 'Failed to delete sensor'); }
+  const openDeleteModal = (sensor) => {
+    setSensorToDelete(sensor);
+  };
+  const closeDeleteModal = () => {
+    if (isDeleting) return;
+    setSensorToDelete(null);
+  };
+  const confirmDelete = async () => {
+    if (!sensorToDelete?._id) return;
+    try {
+      await deleteMut.mutateAsync(sensorToDelete._id);
+      toast.success('Sensor deleted');
+      setSensorToDelete(null);
+    } catch (err) {
+      toast.error(err?.error || err?.message || 'Failed to delete sensor');
+    }
   };
 
   return (
@@ -122,7 +140,14 @@ export default function AdminSensors() {
             <textarea name="notes" value={form.notes} onChange={onChange} rows={2} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" />
           </div>
           <div className="md:col-span-3 flex justify-end">
-            <button type="submit" disabled={createMut.isLoading} className="px-4 py-2 rounded-lg bg-accent-orange text-space-black font-semibold disabled:opacity-60">{createMut.isLoading ? 'Saving…' : 'Add Sensor'}</button>
+            <button
+              type="submit"
+              disabled={createMut.isLoading}
+              className="px-4 py-2.5 rounded-xl text-white font-medium text-sm transition-all duration-300 shadow-[0_4px_16px_rgba(197,73,20,0.3)] hover:-translate-y-0.5 shrink-0 whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{ background: 'linear-gradient(135deg, #c54914 0%, #7a2200 100%)' }}
+            >
+              {createMut.isLoading ? 'Saving…' : 'Add Sensor'}
+            </button>
           </div>
         </form>
       </div>
@@ -217,7 +242,7 @@ export default function AdminSensors() {
                               <button onClick={() => beginEdit(s)} title="Edit" className="p-1.5 rounded-lg bg-white/10 border border-white/10 text-white hover:bg-white/15">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5h2m-1 14v-4m0 0l7-7a2 2 0 10-2.828-2.828l-7 7V19z"/></svg>
                               </button>
-                              <button onClick={() => deleteRow(s)} title="Delete" className="p-1.5 rounded-lg bg-white/10 border border-white/10 text-white hover:bg-white/15">
+                              <button onClick={() => openDeleteModal(s)} title="Delete" disabled={isDeleting} className="p-1.5 rounded-lg bg-white/10 border border-white/10 text-white hover:bg-white/15 disabled:opacity-50">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m2 0v12a2 2 0 01-2 2H8a2 2 0 01-2-2V7z"/></svg>
                               </button>
                             </>
@@ -232,6 +257,18 @@ export default function AdminSensors() {
           </div>
         )}
       </div>
+
+      <ReportDeleteConfirmModal
+        open={!!sensorToDelete}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        isPending={isDeleting}
+        title="Delete Sensor"
+        description="This will remove the sensor from the registry and status list."
+        itemLabel="Sensor"
+        itemValue={sensorToDelete ? `${sensorToDelete.sensorId}${sensorToDelete.locationName ? ` - ${sensorToDelete.locationName}` : ''}` : undefined}
+        confirmText="Delete Sensor"
+      />
     </div>
   );
 }

@@ -64,6 +64,9 @@ const UserSchema = new Schema({
 UserSchema.index({ email: 1 });
 UserSchema.index({ role: 1 });
 UserSchema.index({ barangay: 1 });
+UserSchema.index({ createdAt: -1 });
+UserSchema.index({ lastLogin: -1 });
+UserSchema.index({ isActive: 1 });
 
 // Pre-save middleware to hash password
 UserSchema.pre('save', async function(next) {

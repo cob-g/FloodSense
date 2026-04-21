@@ -90,7 +90,7 @@ const TypingIndicator = () => (
 
 // ─── Quick Action Buttons ────────────────────────────────────────
 const QUICK_ACTIONS = [
-  { label: '🏠 Evacuation Centers', message: 'Where are the evacuation centers?' },
+  { label: '🗺️ Historical Flood Spots', message: 'Where are the historical flood spots in my area?' },
   { label: '🌊 Flood Reports', message: 'What are the recent flood reports?' },
   { label: '📡 Sensor Status', message: 'What are the current sensor readings?' },
   { label: '🛡️ Safety Tips', message: 'What should I do during a flood?' },

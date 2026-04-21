@@ -44,3 +44,42 @@ export const sendContactEmail = async ({ name, email, subject, category, message
   console.log('Contact email sent: %s', info.messageId);
   return info;
 };
+
+export const sendPasswordResetEmail = async ({ email, name, resetUrl, expiresMinutes = 60 }) => {
+  const mailOptions = {
+    from: `"FloodSense" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: '[FloodSense] Password Reset Request',
+    html: `
+      <div style="font-family: system-ui, Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #c54914, #7a2200); padding: 24px; border-radius: 12px 12px 0 0;">
+          <h2 style="color: white; margin: 0; font-size: 20px;">Reset Your Password</h2>
+          <p style="color: rgba(255,255,255,0.8); margin: 4px 0 0; font-size: 13px;">FloodSense - North Caloocan</p>
+        </div>
+        <div style="background: #fff; padding: 24px; border: 1px solid #e2d5cc; border-top: none; border-radius: 0 0 12px 12px;">
+          <p style="margin: 0 0 12px; color: #3d2010; font-size: 14px; line-height: 1.7;">Hello ${name || 'FloodSense user'},</p>
+          <p style="margin: 0 0 14px; color: #3d2010; font-size: 14px; line-height: 1.7;">
+            We received a request to reset your password. Click the button below to create a new password.
+          </p>
+
+          <div style="margin: 20px 0; text-align: center;">
+            <a href="${resetUrl}" style="display: inline-block; padding: 12px 20px; border-radius: 10px; background: linear-gradient(135deg, #c54914 0%, #7a2200 100%); color: #fff; text-decoration: none; font-weight: 700; font-size: 14px;">
+              Reset Password
+            </a>
+          </div>
+
+          <p style="margin: 0 0 10px; color: #6b4030; font-size: 13px; line-height: 1.6;">
+            This link expires in ${expiresMinutes} minutes and can only be used once.
+          </p>
+          <p style="margin: 0; color: #9a6f55; font-size: 12px; line-height: 1.6;">
+            If you did not request this, you can safely ignore this email.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  const info = await transporter.sendMail(mailOptions);
+  console.log('Password reset email sent: %s', info.messageId);
+  return info;
+};

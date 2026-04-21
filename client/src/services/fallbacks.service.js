@@ -24,20 +24,14 @@ export const fallbacksService = {
   updatePriority: async (id, priority) => {
     return api.patch(`/fallbacks/${id}/priority`, { priority });
   },
-  
-  getEvacuationCenters: async (barangay = null) => {
+
+  getHistoricalFloodSpots: async (barangay = null) => {
     const params = barangay ? { barangay } : {};
-    return api.get('/fallbacks/category/evacuation-centers', { params });
+    return api.get('/fallbacks/category/historical-flood-spots', { params });
   },
-  
-  getEmergencyFacilities: async (barangay = null) => {
-    const params = barangay ? { barangay } : {};
-    return api.get('/fallbacks/category/emergency-facilities', { params });
-  },
-  
-  getFallbacksByBarangay: async (barangay, category = null) => {
-    const params = category ? { category } : {};
-    return api.get(`/fallbacks/barangay/${barangay}`, { params });
+
+  getFallbacksByBarangay: async (barangay) => {
+    return api.get(`/fallbacks/barangay/${barangay}`);
   },
 };
 

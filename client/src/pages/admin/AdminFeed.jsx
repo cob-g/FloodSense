@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useReports, useDeleteReport } from '../../hooks/useReports';
 import ReportDetailModal from '../../components/reports/ReportDetailModal';
+import ReportDeleteConfirmModal from '../../components/admin/ReportDeleteConfirmModal';
 import { useToast } from '../../contexts/ToastContext';
 
 export const AdminFeed = () => {
@@ -9,14 +10,39 @@ export const AdminFeed = () => {
   const reports = useMemo(() => data?.data?.reports || [], [data]);
   const delMut = useDeleteReport();
   const [selected, setSelected] = useState(null);
+  const [reportToDelete, setReportToDelete] = useState(null);
   const toast = useToast();
+  const isDeleting = delMut.isLoading;
 
-  const confirmDelete = async (id) => {
-    if (!window.confirm('Delete this report?')) return;
+  const getDeleteErrorMessage = (err) => {
+    return (
+      err?.message ||
+      err?.error ||
+      err?.response?.data?.message ||
+      'Failed to delete report'
+    );
+  };
+
+  const openDeleteModal = (report) => {
+    setReportToDelete(report);
+  };
+
+  const closeDeleteModal = () => {
+    if (isDeleting) return;
+    setReportToDelete(null);
+  };
+
+  const confirmDelete = async () => {
+    if (isDeleting || !reportToDelete?._id) return;
     try {
-      await delMut.mutateAsync(id);
+      const result = await delMut.mutateAsync(reportToDelete._id);
+      toast.success(result?.message || 'Report deleted successfully');
+      if (selected?._id === reportToDelete._id) {
+        setSelected(null);
+      }
+      setReportToDelete(null);
     } catch (e) {
-      toast.error('Failed to delete report');
+      toast.error(getDeleteErrorMessage(e));
     }
   };
 
@@ -45,9 +71,9 @@ export const AdminFeed = () => {
               onChange={(e) => setLimit(parseInt(e.target.value, 10))}
               className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
             >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
+              <option value={10} style={{ color: '#111827', backgroundColor: '#ffffff' }}>10</option>
+              <option value={25} style={{ color: '#111827', backgroundColor: '#ffffff' }}>25</option>
+              <option value={50} style={{ color: '#111827', backgroundColor: '#ffffff' }}>50</option>
             </select>
           </div>
         </div>
@@ -129,7 +155,8 @@ export const AdminFeed = () => {
                     </button>
                     
                     <button
-                      onClick={() => confirmDelete(report._id)}
+                      onClick={() => openDeleteModal(report)}
+                      disabled={isDeleting}
                       className="w-10 h-10 bg-white/5 hover:bg-red-500/20 rounded-lg border border-white/10 flex items-center justify-center"
                       title="Delete Report"
                     >
@@ -152,6 +179,14 @@ export const AdminFeed = () => {
           onClose={() => setSelected(null)} 
         />
       )}
+
+      <ReportDeleteConfirmModal
+        open={!!reportToDelete}
+        report={reportToDelete}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        isPending={isDeleting}
+      />
     </div>
   );
 };

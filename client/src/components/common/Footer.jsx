@@ -3,7 +3,7 @@ import { Droplets } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="relative border-t border-white/10 py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <footer data-site-footer="public" className="site-footer relative border-t border-white/10 py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
       {/* Background matching navbar */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -38,6 +38,8 @@ const Footer = () => {
               <img
                 src="/logo.png"
                 alt="FloodSense Logo"
+                width={32}
+                height={32}
                 className="w-8 h-8 bg-transparent object-contain shadow-md group-hover:shadow-lg transition-all duration-300"
               />
               <h1 className="text-2xl font-semibold [font-family:Goodly] text-gray-100 group-hover:text-white transition-colors duration-300">

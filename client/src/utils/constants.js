@@ -45,16 +45,9 @@ export const USER_ROLES = {
   SUPERADMIN: 'superadmin',
 };
 
-// Fallback place categories
+// Historical flood spot category (kept as an array for compatibility)
 export const FALLBACK_CATEGORIES = [
-  { value: 'evacuation_center', label: 'Evacuation Center' },
-  { value: 'hospital', label: 'Hospital' },
-  { value: 'school', label: 'School' },
-  { value: 'government', label: 'Government Office' },
-  { value: 'landmark', label: 'Landmark' },
-  { value: 'bridge', label: 'Bridge' },
-  { value: 'road', label: 'Road' },
-  { value: 'other', label: 'Other' },
+  { value: 'historical_flood_spot', label: 'Historical Flood Spot' },
 ];
 
 // Default map center (North Caloocan)
@@ -819,7 +812,7 @@ export const API_ENDPOINTS = {
 export const MESSAGES = {
   REPORT_SUCCESS: 'Salamat sa ulat. Ipe-validate ng Barangay DRRM Officer.',
   RATE_LIMIT: 'Nag-submit ka kamakailan. Maaari lamang mag-report kada 3 minuto.',
-  OFFLINE_WARNING: 'Offline – showing admin-curated fallback places',
+  OFFLINE_WARNING: 'Offline – showing admin-curated historical flood spots',
   NETWORK_RESTORED: 'Updated: new data available',
   LOCATION_REQUIRED: 'Mangyaring pumili ng lokasyon sa mapa',
   PHOTO_REQUIRED: 'Mangyaring mag-upload ng larawan',

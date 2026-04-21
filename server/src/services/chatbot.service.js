@@ -35,7 +35,7 @@ APP: Feed(/feed)=reports+sensors, Learn(/learn), About(/about), Contact(/contact
 SYSTEM KNOWLEDGE (ground truth for this app):
 - Hardware: ESP32 development board + JSN-SR04T waterproof ultrasonic distance sensor.
 - Sensor pipeline: devices send distance (cm) to backend; app computes water level from mount height and latest distance.
-- Offline behavior: app shell is cached via service worker; fallback places are cached in browser cache + IndexedDB; most live data (chat, sensor feed, reports) still needs internet.
+- Offline behavior: app shell is cached via service worker; historical flood spots are cached in browser cache + IndexedDB; most live data (chat, sensor feed, reports) still needs internet.
 - If asked exact sensor accuracy (e.g., "1-2 cm"), be honest: this app does not store calibration benchmark metrics, so do NOT claim exact accuracy numbers.
 
 SAFETY: Higher ground, avoid floodwater, stay from power lines. Ankle=careful, Knee=dangerous, Waist=very dangerous, Chest=life-threatening. PH Emergency:911, NDRRMC:(02)8911-5061.
@@ -151,7 +151,7 @@ function getSystemFeaturesReply(language = 'english') {
 
 - Hardware: ESP32 dev board + JSN-SR04T waterproof ultrasonic sensor para sa distance/water-level readings.
 - Real-time: Sensor data dumadaan sa backend API at bine-broadcast via Socket.IO para live updates.
-- Offline: May service worker para sa app shell at naka-cache ang fallback places sa Cache + IndexedDB.
+- Offline: May service worker para sa app shell at naka-cache ang historical flood spots sa Cache + IndexedDB.
 - Limitation offline: Chatbot, live sensor feed, at latest reports kailangan pa rin ng internet para sa fresh data.`;
   }
 
@@ -159,16 +159,16 @@ function getSystemFeaturesReply(language = 'english') {
 
 - Hardware: ESP32 dev board + JSN-SR04T waterproof ultrasonic sensor for distance/water-level readings.
 - Real-time: Sensor data goes through backend API and is broadcast via Socket.IO for live updates.
-- Offline: Service worker caches the app shell, and fallback places are stored in Cache + IndexedDB.
+- Offline: Service worker caches the app shell, and historical flood spots are stored in Cache + IndexedDB.
 - Offline limitation: Chatbot, live sensor feed, and latest reports still require internet for fresh data.`;
 }
 
 function getOfflineModeReply(language = 'english') {
   if (language === 'tagalog') {
-    return 'Kapag offline ka, usable pa rin yung app basics at cached emergency fallback places para may guide ka pa rin. Pero yung live chat, latest sensor readings, at newest flood reports kailangan ng internet para ma-refresh. Pag bumalik ang internet, automatic ulit makuha ang fresh updates.';
+    return 'Kapag offline ka, usable pa rin yung app basics at cached historical flood spots para may guide ka pa rin. Pero yung live chat, latest sensor readings, at newest flood reports kailangan ng internet para ma-refresh. Pag bumalik ang internet, automatic ulit makuha ang fresh updates.';
   }
 
-  return 'When you are offline, the app still works for basic viewing and cached emergency fallback places so you still have guidance. But live chat, newest sensor readings, and latest flood reports need internet to refresh. Once your connection is back, fresh updates load again automatically.';
+  return 'When you are offline, the app still works for basic viewing and cached historical flood spots so you still have guidance. But live chat, newest sensor readings, and latest flood reports need internet to refresh. Once your connection is back, fresh updates load again automatically.';
 }
 
 function isGlobalCommunityQuery(message) {
@@ -180,11 +180,10 @@ const RE_REPORT_COMPARISON = /(which|what|among).*(list|reports?|entries).*(risk
 const RE_CONVERSATIONAL_ACK = /^(ok|okay|oki|oks|sure|fine|got it|i see|noted|thanks|thank you|ty|haha|lol|nice|cool|great|alright|alright|yep|yup|nope|no|yes|oh|ah|hmm|aw|wow|grabe|sige|oo|opo|di ba|talaga|naman|huh|ah ok|oh ok|ok lang|its fine|it's fine|nvm|never mind|nevermind|understood|i understand)[\s!.?,]*$/;
 const RE_USER_REPORT = /my report|my submission|my status|check my|sinubmit|na-report|nag-report|i submitted|i reported/;
 const RE_RISK = /risk|safe|baha|evacuate|flood.*(area|barangay|here)|barangay.*(risk|flood|safe)/;
-const RE_EVACUATION = /evacuation|evacuation center|shelter|center|lugar/;
+const RE_HISTORICAL_FLOOD_SPOTS = /historical|flood spot|flood-prone|prone area|madalas bahain|bahain|flood history|previous flood|past flood|offline list|danger spots?/;
 const RE_SENSOR = /sensor|water level|tubig|baha level|reading/;
 const RE_RECENT_REPORTS = /recent|latest|reports?|reported|community|flood map|live map|map|how many|may baha|nangyari|floods|date|time|address|when (was|is|did)|what time/;
-const RE_EMERGENCY_FACILITIES = /hospital|emergency|facility|facilities|government/;
-const RE_FALLBACK_PLACES = /place|where|saan|landmark|school|bridge/;
+const RE_FALLBACK_PLACES = /place|where|saan|landmark|school|bridge|spot|lugar na bahain/;
 
 // Pre-build quick-lookup maps for tool filtering to avoid .filter() on every call
 const TOOL_MAP = new Map();
@@ -217,11 +216,10 @@ function selectTools(message, history = []) {
 
   if (RE_USER_REPORT.test(msg)) selected.push('queryUserReports');
   if (RE_RISK.test(msg)) selected.push('queryAreaRisk');
-  if (RE_EVACUATION.test(msg)) selected.push('queryEvacuationCenters');
+  if (RE_HISTORICAL_FLOOD_SPOTS.test(msg)) selected.push('queryHistoricalFloodSpots');
   if (RE_SENSOR.test(msg)) selected.push('querySensorStatus');
   if (RE_RECENT_REPORTS.test(msg)) selected.push('queryRecentReports');
-  if (RE_EMERGENCY_FACILITIES.test(msg)) selected.push('queryEmergencyFacilities');
-  if (RE_FALLBACK_PLACES.test(msg)) selected.push('queryFallbackPlaces');
+  if (RE_FALLBACK_PLACES.test(msg)) selected.push('queryHistoricalFloodSpots');
 
   if (selected.length > 0) {
     return getToolsByNames(...selected);
@@ -235,14 +233,14 @@ function selectTools(message, history = []) {
   if (/report|flood|depth|passab|map/.test(recentContext)) contextTools.push('queryRecentReports');
   if (/risk|safe|evacuate/.test(recentContext)) contextTools.push('queryAreaRisk');
   if (/sensor|water level/.test(recentContext)) contextTools.push('querySensorStatus');
-  if (/evacuation|shelter|center/.test(recentContext)) contextTools.push('queryEvacuationCenters');
+  if (/historical|flood spot|flood-prone|bahain|offline/.test(recentContext)) contextTools.push('queryHistoricalFloodSpots');
 
   if (contextTools.length > 0) {
     return getToolsByNames(...contextTools);
   }
 
   // Final fallback for genuinely ambiguous queries with no prior context
-  return getToolsByNames('queryAreaRisk', 'queryEvacuationCenters', 'queryRecentReports');
+  return getToolsByNames('queryAreaRisk', 'queryHistoricalFloodSpots', 'queryRecentReports');
 }
 
 /**

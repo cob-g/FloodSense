@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useWeeklyReport } from '../../hooks/useAnalytics';
 import { analyticsService } from '../../services/analytics.service';
 import { useNavigate } from 'react-router-dom';
@@ -7,9 +7,35 @@ import { useToast } from '../../contexts/ToastContext';
  
 
 export const AdminWeekly = () => {
+  const [communityScope, setCommunityScope] = useState('weekly');
+  const [alertPageSize, setAlertPageSize] = useState(10);
+  const [alertCurrentPage, setAlertCurrentPage] = useState(0);
+
   // Server-generated weekly report (aggregated)
-  const { data: wr, isLoading: wrLoading, error: wrError } = useWeeklyReport();
+  const { data: wr, isLoading: wrLoading, error: wrError } = useWeeklyReport({ communityScope });
   const weekly = wr?.data; // api interceptor: { success, data }
+  const selectedScopeLabel = communityScope === 'all-time' ? 'All-time' : 'This week';
+  const reportScopeLabel = weekly?.header?.reportScopeLabel || weekly?.iotWaterLevel?.scopeLabel || selectedScopeLabel;
+  const alertEmptyText = reportScopeLabel === 'All-time'
+    ? 'No alerts recorded for all-time data.'
+    : 'No alerts recorded for this week.';
+  const alerts = weekly?.alerts || [];
+  const totalAlerts = alerts.length;
+  const alertStartIndex = alertCurrentPage * alertPageSize;
+  const alertEndIndex = Math.min(alertStartIndex + alertPageSize, totalAlerts);
+  const pagedAlerts = alerts.slice(alertStartIndex, alertEndIndex);
+  const hasMoreAlerts = alertEndIndex < totalAlerts;
+  const totalAlertPages = Math.max(1, Math.ceil(totalAlerts / alertPageSize));
+
+  useEffect(() => {
+    setAlertCurrentPage(0);
+  }, [communityScope]);
+
+  useEffect(() => {
+    if (alertCurrentPage > 0 && alertStartIndex >= totalAlerts) {
+      setAlertCurrentPage(0);
+    }
+  }, [alertCurrentPage, alertStartIndex, totalAlerts]);
 
   // Helper: get severity count ignoring key case
   const getSeverityCount = (target) => {
@@ -25,7 +51,7 @@ export const AdminWeekly = () => {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Weekly Report - Server Aggregation */}
-      <HeaderWithActions />
+      <HeaderWithActions communityScope={communityScope} onScopeChange={setCommunityScope} />
 
       {/* Header Section */}
       <div className="bg-[#1c1410]/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-xl p-6 mb-6">
@@ -60,7 +86,12 @@ export const AdminWeekly = () => {
       {!wrLoading && !wrError && weekly && (
         <div className="grid gap-6 md:grid-cols-2 mb-6">
           <div className="bg-[#1c1410]/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-xl p-6">
-            <h2 className="text-white/90 font-semibold mb-4">IoT Water Level Summary</h2>
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h2 className="text-white/90 font-semibold">IoT Water Level Summary</h2>
+              <span className="text-xs px-2 py-1 rounded-lg border border-white/20 bg-white/5 text-white/75">
+                Scope: {reportScopeLabel}
+              </span>
+            </div>
             <div className="grid grid-cols-4 gap-3">
               <Metric label="Average (cm)" value={weekly.iotWaterLevel?.overall?.averageCm?.toFixed ? weekly.iotWaterLevel.overall.averageCm.toFixed(1) : (weekly.iotWaterLevel?.overall?.averageCm ?? '—')} />
               <Metric label="Max (cm)" value={weekly.iotWaterLevel?.overall?.maxCm ?? '—'} />
@@ -70,7 +101,11 @@ export const AdminWeekly = () => {
             <div className="mt-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-sm text-white/80">Daily Max Levels</div>
-                <div className="text-xs text-white/50">Last {weekly.iotWaterLevel?.daily?.length || 0} days</div>
+                <div className="text-xs text-white/50">
+                  {reportScopeLabel === 'All-time'
+                    ? `${weekly.iotWaterLevel?.daily?.length || 0} data points`
+                    : `Last ${weekly.iotWaterLevel?.daily?.length || 0} days`}
+                </div>
               </div>
               <AreaChart
                 data={(weekly.iotWaterLevel?.daily || []).map(d => ({ x: new Date(d.date), y: d.max ?? 0 }))}
@@ -81,11 +116,16 @@ export const AdminWeekly = () => {
 
           {/* Community Reports Summary */}
           <div className="bg-[#1c1410]/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-xl p-6">
-            <h2 className="text-white/90 font-semibold mb-4">Community Reports Summary</h2>
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h2 className="text-white/90 font-semibold">Community Reports Summary</h2>
+              <span className="text-xs px-2 py-1 rounded-lg border border-white/20 bg-white/5 text-white/75">
+                Scope: {reportScopeLabel}
+              </span>
+            </div>
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <Metric label="Total Reports" value={weekly.communityReports?.totalReports ?? 0} large />
-              <Metric label="Verified vs Unverified" value={`${weekly.communityReports?.verified ?? 0} • ${weekly.communityReports?.unverified ?? 0}`} />
-              <Metric label="Rejected" value={weekly.communityReports?.rejected ?? 0} />
+              <Metric label={`Total Reports (${reportScopeLabel})`} value={weekly.communityReports?.totalReports ?? 0} large />
+              <Metric label={`Verified vs Unverified (${reportScopeLabel})`} value={`${weekly.communityReports?.verified ?? 0} • ${weekly.communityReports?.unverified ?? 0}`} />
+              <Metric label={`Rejected (${reportScopeLabel})`} value={weekly.communityReports?.rejected ?? 0} />
             </div>
             <div className="mt-2">
               <div className="flex items-center justify-between mb-2">
@@ -148,13 +188,33 @@ export const AdminWeekly = () => {
       {/* Alerts and Warnings */}
       {!wrLoading && !wrError && weekly && (
         <div className="bg-[#1c1410]/50 backdrop-blur-md rounded-2xl border border-white/5 shadow-xl p-6 mb-6">
-          <h2 className="text-white/90 font-semibold mb-4">Alerts and Warnings</h2>
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <h2 className="text-white/90 font-semibold">Alerts and Warnings</h2>
+            <div className="flex items-center gap-2">
+              <label htmlFor="alerts-page-size" className="text-xs text-white/60">Per page</label>
+              <select
+                id="alerts-page-size"
+                value={alertPageSize}
+                onChange={(e) => {
+                  setAlertPageSize(Number(e.target.value));
+                  setAlertCurrentPage(0);
+                }}
+                className="px-2 py-1 rounded-lg border border-white/20 bg-white/5 text-white/80 text-xs focus:outline-none focus:ring-1 focus:ring-white/30"
+              >
+                <option value={10} style={{ color: '#111827', backgroundColor: '#ffffff' }}>10</option>
+                <option value={25} style={{ color: '#111827', backgroundColor: '#ffffff' }}>25</option>
+              </select>
+              <span className="text-xs px-2 py-1 rounded-lg border border-white/20 bg-white/5 text-white/75">
+                Scope: {reportScopeLabel}
+              </span>
+            </div>
+          </div>
           <div className="space-y-3">
-            {(weekly.alerts || []).length === 0 && (
-              <div className="text-white/60 text-sm">No alerts recorded for this period.</div>
+            {totalAlerts === 0 && (
+              <div className="text-white/60 text-sm">{alertEmptyText}</div>
             )}
-            {(weekly.alerts || []).map((a, idx) => (
-              <div key={idx} className="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl p-3">
+            {pagedAlerts.map((a, idx) => (
+              <div key={`${a.timestamp}-${idx}`} className="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl p-3">
                 <div className="space-y-0.5">
                   <div className="text-sm text-white/90">{new Date(a.timestamp).toLocaleString()}</div>
                   <div className="text-xs text-white/70">{a.message}</div>
@@ -166,6 +226,20 @@ export const AdminWeekly = () => {
               </div>
             ))}
           </div>
+          {totalAlerts > 0 && (
+            <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
+              <div className="text-xs text-white/60">
+                Showing {alertStartIndex + 1}-{alertEndIndex} of {totalAlerts} alerts (Page {alertCurrentPage + 1} of {totalAlertPages})
+              </div>
+              <button
+                onClick={() => setAlertCurrentPage((prev) => prev + 1)}
+                disabled={!hasMoreAlerts}
+                className="px-3 py-1.5 rounded-lg border border-white/20 bg-white/5 text-white/80 text-xs font-semibold hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -210,13 +284,13 @@ export const AdminWeekly = () => {
 export default AdminWeekly;
 
 // Local header with actions to keep file lean
-function HeaderWithActions() {
+function HeaderWithActions({ communityScope, onScopeChange }) {
   const navigate = useNavigate();
   const toast = useToast();
 
   const downloadCSV = async () => {
     try {
-      const blob = await analyticsService.exportWeeklyReport('csv');
+      const blob = await analyticsService.exportWeeklyReport('csv', { communityScope });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -225,27 +299,48 @@ function HeaderWithActions() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      toast.success('Weekly CSV exported');
     } catch (e) {
       toast.error('Failed to export CSV');
     }
   };
-
   const printPDF = () => {
-    navigate('/admin/weekly/print?auto=1');
+    navigate(`/admin/weekly/print?auto=1&communityScope=${encodeURIComponent(communityScope)}`);
   };
-
   return (
-    <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div>
+    <div className="mb-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start lg:gap-x-8">
+      <div className="min-w-0 space-y-2 pr-1">
         <h1 className="text-3xl font-black text-white tracking-tight" style={{ fontFamily: 'Goodly, sans-serif' }}>Weekly Report</h1>
-        <p className="text-white/50 text-sm mt-1">FloodSense Community Monitoring Dashboard</p>
+        <p className="text-white/55 text-sm leading-relaxed max-w-3xl">FloodSense Community Monitoring Dashboard (scope applies to IoT, reports, alerts, and insights)</p>
       </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <button onClick={downloadCSV} className="px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white font-medium hover:bg-white/10 text-sm transition-colors flex items-center gap-2">
+      <div className="flex items-center gap-4 overflow-x-auto pb-1 lg:pb-0 lg:pt-1 lg:justify-end lg:shrink-0">
+        <div className="inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 p-1.5 shrink-0">
+          <button
+            onClick={() => onScopeChange('weekly')}
+            className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+              communityScope === 'weekly'
+                ? 'bg-gradient-to-r from-[#c54914] to-[#7a2200] text-white shadow-[0_4px_12px_rgba(197,73,20,0.3)]'
+                : 'text-white/70 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            Report: This Week
+          </button>
+          <button
+            onClick={() => onScopeChange('all-time')}
+            className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+              communityScope === 'all-time'
+                ? 'bg-gradient-to-r from-[#c54914] to-[#7a2200] text-white shadow-[0_4px_12px_rgba(197,73,20,0.3)]'
+                : 'text-white/70 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            Report: All Time
+          </button>
+        </div>
+        <button onClick={downloadCSV} className="px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white font-medium hover:bg-white/10 text-sm transition-colors flex items-center gap-2 shrink-0 whitespace-nowrap">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
           Export CSV
         </button>
-        <button onClick={printPDF} className="px-4 py-2.5 rounded-xl text-white font-medium text-sm transition-all duration-300 flex items-center gap-2 shadow-[0_4px_16px_rgba(197,73,20,0.3)] hover:-translate-y-0.5" style={{ background: 'linear-gradient(135deg, #c54914 0%, #7a2200 100%)' }}>
+        <button onClick={printPDF} className="px-4 py-2.5 rounded-xl text-white font-medium text-sm transition-all duration-300 flex items-center gap-2 shadow-[0_4px_16px_rgba(197,73,20,0.3)] hover:-translate-y-0.5 shrink-0 whitespace-nowrap" style={{ background: 'linear-gradient(135deg, #c54914 0%, #7a2200 100%)' }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
           Export PDF / Print
         </button>

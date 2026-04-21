@@ -211,33 +211,44 @@ export const AdminReportsTable = ({ reports, loading }) => {
 
       {/* Action Modal */}
       {actionModal && selectedReport && createPortal(
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-[2000]" onClick={closeModal}>
-          <button
-            onClick={closeModal}
-            className="fixed top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow hover:bg-neutral-100 transition-colors z-[2100]"
-          >
-            ×
-          </button>
-          <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold text-neutral-900 mb-4">
-              {actionModal === 'validate' ? 'Validate Report' : 'Reject Report'}
-            </h3>
-            
-            <div className="mb-4 p-4 bg-neutral-50 rounded-xl">
-              <p className="text-sm text-neutral-600 mb-1">Location</p>
-              <p className="font-medium text-neutral-900">{selectedReport.barangay}</p>
-              <p className="text-sm text-neutral-600 mt-2">{selectedReport.location?.address}</p>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-[3200]" onClick={closeModal}>
+          <div className="w-full max-w-md rounded-2xl bg-[#17120f] border border-white/10 shadow-2xl p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-white">
+                  {actionModal === 'validate' ? 'Validate Report' : 'Reject Report'}
+                </h3>
+                <p className="text-sm text-white/65 mt-1">
+                  {actionModal === 'validate'
+                    ? 'Confirm this report and optionally leave internal notes.'
+                    : 'Provide a clear reason before rejecting this report.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-white/80 flex items-center justify-center"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="mb-4 p-4 rounded-xl border border-white/10 bg-white/5">
+              <p className="text-xs uppercase tracking-wide text-white/50 mb-1">Location</p>
+              <p className="font-semibold text-white">{selectedReport.barangay}</p>
+              <p className="text-sm text-white/70 mt-1">{selectedReport.location?.address}</p>
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
+              <label className="block text-sm font-medium text-white/80 mb-2">
                 {actionModal === 'validate' ? 'Notes (optional)' : 'Reason for rejection *'}
               </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={actionModal === 'validate' ? 'Add any notes...' : 'Please explain why this report is being rejected...'}
-                className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                className="w-full px-4 py-3 border border-white/15 bg-white/5 text-white placeholder-white/45 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c54914]/40 focus:border-[#c54914]/50 resize-none"
                 rows="4"
                 required={actionModal === 'reject'}
               />
@@ -246,17 +257,17 @@ export const AdminReportsTable = ({ reports, loading }) => {
             <div className="flex gap-3">
               <button
                 onClick={closeModal}
-                className="flex-1 px-4 py-3 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium rounded-xl transition-colors"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white font-medium transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmAction}
                 disabled={validateMutation.isPending || rejectMutation.isPending}
-                className={`flex-1 px-4 py-3 text-white font-medium rounded-xl transition-colors disabled:opacity-50 ${
+                className={`flex-1 px-4 py-2.5 rounded-xl font-semibold transition-colors disabled:opacity-50 ${
                   actionModal === 'validate'
-                    ? 'bg-primary-500 hover:bg-primary-600'
-                    : 'bg-danger-500 hover:bg-danger-600'
+                    ? 'border border-green-400/40 bg-green-500/20 hover:bg-green-500/30 text-green-100'
+                    : 'border border-red-400/40 bg-red-500/20 hover:bg-red-500/30 text-red-100'
                 }`}
               >
                 {validateMutation.isPending || rejectMutation.isPending

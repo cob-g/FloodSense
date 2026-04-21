@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { 
@@ -8,6 +8,7 @@ import {
   Radio, 
   BarChart2, 
   Users,
+  History,
   LogOut,
   X,
   Menu
@@ -33,6 +34,7 @@ const SidebarLink = ({ to, children, icon: Icon, end }) => (
 export const AdminLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -53,7 +55,7 @@ export const AdminLayout = () => {
           <div style={{ position: 'absolute', bottom: '-20px', left: '-20px', width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
           
           <div className="flex items-center gap-3 relative z-10">
-            <img src="/logo.png" alt="FloodSense" className="w-10 h-10 drop-shadow-md" />
+            <img src="/logo.png" alt="FloodSense" width={40} height={40} className="w-10 h-10 drop-shadow-md" />
             <div>
               <div className="text-[1.35rem] font-black tracking-tight leading-none" style={{ fontFamily: 'Goodly, sans-serif' }}>FloodSense</div>
               <div className="text-[10px] uppercase font-bold tracking-[0.2em] text-white/80 mt-1">Admin Panel</div>
@@ -67,7 +69,10 @@ export const AdminLayout = () => {
           <SidebarLink to="/admin/fallbacks" icon={MapPin}>Fallbacks</SidebarLink>
           <SidebarLink to="/admin/sensors" icon={Radio}>Sensors</SidebarLink>
           <SidebarLink to="/admin/weekly" icon={BarChart2}>Weekly</SidebarLink>
-          <SidebarLink to="/admin/users" icon={Users}>Users</SidebarLink>
+          <SidebarLink to="/admin/users" icon={Users}>Accounts</SidebarLink>
+          {user?.role === 'superadmin' && (
+            <SidebarLink to="/admin/logs" icon={History}>Activity Logs</SidebarLink>
+          )}
         </nav>
 
         <div className="p-5 border-t border-white/5 bg-[#140e0b]">
@@ -103,7 +108,7 @@ export const AdminLayout = () => {
           >
             <div style={{ position: 'absolute', top: '-30px', right: '-30px', width: '90px', height: '90px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
             <div className="flex items-center gap-3 relative z-10">
-              <img src="/logo.png" alt="FloodSense" className="w-10 h-10 drop-shadow-md" />
+              <img src="/logo.png" alt="FloodSense" width={40} height={40} className="w-10 h-10 drop-shadow-md" />
               <div>
                 <div className="text-[1.35rem] font-black tracking-tight leading-none" style={{ fontFamily: 'Goodly, sans-serif' }}>FloodSense</div>
                 <div className="text-[10px] uppercase font-bold tracking-[0.2em] text-white/80 mt-1">Admin Panel</div>
@@ -119,7 +124,10 @@ export const AdminLayout = () => {
             <SidebarLink to="/admin/fallbacks" icon={MapPin}>Fallbacks</SidebarLink>
             <SidebarLink to="/admin/sensors" icon={Radio}>Sensors</SidebarLink>
             <SidebarLink to="/admin/weekly" icon={BarChart2}>Weekly</SidebarLink>
-            <SidebarLink to="/admin/users" icon={Users}>Users</SidebarLink>
+            <SidebarLink to="/admin/users" icon={Users}>Accounts</SidebarLink>
+            {user?.role === 'superadmin' && (
+              <SidebarLink to="/admin/logs" icon={History}>Activity Logs</SidebarLink>
+            )}
           </nav>
           <div className="p-5 border-t border-white/5 bg-[#140e0b] mt-auto">
             <div className="flex items-center gap-3 mb-4 bg-white/5 p-2.5 rounded-xl border border-white/5 shadow-inner">
@@ -147,7 +155,7 @@ export const AdminLayout = () => {
         <div className="h-16 px-4 flex items-center justify-between relative overflow-hidden">
           <div style={{ position: 'absolute', top: '-20px', left: '50%', width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
           <div className="flex items-center gap-3 relative z-10">
-            <img src="/logo.png" className="w-9 h-9 drop-shadow-md" />
+            <img src="/logo.png" alt="FloodSense" width={36} height={36} className="w-9 h-9 drop-shadow-md" />
             <div className="font-black text-lg tracking-tight" style={{ fontFamily: 'Goodly, sans-serif' }}>Admin</div>
           </div>
           <div className="flex items-center gap-2 relative z-10">
@@ -159,8 +167,10 @@ export const AdminLayout = () => {
       </header>
 
       {/* Content */}
-      <main className="md:pl-64 pt-16 md:pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <Outlet />
+      <main className="md:pl-64 pt-16 md:pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
+        <div key={location.pathname} className="reveal-target">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
