@@ -22,6 +22,18 @@ export const reportsService = {
   deleteReport: async (id) => {
     return api.delete(`/reports/${id}`);
   },
+
+  getArchivedReports: async (params = {}) => {
+    return api.get('/reports/archived', { params });
+  },
+
+  restoreReport: async (id) => {
+    return api.patch(`/reports/${id}/restore`);
+  },
+
+  permanentlyDeleteReport: async (id) => {
+    return api.delete(`/reports/${id}/permanent`);
+  },
   
   validateReport: async (id, notes) => {
     return api.patch(`/reports/${id}/validate`, { notes });

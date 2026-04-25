@@ -8,6 +8,8 @@ const ACTION_OPTIONS = [
   { value: 'REPORT_VALIDATED', label: 'Report Validated' },
   { value: 'REPORT_REJECTED', label: 'Report Rejected' },
   { value: 'REPORT_DELETED', label: 'Report Deleted' },
+  { value: 'REPORT_RESTORED', label: 'Report Restored' },
+  { value: 'REPORT_PERMANENTLY_DELETED', label: 'Report Permanently Deleted' },
   { value: 'SENSOR_CREATED', label: 'Sensor Created' },
   { value: 'SENSOR_UPDATED', label: 'Sensor Updated' },
   { value: 'SENSOR_DELETED', label: 'Sensor Deleted' },

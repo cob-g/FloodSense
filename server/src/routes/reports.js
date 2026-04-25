@@ -22,6 +22,10 @@ function endOfDay(d) {
   return x;
 }
 
+function escapeRegex(value = '') {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // Apply general rate limiting to all report routes
 router.use(generalRateLimit);
 
@@ -399,6 +403,107 @@ router.get('/export', authenticate, requireAdmin, async (req, res) => {
   }
 });
 
+// Get archived reports (admin only)
+router.get('/archived', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const {
+      status,
+      severity,
+      passability,
+      barangay,
+      start,
+      end,
+      limit = 20,
+      skip = 0,
+      sortBy = 'updatedAt',
+      sortOrder = 'desc',
+      photos,
+    } = req.query;
+
+    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 200);
+    const parsedSkip = Math.max(parseInt(skip, 10) || 0, 0);
+
+    const query = {
+      isActive: false,
+      ...(status && { status }),
+      ...(severity && { severity }),
+      ...(passability && { passability }),
+      ...(photos === 'true' && { 'photos.0': { $exists: true } }),
+    };
+
+    const normalizedBarangay = String(barangay || '').trim();
+    if (normalizedBarangay) {
+      query.barangay = {
+        $regex: escapeRegex(normalizedBarangay),
+        $options: 'i',
+      };
+    }
+
+    if (start || end) {
+      const parsedStart = start ? new Date(start) : null;
+      const parsedEnd = end ? new Date(end) : null;
+
+      if (parsedStart && Number.isNaN(parsedStart.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid start date. Use a valid date format (e.g., YYYY-MM-DD).'
+        });
+      }
+
+      if (parsedEnd && Number.isNaN(parsedEnd.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid end date. Use a valid date format (e.g., YYYY-MM-DD).'
+        });
+      }
+
+      const resolvedEnd = parsedEnd ? endOfDay(parsedEnd) : endOfDay(new Date());
+      const resolvedStart = parsedStart ? startOfDay(parsedStart) : startOfDay(new Date(0));
+
+      if (resolvedStart > resolvedEnd) {
+        return res.status(400).json({
+          success: false,
+          message: 'start date must be before or equal to end date.'
+        });
+      }
+
+      query.createdAt = { $gte: resolvedStart, $lte: resolvedEnd };
+    }
+
+    const allowedSortFields = new Set(['createdAt', 'updatedAt', 'status', 'severity']);
+    const safeSortBy = allowedSortFields.has(String(sortBy)) ? String(sortBy) : 'updatedAt';
+    const safeSortOrder = String(sortOrder).toLowerCase() === 'asc' ? 1 : -1;
+
+    const reports = await Report.find(query)
+      .sort({ [safeSortBy]: safeSortOrder })
+      .limit(parsedLimit)
+      .skip(parsedSkip)
+      .populate('reporter', 'name')
+      .populate('validatedBy', 'name');
+
+    const total = await Report.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        reports,
+        pagination: {
+          total,
+          limit: parsedLimit,
+          skip: parsedSkip,
+          hasMore: parsedSkip + parsedLimit < total,
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get archived reports error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error while fetching archived reports.'
+    });
+  }
+});
+
 // Validate report (admin only)
 router.patch('/:id/validate', authenticate, requireAdmin, async (req, res) => {
   try {
@@ -654,6 +759,161 @@ router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Internal server error while deleting report.'
+    });
+  }
+});
+
+// Restore archived report (admin only)
+router.patch('/:id/restore', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id);
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: 'Report not found.'
+      });
+    }
+
+    if (report.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Report is already active.'
+      });
+    }
+
+    const previousIsActive = report.isActive;
+    report.isActive = true;
+    await report.save();
+    await report.populate('reporter', 'name');
+    await report.populate('validatedBy', 'name');
+
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.REPORT_RESTORED,
+      entityType: ADMIN_ENTITIES.REPORT,
+      entityId: report._id,
+      entityLabel: report.location?.address || report.barangay || String(report._id),
+      changes: {
+        isActive: {
+          from: previousIsActive,
+          to: report.isActive,
+        },
+      },
+      metadata: {
+        barangay: report.barangay,
+        status: report.status,
+      },
+    });
+
+    const io = getIO();
+    io.to(`barangay-${report.barangay}`).emit('report-restored', {
+      report: report.toJSON(),
+      message: `Report restored in ${report.barangay}`,
+    });
+
+    io.emit('report-update', {
+      type: 'restored',
+      report: report.toJSON(),
+    });
+
+    res.json({
+      success: true,
+      message: 'Report restored successfully.',
+      data: { report }
+    });
+  } catch (error) {
+    console.error('Restore report error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error while restoring report.'
+    });
+  }
+});
+
+// Permanently delete archived report (admin only)
+router.delete('/:id/permanent', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id).lean();
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: 'Report not found.'
+      });
+    }
+
+    if (report.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Only archived reports can be permanently deleted.'
+      });
+    }
+
+    const deleteResult = await Report.deleteOne({
+      _id: report._id,
+      isActive: false,
+    });
+
+    if (deleteResult.deletedCount !== 1) {
+      return res.status(409).json({
+        success: false,
+        message: 'Report state changed. Please refresh and try again.'
+      });
+    }
+
+    const uploadPath = process.env.UPLOAD_PATH || './uploads';
+    if (Array.isArray(report.photos) && report.photos.length > 0) {
+      report.photos.forEach((filename) => {
+        const filePath = path.join(uploadPath, filename);
+        fs.unlink(filePath, (unlinkError) => {
+          if (unlinkError && unlinkError.code !== 'ENOENT') {
+            console.error('Error deleting archived report photo:', unlinkError);
+          }
+        });
+      });
+    }
+
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.REPORT_PERMANENTLY_DELETED,
+      entityType: ADMIN_ENTITIES.REPORT,
+      entityId: report._id,
+      entityLabel: report.location?.address || report.barangay || String(report._id),
+      changes: {
+        deleted: {
+          from: false,
+          to: true,
+        },
+      },
+      metadata: {
+        barangay: report.barangay,
+        status: report.status,
+        wasArchived: true,
+      },
+    });
+
+    const io = getIO();
+    io.to(`barangay-${report.barangay}`).emit('report-permanently-deleted', {
+      reportId: report._id,
+      message: `Archived report permanently deleted in ${report.barangay}`,
+    });
+
+    io.emit('report-update', {
+      type: 'permanently-deleted',
+      reportId: report._id,
+      report,
+    });
+
+    res.json({
+      success: true,
+      message: 'Report permanently deleted successfully.'
+    });
+  } catch (error) {
+    console.error('Permanent delete report error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error while permanently deleting report.'
     });
   }
 });

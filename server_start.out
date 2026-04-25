@@ -1,0 +1,7 @@
+
+> floodsense-server@1.0.0 start
+> node src/index.js
+
+✅ Connected to MongoDB
+🌱 Checking for admin user...
+✅ Admin user already exists

@@ -1,6 +1,35 @@
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+export const AUTH_TOKEN_STORAGE_KEY = 'floodsense_auth_token';
+
+export const getStoredAuthToken = () => {
+  try {
+    return window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || null;
+  } catch {
+    return null;
+  }
+};
+
+export const setStoredAuthToken = (token) => {
+  try {
+    if (!token) {
+      window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+      return;
+    }
+    window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, String(token));
+  } catch {
+    // Ignore storage failures to avoid blocking auth flow
+  }
+};
+
+export const clearStoredAuthToken = () => {
+  try {
+    window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+  } catch {
+    // Ignore storage failures to avoid blocking logout flow
+  }
+};
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -13,7 +42,14 @@ export const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    // Add any custom headers here if needed
+    const token = getStoredAuthToken();
+    if (token) {
+      config.headers = config.headers || {};
+      if (!config.headers.Authorization) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+
     return config;
   },
   (error) => Promise.reject(error)

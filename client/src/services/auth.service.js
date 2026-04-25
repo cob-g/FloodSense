@@ -1,4 +1,4 @@
-import api from './api';
+import api, { setStoredAuthToken, clearStoredAuthToken } from './api';
 
 export const authService = {
   register: async (userData) => {
@@ -6,11 +6,19 @@ export const authService = {
   },
   
   login: async (credentials) => {
-    return api.post('/auth/login', credentials);
+    const response = await api.post('/auth/login', credentials);
+    if (response?.success && response?.data?.token) {
+      setStoredAuthToken(response.data.token);
+    }
+    return response;
   },
   
   logout: async () => {
-    return api.post('/auth/logout');
+    try {
+      return await api.post('/auth/logout');
+    } finally {
+      clearStoredAuthToken();
+    }
   },
   
   getProfile: async () => {
