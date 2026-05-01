@@ -40,6 +40,7 @@ router.get('/users', async (req, res) => {
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 200);
     const skip = Math.max(parseInt(req.query.skip, 10) || 0, 0);
     const q = (req.query.q || '').trim();
+    const archived = String(req.query.archived || '').toLowerCase() === 'true';
     const sortByRaw = String(req.query.sortBy || 'createdAt').trim();
     const sortOrderRaw = String(req.query.sortOrder || 'desc').trim().toLowerCase();
     const sortBy = ALLOWED_USER_SORT_FIELDS.has(sortByRaw) ? sortByRaw : 'createdAt';
@@ -49,23 +50,29 @@ router.get('/users', async (req, res) => {
       _id: sortOrder,
     };
 
-    const find = {};
+    const baseFind = {};
     if (q) {
-      find.$or = [
+      baseFind.$or = [
         { name: { $regex: q, $options: 'i' } },
         { email: { $regex: q, $options: 'i' } },
       ];
     }
 
-    const [users, total, activeCount, adminCount, deactivatedCount, last7DaysCount] = await Promise.all([
-      User.find(find).sort(sort).skip(skip).limit(limit).select('-passwordHash').lean(),
-      User.countDocuments(find),
-      User.countDocuments({ ...find, isActive: true }),
-      User.countDocuments({ ...find, role: { $in: ['admin', 'superadmin'] } }),
-      User.countDocuments({ ...find, isActive: false }),
+    const listFind = {
+      ...baseFind,
+      ...(archived ? { isActive: false } : { isActive: { $ne: false } }),
+    };
+
+    const [users, listTotal, baseTotal, activeCount, adminCount, deactivatedCount, last7DaysCount] = await Promise.all([
+      User.find(listFind).sort(sort).skip(skip).limit(limit).select('-passwordHash').lean(),
+      User.countDocuments(listFind),
+      User.countDocuments(baseFind),
+      User.countDocuments({ ...baseFind, isActive: { $ne: false } }),
+      User.countDocuments({ ...baseFind, role: { $in: ['admin', 'superadmin'] } }),
+      User.countDocuments({ ...baseFind, isActive: false }),
       (async () => {
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-        return User.countDocuments({ ...find, createdAt: { $gte: sevenDaysAgo } });
+        return User.countDocuments({ ...baseFind, createdAt: { $gte: sevenDaysAgo } });
       })(),
     ]);
 
@@ -83,23 +90,23 @@ router.get('/users', async (req, res) => {
           createdAt: u.createdAt,
         })),
         pagination: {
-          total,
+          total: listTotal,
           limit,
           skip,
-          hasMore: skip + limit < total,
+          hasMore: skip + limit < listTotal,
           sortBy,
           sortOrder: sortOrder === 1 ? 'asc' : 'desc',
         },
         counts: {
-          total,
+          total: baseTotal,
           active: activeCount,
           admins: adminCount,
           deactivated: deactivatedCount,
           newLast7Days: last7DaysCount,
           byRole: {
-            user: await User.countDocuments({ ...find, role: 'user' }),
-            admin: await User.countDocuments({ ...find, role: 'admin' }),
-            superadmin: await User.countDocuments({ ...find, role: 'superadmin' }),
+            user: await User.countDocuments({ ...baseFind, role: 'user' }),
+            admin: await User.countDocuments({ ...baseFind, role: 'admin' }),
+            superadmin: await User.countDocuments({ ...baseFind, role: 'superadmin' }),
           },
         },
       },

@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { useFallbacks, useCreateFallback, useUpdateFallback, useDeleteFallback } from '../../hooks/useFallbacks';
+import { useFallbacks, useArchivedFallbacks, useCreateFallback, useUpdateFallback, useDeleteFallback, useRestoreFallback } from '../../hooks/useFallbacks';
 import { useToast } from '../../contexts/ToastContext';
 import ReportDeleteConfirmModal from '../../components/admin/ReportDeleteConfirmModal';
 import { createPortal } from 'react-dom';
@@ -40,10 +40,14 @@ const Modal = ({ children, onClose }) =>
 
 export const AdminFallbacks = () => {
   const toast = useToast();
-  const { data, isLoading, error } = useFallbacks();
+  const [view, setView] = useState('active');
+  const activeQuery = useFallbacks({}, { enabled: view === 'active' });
+  const archivedQuery = useArchivedFallbacks({}, { enabled: view === 'archived' });
+  const { data, isLoading, error } = view === 'archived' ? archivedQuery : activeQuery;
   const createMut = useCreateFallback();
   const updateMut = useUpdateFallback();
   const deleteMut = useDeleteFallback();
+  const restoreMut = useRestoreFallback();
 
   const items = useMemo(() => data?.data?.places || data?.places || data?.data?.fallbacks || data?.fallbacks || [], [data]);
 
@@ -54,7 +58,9 @@ export const AdminFallbacks = () => {
   const [fallbackToDelete, setFallbackToDelete] = useState(null);
   const [form, setForm] = useState(createEmptyForm);
   const isDeleting = deleteMut.isLoading || deleteMut.isPending;
+  const isRestoring = restoreMut.isLoading || restoreMut.isPending;
   const isSaving = createMut.isPending || updateMut.isPending || createMut.isLoading || updateMut.isLoading;
+  const isArchivedView = view === 'archived';
 
   useEffect(() => {
     if (editing) {
@@ -162,10 +168,20 @@ export const AdminFallbacks = () => {
     if (!fallbackToDelete?._id) return;
     try {
       await deleteMut.mutateAsync(fallbackToDelete._id);
-      toast.success('Historical flood spot deleted');
+      toast.success('Historical flood spot archived');
       setFallbackToDelete(null);
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Delete failed');
+      toast.error(err?.response?.data?.message || 'Archive failed');
+    }
+  };
+
+  const restoreFallback = async (item) => {
+    if (!item?._id || isRestoring) return;
+    try {
+      await restoreMut.mutateAsync(item._id);
+      toast.success('Historical flood spot restored');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Restore failed');
     }
   };
 
@@ -177,12 +193,25 @@ export const AdminFallbacks = () => {
           <p className="text-white/60">Manage places that are commonly flooded and visible in offline Feed mode.</p>
         </div>
         <div className="flex gap-2">
+          <div className="flex items-center gap-1 rounded-xl bg-white/5 border border-white/10 p-1">
+            {['active', 'archived'].map((key) => (
+              <button
+                key={key}
+                onClick={() => setView(key)}
+                className={`px-3 py-1.5 text-sm rounded-lg ${view === key ? 'bg-white/15 text-white' : 'text-white/60 hover:text-white'}`}
+              >
+                {key === 'active' ? 'Active' : 'Archived'}
+              </button>
+            ))}
+          </div>
           <input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Search name, notes, barangay" className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-white/50"/>
           <select value={prioritySort} onChange={(e) => setPrioritySort(e.target.value)} className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white">
             <option value="desc" style={{ color: '#111827', backgroundColor: '#ffffff' }}>Priority: High to Low</option>
             <option value="asc" style={{ color: '#111827', backgroundColor: '#ffffff' }}>Priority: Low to High</option>
           </select>
-          <button onClick={openCreate} className="px-4 py-2 duration-300 transition-all rounded-xl shadow-[0_4px_16px_rgba(197,73,20,0.3)] hover:-translate-y-0.5 shrink-0 whitespace-nowrap" style={{ background: 'linear-gradient(135deg, #c54914 0%, #7a2200 100%)' }}>Add Place</button>
+          {!isArchivedView && (
+            <button onClick={openCreate} className="px-4 py-2 duration-300 transition-all rounded-xl shadow-[0_4px_16px_rgba(197,73,20,0.3)] hover:-translate-y-0.5 shrink-0 whitespace-nowrap" style={{ background: 'linear-gradient(135deg, #c54914 0%, #7a2200 100%)' }}>Add Place</button>
+          )}
         </div>
       </div>
 
@@ -207,7 +236,7 @@ export const AdminFallbacks = () => {
                 <tr><td className="px-4 py-6 text-red-400" colSpan={5}>Failed to load</td></tr>
               )}
               {!isLoading && !error && filtered.length === 0 && (
-                <tr><td className="px-4 py-6 text-white/70" colSpan={5}>No historical flood spots found</td></tr>
+                <tr><td className="px-4 py-6 text-white/70" colSpan={5}>{isArchivedView ? 'No archived flood spots found' : 'No historical flood spots found'}</td></tr>
               )}
               {!isLoading && !error && filtered.map((i) => (
                 <tr key={i._id} className="hover:bg-white/5">
@@ -221,12 +250,20 @@ export const AdminFallbacks = () => {
                   <td className="px-4 py-3 text-white/60">{i.notes || '—'}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1.5">
-                      <button title="Edit" onClick={()=>openEdit(i)} className="w-9 h-9 rounded-lg hover:bg-white/10 flex items-center justify-center">
-                        <svg className="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4h2a2 2 0 012 2v2m-1 5l3-3a2.121 2.121 0 10-3-3l-3 3m-1 1l-4 4v2h2l4-4"/></svg>
-                      </button>
-                      <button title="Delete" onClick={()=>openDeleteModal(i)} disabled={isDeleting} className="w-9 h-9 rounded-lg hover:bg-red-500/10 flex items-center justify-center disabled:opacity-50">
-                        <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-1-2H10a1 1 0 00-1 1v1h8V6a1 1 0 00-1-1z"/></svg>
-                      </button>
+                      {isArchivedView ? (
+                        <button title="Restore" onClick={() => restoreFallback(i)} disabled={isRestoring} className="w-9 h-9 rounded-lg hover:bg-emerald-500/10 flex items-center justify-center disabled:opacity-50">
+                          <svg className="w-5 h-5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12a9 9 0 101.5-5.5M3 4v4h4"/></svg>
+                        </button>
+                      ) : (
+                        <>
+                          <button title="Edit" onClick={()=>openEdit(i)} className="w-9 h-9 rounded-lg hover:bg-white/10 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4h2a2 2 0 012 2v2m-1 5l3-3a2.121 2.121 0 10-3-3l-3 3m-1 1l-4 4v2h2l4-4"/></svg>
+                          </button>
+                          <button title="Archive" onClick={()=>openDeleteModal(i)} disabled={isDeleting} className="w-9 h-9 rounded-lg hover:bg-red-500/10 flex items-center justify-center disabled:opacity-50">
+                            <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-1-2H10a1 1 0 00-1 1v1h8V6a1 1 0 00-1-1z"/></svg>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -295,11 +332,12 @@ export const AdminFallbacks = () => {
         onClose={closeDeleteModal}
         onConfirm={confirmDelete}
         isPending={isDeleting}
-        title="Delete Historical Flood Spot"
-        description="This will remove the location from the historical flood spot registry."
+        title="Archive Historical Flood Spot"
+        description="This will move the location to the archived list and hide it from active views."
         itemLabel="Historical Flood Spot"
         itemValue={fallbackToDelete ? `${fallbackToDelete.name}${fallbackToDelete.barangay ? ` - ${fallbackToDelete.barangay}` : ''}` : undefined}
-        confirmText="Delete Spot"
+        confirmText="Archive Spot"
+        pendingText="Archiving..."
       />
     </div>
   );

@@ -6,6 +6,9 @@ import { writeAdminLog, ADMIN_ACTIONS, ADMIN_ENTITIES } from '../services/adminA
 
 const router = express.Router();
 
+const parseArchivedFlag = (value) => String(value || '').toLowerCase() === 'true';
+const buildActiveFilter = (archived) => (archived ? { isActive: false } : { isActive: { $ne: false } });
+
 // Apply general rate limiting to all fallback routes
 router.use(generalRateLimit);
 
@@ -21,21 +24,44 @@ router.get('/', async (req, res) => {
       radius = 10000 // 10km default radius
     } = req.query;
 
+    const archived = parseArchivedFlag(req.query.archived);
+    const activeFilter = buildActiveFilter(archived);
+
     let places;
+    let totalQuery = { ...activeFilter };
 
     // Location-based search if coordinates provided
     if (lat && lng) {
-      places = await FallbackPlace.findNearby(
-        parseFloat(lng), 
-        parseFloat(lat), 
-        parseInt(radius)
-      )
+      const geoQuery = {
+        location: {
+          $near: {
+            $geometry: {
+              type: 'Point',
+              coordinates: [parseFloat(lng), parseFloat(lat)]
+            },
+            $maxDistance: parseInt(radius)
+          }
+        },
+        ...activeFilter,
+      };
+
+      if (barangay) {
+        geoQuery.barangay = new RegExp(barangay, 'i');
+      }
+
+      places = await FallbackPlace.find(geoQuery)
         .populate('createdBy', 'name')
+        .sort({ priority: -1, barangay: 1, name: 1 })
         .limit(parseInt(limit))
         .skip(parseInt(skip));
+
+      totalQuery = {
+        ...activeFilter,
+        ...(barangay ? { barangay: new RegExp(barangay, 'i') } : {}),
+      };
     } else {
       // Build query for regular search
-      const query = { isActive: true };
+      const query = { ...activeFilter };
       
       if (barangay) query.barangay = new RegExp(barangay, 'i');
 
@@ -44,10 +70,12 @@ router.get('/', async (req, res) => {
         .sort({ priority: -1, barangay: 1, name: 1 })
         .limit(parseInt(limit))
         .skip(parseInt(skip));
+
+      totalQuery = query;
     }
 
     // Get total count for pagination
-    const total = await FallbackPlace.countDocuments({ isActive: true });
+    const total = await FallbackPlace.countDocuments(totalQuery);
 
     res.json({
       success: true,
@@ -77,7 +105,7 @@ router.get('/:id', async (req, res) => {
     const place = await FallbackPlace.findById(req.params.id)
       .populate('createdBy', 'name email');
 
-    if (!place || !place.isActive) {
+    if (!place || place.isActive === false) {
       return res.status(404).json({
         success: false,
         message: 'Historical flood spot not found.'
@@ -249,7 +277,7 @@ router.patch('/:id', authenticate, requireAdmin, async (req, res) => {
     } = req.body;
 
     const place = await FallbackPlace.findById(req.params.id);
-    if (!place || !place.isActive) {
+    if (!place || place.isActive === false) {
       return res.status(404).json({
         success: false,
         message: 'Historical flood spot not found.'
@@ -346,7 +374,7 @@ router.patch('/:id/priority', authenticate, requireAdmin, async (req, res) => {
     }
 
     const place = await FallbackPlace.findById(req.params.id);
-    if (!place || !place.isActive) {
+    if (!place || place.isActive === false) {
       return res.status(404).json({
         success: false,
         message: 'Historical flood spot not found.'
@@ -391,7 +419,7 @@ router.patch('/:id/priority', authenticate, requireAdmin, async (req, res) => {
 router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
   try {
     const place = await FallbackPlace.findById(req.params.id);
-    if (!place || !place.isActive) {
+    if (!place || place.isActive === false) {
       return res.status(404).json({
         success: false,
         message: 'Historical flood spot not found.'
@@ -431,6 +459,58 @@ router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Internal server error while deleting historical flood spot.'
+    });
+  }
+});
+
+// Restore historical flood spot (admin only)
+router.patch('/:id/restore', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const place = await FallbackPlace.findById(req.params.id);
+    if (!place) {
+      return res.status(404).json({
+        success: false,
+        message: 'Historical flood spot not found.'
+      });
+    }
+
+    if (place.isActive !== false) {
+      return res.status(400).json({
+        success: false,
+        message: 'Historical flood spot is already active.'
+      });
+    }
+
+    const previousIsActive = place.isActive;
+    place.isActive = true;
+    await place.save();
+    await place.populate('createdBy', 'name');
+
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.FALLBACK_UPDATED,
+      entityType: ADMIN_ENTITIES.FALLBACK,
+      entityId: place._id,
+      entityLabel: `${place.name}${place.barangay ? ` - ${place.barangay}` : ''}`,
+      changes: {
+        isActive: { from: previousIsActive, to: place.isActive },
+      },
+      metadata: {
+        barangay: place.barangay,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Historical flood spot restored successfully.',
+      data: { place }
+    });
+  } catch (error) {
+    console.error('Restore historical flood spot error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error while restoring historical flood spot.'
     });
   }
 });

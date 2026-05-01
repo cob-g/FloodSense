@@ -4,6 +4,10 @@ export const fallbacksService = {
   getFallbacks: async (params = {}) => {
     return api.get('/fallbacks', { params });
   },
+
+  getArchivedFallbacks: async (params = {}) => {
+    return api.get('/fallbacks', { params: { ...params, archived: true } });
+  },
   
   getFallback: async (id) => {
     return api.get(`/fallbacks/${id}`);
@@ -19,6 +23,10 @@ export const fallbacksService = {
   
   deleteFallback: async (id) => {
     return api.delete(`/fallbacks/${id}`);
+  },
+
+  restoreFallback: async (id) => {
+    return api.patch(`/fallbacks/${id}/restore`);
   },
   
   updatePriority: async (id, priority) => {

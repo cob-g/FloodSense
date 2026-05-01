@@ -1,18 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sensorsService } from '../services/sensors.service';
 
-export const useListSensors = () => {
+export const useListSensors = (params = {}, options = {}) => {
   return useQuery({
-    queryKey: ['sensors', 'registry'],
-    queryFn: sensorsService.listSensors,
+    queryKey: ['sensors', 'registry', params],
+    queryFn: () => sensorsService.listSensors(params),
+    ...options,
   });
 };
 
-export const useListSensorsWithStatus = () => {
+export const useListSensorsWithStatus = (params = {}, options = {}) => {
   return useQuery({
-    queryKey: ['sensors', 'with-status'],
-    queryFn: sensorsService.listSensorsWithStatus,
-    refetchInterval: 30000,
+    queryKey: ['sensors', 'with-status', params],
+    queryFn: () => sensorsService.listSensorsWithStatus(params),
+    refetchInterval: params?.archived ? false : 30000,
+    ...options,
   });
 };
 
@@ -21,8 +23,7 @@ export const useCreateSensor = () => {
   return useMutation({
     mutationFn: sensorsService.createSensor,
     onSuccess: () => {
-      qc.invalidateQueries(['sensors', 'registry']);
-      qc.invalidateQueries(['sensors', 'with-status']);
+      qc.invalidateQueries({ queryKey: ['sensors'] });
     },
   });
 };
@@ -32,8 +33,7 @@ export const useUpdateSensor = () => {
   return useMutation({
     mutationFn: sensorsService.updateSensor,
     onSuccess: () => {
-      qc.invalidateQueries(['sensors', 'registry']);
-      qc.invalidateQueries(['sensors', 'with-status']);
+      qc.invalidateQueries({ queryKey: ['sensors'] });
     },
   });
 };
@@ -43,8 +43,17 @@ export const useDeleteSensor = () => {
   return useMutation({
     mutationFn: sensorsService.deleteSensor,
     onSuccess: () => {
-      qc.invalidateQueries(['sensors', 'registry']);
-      qc.invalidateQueries(['sensors', 'with-status']);
+      qc.invalidateQueries({ queryKey: ['sensors'] });
+    },
+  });
+};
+
+export const useRestoreSensor = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: sensorsService.restoreSensor,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['sensors'] });
     },
   });
 };

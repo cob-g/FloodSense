@@ -9,6 +9,14 @@ export const useAdminUsers = (params = {}, options = {}) => {
   });
 };
 
+export const useArchivedAdminUsers = (params = {}, options = {}) => {
+  return useQuery({
+    queryKey: ['admin-users', 'archived', params],
+    queryFn: () => usersService.list({ ...params, archived: true }),
+    ...options,
+  });
+};
+
 export const useUpdateUserStatus = () => {
   const qc = useQueryClient();
   return useMutation({

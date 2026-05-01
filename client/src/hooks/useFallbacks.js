@@ -7,6 +7,7 @@ export const useFallbacks = (params = {}, options = {}) => {
     queryKey: ['fallbacks', params],
     queryFn: () => fallbacksService.getFallbacks(params),
     onSuccess: (res) => {
+      if (params?.archived) return;
       try {
         const list = res?.data?.places || res?.places || res?.data?.fallbacks || res?.fallbacks || [];
         localStorage.setItem('fallbacks_cache', JSON.stringify(list));
@@ -15,6 +16,14 @@ export const useFallbacks = (params = {}, options = {}) => {
         // ignore caching errors
       }
     },
+    ...options,
+  });
+};
+
+export const useArchivedFallbacks = (params = {}, options = {}) => {
+  return useQuery({
+    queryKey: ['fallbacks', 'archived', params],
+    queryFn: () => fallbacksService.getArchivedFallbacks(params),
     ...options,
   });
 };
@@ -43,6 +52,16 @@ export const useDeleteFallback = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id) => fallbacksService.deleteFallback(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fallbacks'] });
+    }
+  });
+};
+
+export const useRestoreFallback = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => fallbacksService.restoreFallback(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fallbacks'] });
     }

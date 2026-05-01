@@ -47,7 +47,7 @@ const RoleBadge = ({ role }) => {
 };
 
 const StatusBadge = ({ active }) => (
-  <span className={`text-xs px-2 py-1 rounded-lg border ${active ? 'text-green-300 border-green-400/40 bg-green-400/10' : 'text-red-300 border-red-400/40 bg-red-400/10'}`}>{active ? 'Active' : 'Deactivated'}</span>
+  <span className={`text-xs px-2 py-1 rounded-lg border ${active ? 'text-green-300 border-green-400/40 bg-green-400/10' : 'text-red-300 border-red-400/40 bg-red-400/10'}`}>{active ? 'Active' : 'Archived'}</span>
 );
 
 function TinyRoleChart({ counts = { user: 0, admin: 0, superadmin: 0 }, height = 120 }) {
@@ -91,6 +91,8 @@ export const AdminUsers = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [view, setView] = useState('active');
+  const isArchivedView = view === 'archived';
 
   const query = useMemo(() => {
     const skip = currentPage * pageSize;
@@ -100,8 +102,9 @@ export const AdminUsers = () => {
       skip,
       sortBy,
       sortOrder,
+      archived: isArchivedView ? true : undefined,
     };
-  }, [q, pageSize, currentPage, sortBy, sortOrder]);
+  }, [q, pageSize, currentPage, sortBy, sortOrder, isArchivedView]);
 
   const { data, isLoading, error, isFetching } = useAdminUsers(query);
   const updRole = useUpdateUserRole();
@@ -128,7 +131,7 @@ export const AdminUsers = () => {
 
   useEffect(() => {
     setCurrentPage(0);
-  }, [q, pageSize, sortBy, sortOrder]);
+  }, [q, pageSize, sortBy, sortOrder, isArchivedView]);
 
   useEffect(() => {
     if (!isLoading && currentPage > 0 && users.length === 0) {
@@ -145,7 +148,7 @@ export const AdminUsers = () => {
   const toggleActive = async (id, isActive) => {
     try {
       await updStatus.mutateAsync({ id, isActive });
-      toast.success(isActive ? 'Account activated' : 'Account deactivated');
+      toast.success(isActive ? 'Account restored' : 'Account archived');
     } catch (e) { toast.error(e?.message || 'Failed to update status'); }
   };
 
@@ -174,7 +177,18 @@ export const AdminUsers = () => {
       </div>
 
       <div className="bg-white/5 rounded-2xl border border-white/10 p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          <div className="flex items-center gap-1 rounded-xl bg-white/5 border border-white/10 p-1">
+            {['active', 'archived'].map((key) => (
+              <button
+                key={key}
+                onClick={() => setView(key)}
+                className={`w-full px-3 py-2 text-sm rounded-lg ${view === key ? 'bg-white/15 text-white' : 'text-white/60 hover:text-white'}`}
+              >
+                {key === 'active' ? 'Active' : 'Archived'}
+              </button>
+            ))}
+          </div>
           <input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
@@ -223,7 +237,7 @@ export const AdminUsers = () => {
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
           <div className="bg-white/5 rounded-xl p-4 border border-white/10"><div className="text-xs text-white/60 mb-1">Total Accounts</div><div className="text-3xl font-black text-white">{counts.total ?? '—'}</div></div>
           <div className="bg-white/5 rounded-xl p-4 border border-white/10"><div className="text-xs text-white/60 mb-1">Active</div><div className="text-3xl font-black text-white">{counts.active ?? '—'}</div></div>
-          <div className="bg-white/5 rounded-xl p-4 border border-white/10"><div className="text-xs text-white/60 mb-1">Deactivated</div><div className="text-3xl font-black text-white">{counts.deactivated ?? '—'}</div></div>
+          <div className="bg-white/5 rounded-xl p-4 border border-white/10"><div className="text-xs text-white/60 mb-1">Archived</div><div className="text-3xl font-black text-white">{counts.deactivated ?? '—'}</div></div>
           <div className="bg-white/5 rounded-xl p-4 border border-white/10"><div className="text-xs text-white/60 mb-1">Admins</div><div className="text-3xl font-black text-white">{counts.admins ?? '—'}</div></div>
           <div className="bg-white/5 rounded-xl p-4 border border-white/10"><div className="text-xs text-white/60 mb-1">New Last 7 Days</div><div className="text-3xl font-black text-white">{counts.newLast7Days ?? '—'}</div></div>
         </div>
@@ -243,7 +257,7 @@ export const AdminUsers = () => {
           {isLoading && <div className="px-4 py-6 text-white/70">Loading...</div>}
           {error && <div className="px-4 py-6 text-red-400">Failed to load accounts</div>}
           {!isLoading && !error && users.length === 0 && (
-            <div className="px-4 py-6 text-white/70">No accounts found for the current filters.</div>
+            <div className="px-4 py-6 text-white/70">{isArchivedView ? 'No archived accounts found for the current filters.' : 'No accounts found for the current filters.'}</div>
           )}
           {!isLoading && !error && users.map((u) => (
             <div key={u.id} className="p-4 flex items-center justify-between gap-4 hover:bg-white/5">
@@ -273,7 +287,7 @@ export const AdminUsers = () => {
                   </select>
                 )}
                 <button
-                  title={u.isActive ? 'Deactivate' : 'Activate'}
+                  title={u.isActive ? 'Archive' : 'Restore'}
                   onClick={()=>toggleActive(u.id, !u.isActive)}
                   disabled={!(currentUser?.role === 'superadmin' || (currentUser?.role === 'admin' && u.role === 'user'))}
                   className={`w-9 h-9 rounded-lg flex items-center justify-center ${u.isActive ? 'hover:bg-red-500/10' : 'hover:bg-green-500/10'} disabled:opacity-50 disabled:cursor-not-allowed`}

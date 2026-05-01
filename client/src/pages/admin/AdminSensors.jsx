@@ -1,17 +1,23 @@
 import { useState } from 'react';
-import { useListSensorsWithStatus, useCreateSensor, useUpdateSensor, useDeleteSensor } from '../../hooks/useSensorRegistry';
+import { useListSensorsWithStatus, useCreateSensor, useUpdateSensor, useDeleteSensor, useRestoreSensor } from '../../hooks/useSensorRegistry';
 import { useToast } from '../../contexts/ToastContext';
 import ReportDeleteConfirmModal from '../../components/admin/ReportDeleteConfirmModal';
 
 export default function AdminSensors() {
-  const { data, isLoading, error } = useListSensorsWithStatus();
+  const [view, setView] = useState('active');
+  const activeQuery = useListSensorsWithStatus({}, { enabled: view === 'active' });
+  const archivedQuery = useListSensorsWithStatus({ archived: true }, { enabled: view === 'archived' });
+  const { data, isLoading, error } = view === 'archived' ? archivedQuery : activeQuery;
   const createMut = useCreateSensor();
   const updateMut = useUpdateSensor();
   const deleteMut = useDeleteSensor();
+  const restoreMut = useRestoreSensor();
   const sensors = data?.data || [];
   const toast = useToast();
-  const [sensorToDelete, setSensorToDelete] = useState(null);
-  const isDeleting = deleteMut.isLoading;
+  const [sensorToArchive, setSensorToArchive] = useState(null);
+  const isArchiving = deleteMut.isLoading;
+  const isRestoring = restoreMut.isLoading;
+  const isArchivedView = view === 'archived';
 
   const [form, setForm] = useState({
     sensorId: '',
@@ -85,20 +91,30 @@ export default function AdminSensors() {
   };
   const cancelEdit = () => setEditingId(null);
   const openDeleteModal = (sensor) => {
-    setSensorToDelete(sensor);
+    setSensorToArchive(sensor);
   };
   const closeDeleteModal = () => {
-    if (isDeleting) return;
-    setSensorToDelete(null);
+    if (isArchiving) return;
+    setSensorToArchive(null);
   };
   const confirmDelete = async () => {
-    if (!sensorToDelete?._id) return;
+    if (!sensorToArchive?._id) return;
     try {
-      await deleteMut.mutateAsync(sensorToDelete._id);
-      toast.success('Sensor deleted');
-      setSensorToDelete(null);
+      await deleteMut.mutateAsync(sensorToArchive._id);
+      toast.success('Sensor archived');
+      setSensorToArchive(null);
     } catch (err) {
-      toast.error(err?.error || err?.message || 'Failed to delete sensor');
+      toast.error(err?.error || err?.message || 'Failed to archive sensor');
+    }
+  };
+
+  const restoreSensor = async (sensor) => {
+    if (!sensor?._id || isRestoring) return;
+    try {
+      await restoreMut.mutateAsync(sensor._id);
+      toast.success('Sensor restored');
+    } catch (err) {
+      toast.error(err?.error || err?.message || 'Failed to restore sensor');
     }
   };
 
@@ -109,48 +125,61 @@ export default function AdminSensors() {
           <h1 className="text-2xl font-black text-white">Sensors</h1>
           <p className="text-white/60">Manage registry: IDs, locations, and metadata</p>
         </div>
+        <div className="flex items-center gap-1 rounded-xl bg-white/5 border border-white/10 p-1">
+          {['active', 'archived'].map((key) => (
+            <button
+              key={key}
+              onClick={() => setView(key)}
+              className={`px-3 py-1.5 text-sm rounded-lg ${view === key ? 'bg-white/15 text-white' : 'text-white/60 hover:text-white'}`}
+            >
+              {key === 'active' ? 'Active' : 'Archived'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Create form */}
-      <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 mb-8">
-        <h2 className="text-white font-semibold mb-4">Add Sensor</h2>
-        <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs text-white/60 mb-1">Sensor ID</label>
-            <input name="sensorId" value={form.sensorId} onChange={onChange} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" placeholder="FS-012" />
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-xs text-white/60 mb-1">Location Name</label>
-            <input name="locationName" value={form.locationName} onChange={onChange} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" placeholder="Barangay 175" />
-          </div>
-          <div>
-            <label className="block text-xs text-white/60 mb-1">Latitude</label>
-            <input name="latitude" value={form.latitude} onChange={onChange} type="number" step="any" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" />
-          </div>
-          <div>
-            <label className="block text-xs text-white/60 mb-1">Longitude</label>
-            <input name="longitude" value={form.longitude} onChange={onChange} type="number" step="any" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" />
-          </div>
-          <div>
-            <label className="block text-xs text-white/60 mb-1">Mount Height (cm)</label>
-            <input name="mountHeight" value={form.mountHeight} onChange={onChange} type="number" step="1" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" />
-          </div>
-          <div className="md:col-span-3">
-            <label className="block text-xs text-white/60 mb-1">Notes</label>
-            <textarea name="notes" value={form.notes} onChange={onChange} rows={2} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" />
-          </div>
-          <div className="md:col-span-3 flex justify-end">
-            <button
-              type="submit"
-              disabled={createMut.isLoading}
-              className="px-4 py-2.5 rounded-xl text-white font-medium text-sm transition-all duration-300 shadow-[0_4px_16px_rgba(197,73,20,0.3)] hover:-translate-y-0.5 shrink-0 whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed"
-              style={{ background: 'linear-gradient(135deg, #c54914 0%, #7a2200 100%)' }}
-            >
-              {createMut.isLoading ? 'Saving…' : 'Add Sensor'}
-            </button>
-          </div>
-        </form>
-      </div>
+      {!isArchivedView && (
+        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 mb-8">
+          <h2 className="text-white font-semibold mb-4">Add Sensor</h2>
+          <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs text-white/60 mb-1">Sensor ID</label>
+              <input name="sensorId" value={form.sensorId} onChange={onChange} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" placeholder="FS-012" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs text-white/60 mb-1">Location Name</label>
+              <input name="locationName" value={form.locationName} onChange={onChange} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" placeholder="Barangay 175" />
+            </div>
+            <div>
+              <label className="block text-xs text-white/60 mb-1">Latitude</label>
+              <input name="latitude" value={form.latitude} onChange={onChange} type="number" step="any" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" />
+            </div>
+            <div>
+              <label className="block text-xs text-white/60 mb-1">Longitude</label>
+              <input name="longitude" value={form.longitude} onChange={onChange} type="number" step="any" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" />
+            </div>
+            <div>
+              <label className="block text-xs text-white/60 mb-1">Mount Height (cm)</label>
+              <input name="mountHeight" value={form.mountHeight} onChange={onChange} type="number" step="1" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" />
+            </div>
+            <div className="md:col-span-3">
+              <label className="block text-xs text-white/60 mb-1">Notes</label>
+              <textarea name="notes" value={form.notes} onChange={onChange} rows={2} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" />
+            </div>
+            <div className="md:col-span-3 flex justify-end">
+              <button
+                type="submit"
+                disabled={createMut.isLoading}
+                className="px-4 py-2.5 rounded-xl text-white font-medium text-sm transition-all duration-300 shadow-[0_4px_16px_rgba(197,73,20,0.3)] hover:-translate-y-0.5 shrink-0 whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ background: 'linear-gradient(135deg, #c54914 0%, #7a2200 100%)' }}
+              >
+                {createMut.isLoading ? 'Saving…' : 'Add Sensor'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Registry list */}
       <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
@@ -176,7 +205,7 @@ export default function AdminSensors() {
               </thead>
               <tbody className="divide-y divide-white/10">
                 {sensors.length === 0 && (
-                  <tr><td className="px-4 py-6 text-white/70" colSpan={6}>No sensors yet. Add one above.</td></tr>
+                  <tr><td className="px-4 py-6 text-white/70" colSpan={6}>{isArchivedView ? 'No archived sensors found.' : 'No sensors yet. Add one above.'}</td></tr>
                 )}
                 {sensors.map((s) => {
                   const online = !!s.online;
@@ -225,7 +254,11 @@ export default function AdminSensors() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          {rowEditing ? (
+                          {isArchivedView ? (
+                            <button onClick={() => restoreSensor(s)} title="Restore" disabled={isRestoring} className="p-1.5 rounded-lg bg-white/10 border border-white/10 text-emerald-200 hover:bg-white/15 disabled:opacity-50">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12a9 9 0 101.5-5.5M3 4v4h4"/></svg>
+                            </button>
+                          ) : rowEditing ? (
                             <>
                               <button onClick={() => saveEdit(s)} title="Save" className="p-1.5 rounded-lg bg-white/10 border border-white/10 text-white hover:bg-white/15">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg>
@@ -242,7 +275,7 @@ export default function AdminSensors() {
                               <button onClick={() => beginEdit(s)} title="Edit" className="p-1.5 rounded-lg bg-white/10 border border-white/10 text-white hover:bg-white/15">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5h2m-1 14v-4m0 0l7-7a2 2 0 10-2.828-2.828l-7 7V19z"/></svg>
                               </button>
-                              <button onClick={() => openDeleteModal(s)} title="Delete" disabled={isDeleting} className="p-1.5 rounded-lg bg-white/10 border border-white/10 text-white hover:bg-white/15 disabled:opacity-50">
+                              <button onClick={() => openDeleteModal(s)} title="Archive" disabled={isArchiving} className="p-1.5 rounded-lg bg-white/10 border border-white/10 text-white hover:bg-white/15 disabled:opacity-50">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m2 0v12a2 2 0 01-2 2H8a2 2 0 01-2-2V7z"/></svg>
                               </button>
                             </>
@@ -259,15 +292,16 @@ export default function AdminSensors() {
       </div>
 
       <ReportDeleteConfirmModal
-        open={!!sensorToDelete}
+        open={!!sensorToArchive}
         onClose={closeDeleteModal}
         onConfirm={confirmDelete}
-        isPending={isDeleting}
-        title="Delete Sensor"
-        description="This will remove the sensor from the registry and status list."
+        isPending={isArchiving}
+        title="Archive Sensor"
+        description="This will move the sensor to the archived list and hide it from active views."
         itemLabel="Sensor"
-        itemValue={sensorToDelete ? `${sensorToDelete.sensorId}${sensorToDelete.locationName ? ` - ${sensorToDelete.locationName}` : ''}` : undefined}
-        confirmText="Delete Sensor"
+        itemValue={sensorToArchive ? `${sensorToArchive.sensorId}${sensorToArchive.locationName ? ` - ${sensorToArchive.locationName}` : ''}` : undefined}
+        confirmText="Archive Sensor"
+        pendingText="Archiving..."
       />
     </div>
   );

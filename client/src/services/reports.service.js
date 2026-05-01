@@ -4,6 +4,10 @@ export const reportsService = {
   getReports: async (params = {}) => {
     return api.get('/reports', { params });
   },
+
+  getArchivedReports: async (params = {}) => {
+    return api.get('/reports', { params: { ...params, archived: true } });
+  },
   
   getReport: async (id) => {
     return api.get(`/reports/${id}`);
@@ -21,6 +25,10 @@ export const reportsService = {
   
   deleteReport: async (id) => {
     return api.delete(`/reports/${id}`);
+  },
+
+  restoreReport: async (id) => {
+    return api.patch(`/reports/${id}/restore`);
   },
   
   validateReport: async (id, notes) => {

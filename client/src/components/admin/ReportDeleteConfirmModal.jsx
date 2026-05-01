@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Archive, X } from 'lucide-react';
 
 export const ReportDeleteConfirmModal = ({
   open,
@@ -7,12 +7,12 @@ export const ReportDeleteConfirmModal = ({
   onConfirm,
   isPending = false,
   report = null,
-  title = 'Delete Report',
-  description = 'This will remove the report from admin and feed views.',
+  title = 'Archive Report',
+  description = 'This will move the report to the archived list and hide it from active views.',
   itemLabel = 'Location',
   itemValue,
-  confirmText = 'Delete Report',
-  pendingText = 'Deleting...',
+  confirmText = 'Archive Report',
+  pendingText = 'Archiving...',
   cancelText = 'Cancel',
 }) => {
   if (!open) return null;
@@ -79,7 +79,7 @@ export const ReportDeleteConfirmModal = ({
             disabled={isPending}
             className="flex-1 px-4 py-2.5 rounded-xl border border-red-400/40 bg-red-500/20 hover:bg-red-500/30 text-red-100 font-semibold disabled:opacity-50 inline-flex items-center justify-center gap-2"
           >
-            <Trash2 className="w-4 h-4" />
+            <Archive className="w-4 h-4" />
             {isPending ? pendingText : confirmText}
           </button>
         </div>

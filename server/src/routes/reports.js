@@ -10,6 +10,9 @@ import { writeAdminLog, ADMIN_ACTIONS, ADMIN_ENTITIES } from '../services/adminA
 
 const router = express.Router();
 
+const parseArchivedFlag = (value) => String(value || '').toLowerCase() === 'true';
+const buildActiveFilter = (archived) => (archived ? { isActive: false } : { isActive: { $ne: false } });
+
 function startOfDay(d) {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
@@ -186,9 +189,11 @@ router.get('/', async (req, res) => {
       radius = 5000 // 5km default
     } = req.query;
 
+    const archived = parseArchivedFlag(req.query.archived);
+
     // Build query
     const query = {
-      isActive: true,
+      ...buildActiveFilter(archived),
       ...(status && { status }),
       ...(severity && { severity }),
       ...(photos === 'true' && { 'photos.0': { $exists: true } }),
@@ -302,7 +307,7 @@ router.get('/export', authenticate, requireAdmin, async (req, res) => {
       });
     }
 
-    const reports = await Report.find({ isActive: true })
+    const reports = await Report.find({ isActive: { $ne: false } })
       .sort({ createdAt: -1 })
       .populate('reporter', 'name email')
       .populate('validatedBy', 'name email')
@@ -405,7 +410,7 @@ router.patch('/:id/validate', authenticate, requireAdmin, async (req, res) => {
     const { notes } = req.body;
     
     const report = await Report.findById(req.params.id);
-    if (!report || !report.isActive) {
+    if (!report || report.isActive === false) {
       return res.status(404).json({
         success: false,
         message: 'Report not found.'
@@ -486,7 +491,7 @@ router.patch('/:id/reject', authenticate, requireAdmin, async (req, res) => {
     }
 
     const report = await Report.findById(req.params.id);
-    if (!report || !report.isActive) {
+    if (!report || report.isActive === false) {
       return res.status(404).json({
         success: false,
         message: 'Report not found.'
@@ -558,7 +563,7 @@ router.patch('/:id', authenticate, requireOwnershipOrAdmin, async (req, res) => 
     const { description } = req.body;
     
     const report = await Report.findById(req.params.id);
-    if (!report || !report.isActive) {
+    if (!report || report.isActive === false) {
       return res.status(404).json({
         success: false,
         message: 'Report not found.'
@@ -607,7 +612,7 @@ router.patch('/:id', authenticate, requireOwnershipOrAdmin, async (req, res) => 
 router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
   try {
     const report = await Report.findById(req.params.id);
-    if (!report || !report.isActive) {
+    if (!report || report.isActive === false) {
       return res.status(404).json({
         success: false,
         message: 'Report not found.'
@@ -654,6 +659,53 @@ router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Internal server error while deleting report.'
+    });
+  }
+});
+
+// Restore report (admin only)
+router.patch('/:id/restore', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id);
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: 'Report not found.'
+      });
+    }
+
+    if (report.isActive !== false) {
+      return res.status(400).json({
+        success: false,
+        message: 'Report is already active.'
+      });
+    }
+
+    report.isActive = true;
+    await report.save();
+    await report.populate(['reporter', 'validatedBy']);
+
+    // Emit real-time update
+    const io = getIO();
+    io.to(`barangay-${report.barangay}`).emit('report-restored', {
+      report: report.toJSON(),
+      message: `Report restored in ${report.barangay}`
+    });
+    io.emit('report-update', {
+      type: 'restored',
+      report: report.toJSON()
+    });
+
+    res.json({
+      success: true,
+      message: 'Report restored successfully.',
+      data: { report }
+    });
+  } catch (error) {
+    console.error('Restore report error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error while restoring report.'
     });
   }
 });

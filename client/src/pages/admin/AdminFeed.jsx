@@ -1,48 +1,64 @@
 import { useMemo, useState } from 'react';
-import { useReports, useDeleteReport } from '../../hooks/useReports';
+import { useReports, useArchivedReports, useDeleteReport, useRestoreReport } from '../../hooks/useReports';
 import ReportDetailModal from '../../components/reports/ReportDetailModal';
 import ReportDeleteConfirmModal from '../../components/admin/ReportDeleteConfirmModal';
 import { useToast } from '../../contexts/ToastContext';
 
 export const AdminFeed = () => {
   const [limit, setLimit] = useState(10);
-  const { data, isLoading, error } = useReports({ limit, status: 'VALIDATED' });
+  const [view, setView] = useState('active');
+  const activeQuery = useReports({ limit, status: 'VALIDATED' }, { enabled: view === 'active' });
+  const archivedQuery = useArchivedReports({ limit, status: 'VALIDATED' }, { enabled: view === 'archived' });
+  const { data, isLoading, error } = view === 'archived' ? archivedQuery : activeQuery;
   const reports = useMemo(() => data?.data?.reports || [], [data]);
   const delMut = useDeleteReport();
+  const restoreMut = useRestoreReport();
   const [selected, setSelected] = useState(null);
-  const [reportToDelete, setReportToDelete] = useState(null);
+  const [reportToArchive, setReportToArchive] = useState(null);
   const toast = useToast();
-  const isDeleting = delMut.isLoading;
+  const isArchiving = delMut.isLoading;
+  const isRestoring = restoreMut.isLoading;
+  const isArchivedView = view === 'archived';
 
-  const getDeleteErrorMessage = (err) => {
+  const getArchiveErrorMessage = (err) => {
     return (
       err?.message ||
       err?.error ||
       err?.response?.data?.message ||
-      'Failed to delete report'
+      'Failed to archive report'
     );
   };
 
-  const openDeleteModal = (report) => {
-    setReportToDelete(report);
+  const openArchiveModal = (report) => {
+    setReportToArchive(report);
   };
 
-  const closeDeleteModal = () => {
-    if (isDeleting) return;
-    setReportToDelete(null);
+  const closeArchiveModal = () => {
+    if (isArchiving) return;
+    setReportToArchive(null);
   };
 
-  const confirmDelete = async () => {
-    if (isDeleting || !reportToDelete?._id) return;
+  const confirmArchive = async () => {
+    if (isArchiving || !reportToArchive?._id) return;
     try {
-      const result = await delMut.mutateAsync(reportToDelete._id);
-      toast.success(result?.message || 'Report deleted successfully');
-      if (selected?._id === reportToDelete._id) {
+      const result = await delMut.mutateAsync(reportToArchive._id);
+      toast.success(result?.message || 'Report archived successfully');
+      if (selected?._id === reportToArchive._id) {
         setSelected(null);
       }
-      setReportToDelete(null);
+      setReportToArchive(null);
     } catch (e) {
-      toast.error(getDeleteErrorMessage(e));
+      toast.error(getArchiveErrorMessage(e));
+    }
+  };
+
+  const restoreReport = async (report) => {
+    if (!report?._id || isRestoring) return;
+    try {
+      const result = await restoreMut.mutateAsync(report._id);
+      toast.success(result?.message || 'Report restored successfully');
+    } catch (e) {
+      toast.error(e?.message || e?.error || e?.response?.data?.message || 'Failed to restore report');
     }
   };
 
@@ -65,6 +81,17 @@ export const AdminFeed = () => {
             <p className="text-white/60">Validated community flood reports</p>
           </div>
           <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 rounded-xl bg-white/5 border border-white/10 p-1">
+              {['active', 'archived'].map((key) => (
+                <button
+                  key={key}
+                  onClick={() => setView(key)}
+                  className={`px-3 py-1.5 text-sm rounded-lg ${view === key ? 'bg-white/15 text-white' : 'text-white/60 hover:text-white'}`}
+                >
+                  {key === 'active' ? 'Active' : 'Archived'}
+                </button>
+              ))}
+            </div>
             <label className="text-white/70 text-sm">Show</label>
             <select
               value={limit}
@@ -110,7 +137,7 @@ export const AdminFeed = () => {
           <div className="bg-white/5 rounded-xl border border-white/10 p-12 text-center">
             <div className="text-4xl mb-3">📝</div>
             <h3 className="text-lg text-white mb-1">No Reports</h3>
-            <p className="text-white/60">No validated reports to display</p>
+            <p className="text-white/60">{isArchivedView ? 'No archived reports to display' : 'No validated reports to display'}</p>
           </div>
         )}
 
@@ -154,16 +181,29 @@ export const AdminFeed = () => {
                       </svg>
                     </button>
                     
-                    <button
-                      onClick={() => openDeleteModal(report)}
-                      disabled={isDeleting}
-                      className="w-10 h-10 bg-white/5 hover:bg-red-500/20 rounded-lg border border-white/10 flex items-center justify-center"
-                      title="Delete Report"
-                    >
-                      <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-1-2H10a1 1 0 00-1 1v1h8V6a1 1 0 00-1-1z"/>
-                      </svg>
-                    </button>
+                    {isArchivedView ? (
+                      <button
+                        onClick={() => restoreReport(report)}
+                        disabled={isRestoring}
+                        className="w-10 h-10 bg-white/5 hover:bg-emerald-500/20 rounded-lg border border-white/10 flex items-center justify-center"
+                        title="Restore Report"
+                      >
+                        <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12a9 9 0 101.5-5.5M3 4v4h4" />
+                        </svg>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => openArchiveModal(report)}
+                        disabled={isArchiving}
+                        className="w-10 h-10 bg-white/5 hover:bg-red-500/20 rounded-lg border border-white/10 flex items-center justify-center"
+                        title="Archive Report"
+                      >
+                        <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-1-2H10a1 1 0 00-1 1v1h8V6a1 1 0 00-1-1z"/>
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -181,11 +221,15 @@ export const AdminFeed = () => {
       )}
 
       <ReportDeleteConfirmModal
-        open={!!reportToDelete}
-        report={reportToDelete}
-        onClose={closeDeleteModal}
-        onConfirm={confirmDelete}
-        isPending={isDeleting}
+        open={!!reportToArchive}
+        report={reportToArchive}
+        onClose={closeArchiveModal}
+        onConfirm={confirmArchive}
+        isPending={isArchiving}
+        title="Archive Report"
+        description="This will move the report to the archived list and hide it from active views."
+        confirmText="Archive Report"
+        pendingText="Archiving..."
       />
     </div>
   );

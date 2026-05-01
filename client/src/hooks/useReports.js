@@ -9,6 +9,14 @@ export const useReports = (filters = {}, options = {}) => {
   });
 };
 
+export const useArchivedReports = (filters = {}, options = {}) => {
+  return useQuery({
+    queryKey: ['reports', 'archived', filters],
+    queryFn: () => reportsService.getArchivedReports(filters),
+    ...options,
+  });
+};
+
 export const useInfiniteReports = (filters = {}, pageSize = 10) => {
   return useInfiniteQuery({
     queryKey: ['reports', 'infinite', filters, pageSize],
@@ -59,7 +67,18 @@ export const useDeleteReport = () => {
   return useMutation({
     mutationFn: reportsService.deleteReport,
     onSuccess: () => {
-      queryClient.invalidateQueries(['reports']);
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+    },
+  });
+};
+
+export const useRestoreReport = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: reportsService.restoreReport,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
     },
   });
 };

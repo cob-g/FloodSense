@@ -7,6 +7,9 @@ import { writeAdminLog, ADMIN_ACTIONS, ADMIN_ENTITIES } from '../services/adminA
 
 const router = express.Router();
 
+const parseArchivedFlag = (value) => String(value || '').toLowerCase() === 'true';
+const buildActiveFilter = (archived) => (archived ? { isActive: false } : { isActive: { $ne: false } });
+
 // @route   POST /api/sensor-data
 // @desc    Receive sensor data from ESP32
 // @access  Public (ESP32 device)
@@ -133,7 +136,8 @@ router.get('/sensor-data/latest', async (req, res) => {
 // @access  Admin (no auth check here; assumed handled by parent or future middleware)
 router.get('/sensors', async (req, res) => {
   try {
-    const sensors = await Sensor.find().sort({ createdAt: -1 });
+    const archived = parseArchivedFlag(req.query.archived);
+    const sensors = await Sensor.find(buildActiveFilter(archived)).sort({ createdAt: -1 });
     res.json({ success: true, count: sensors.length, data: sensors });
   } catch (error) {
     console.error('Error fetching sensors registry:', error);
@@ -206,7 +210,8 @@ router.post('/sensors', authenticate, requireAdmin, async (req, res) => {
 // @access  Public
 router.get('/sensors/with-status', async (req, res) => {
   try {
-    const sensors = await Sensor.find().sort({ createdAt: -1 }).lean();
+    const archived = parseArchivedFlag(req.query.archived);
+    const sensors = await Sensor.find(buildActiveFilter(archived)).sort({ createdAt: -1 }).lean();
     const now = Date.now();
     const results = await Promise.all(
       sensors.map(async (s) => {
@@ -306,8 +311,14 @@ router.put('/sensors/:id', authenticate, requireAdmin, async (req, res) => {
 router.delete('/sensors/:id', authenticate, requireAdmin, async (req, res) => {
   try {
     const id = req.params.id;
-    const removed = await Sensor.findByIdAndDelete(id);
-    if (!removed) return res.status(404).json({ success: false, error: 'Sensor not found' });
+    const sensor = await Sensor.findById(id);
+    if (!sensor || sensor.isActive === false) {
+      return res.status(404).json({ success: false, error: 'Sensor not found' });
+    }
+
+    const previousIsActive = sensor.isActive !== false;
+    sensor.isActive = false;
+    const removed = await sensor.save();
 
     await writeAdminLog({
       req,
@@ -316,6 +327,9 @@ router.delete('/sensors/:id', authenticate, requireAdmin, async (req, res) => {
       entityType: ADMIN_ENTITIES.SENSOR,
       entityId: removed._id,
       entityLabel: `${removed.sensorId}${removed.locationName ? ` - ${removed.locationName}` : ''}`,
+      changes: {
+        isActive: { from: previousIsActive, to: removed.isActive },
+      },
       metadata: {
         sensorId: removed.sensorId,
         locationName: removed.locationName,
@@ -326,6 +340,41 @@ router.delete('/sensors/:id', authenticate, requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error deleting sensor:', error);
     res.status(500).json({ success: false, error: 'Failed to delete sensor' });
+  }
+});
+
+// @route   PATCH /api/sensors/:id/restore
+// @desc    Restore archived sensor registry entry
+// @access  Admin
+router.patch('/sensors/:id/restore', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const sensor = await Sensor.findById(id);
+    if (!sensor) return res.status(404).json({ success: false, error: 'Sensor not found' });
+    if (sensor.isActive !== false) {
+      return res.status(400).json({ success: false, error: 'Sensor is already active' });
+    }
+
+    const previousIsActive = sensor.isActive;
+    sensor.isActive = true;
+    const restored = await sensor.save();
+
+    await writeAdminLog({
+      req,
+      user: req.user,
+      action: ADMIN_ACTIONS.SENSOR_UPDATED,
+      entityType: ADMIN_ENTITIES.SENSOR,
+      entityId: restored._id,
+      entityLabel: `${restored.sensorId}${restored.locationName ? ` - ${restored.locationName}` : ''}`,
+      changes: {
+        isActive: { from: previousIsActive, to: restored.isActive },
+      },
+    });
+
+    res.json({ success: true, data: restored });
+  } catch (error) {
+    console.error('Error restoring sensor:', error);
+    res.status(500).json({ success: false, error: 'Failed to restore sensor' });
   }
 });
 

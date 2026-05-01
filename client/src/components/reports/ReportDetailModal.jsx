@@ -6,7 +6,7 @@ import { useDeleteReport } from '../../hooks/useReports';
 import { useToast } from '../../contexts/ToastContext';
 import ReportDeleteConfirmModal from '../admin/ReportDeleteConfirmModal';
 import { createPortal } from 'react-dom';
-import { MapPin, Droplets, Navigation, User, Calendar, FileText, ShieldAlert, Waves, Trash2, X } from 'lucide-react';
+import { MapPin, Droplets, Navigation, User, Calendar, FileText, ShieldAlert, Waves, Archive, X } from 'lucide-react';
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:5000';
 
@@ -58,11 +58,11 @@ export const ReportDetailModal = ({ report, onClose }) => {
   const handleDelete = async () => {
     try {
       await deleteReport.mutateAsync(report._id);
-      toast.success('Report deleted successfully');
+      toast.success('Report archived successfully');
       setShowDeleteConfirm(false);
       onClose();
     } catch (error) {
-      toast.error('Failed to delete report: ' + (error?.message || 'Unknown error'));
+      toast.error('Failed to archive report: ' + (error?.message || 'Unknown error'));
     }
   };
 
@@ -308,8 +308,8 @@ export const ReportDetailModal = ({ report, onClose }) => {
               className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl text-sm font-bold transition-all duration-200 hover:shadow-md disabled:opacity-50"
               style={{ background: '#fff1f2', border: '1px solid #fecdd3', color: '#9f1239' }}
             >
-              <Trash2 className="w-4 h-4" />
-              {isDeleting ? 'Deleting...' : 'Delete Report'}
+              <Archive className="w-4 h-4" />
+              {isDeleting ? 'Archiving...' : 'Archive Report'}
             </button>
           )}
 

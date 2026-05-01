@@ -10,12 +10,12 @@ export const sensorsService = {
     const res = await api.get('/sensor-data/latest');
     return res;
   },
-  listSensors: async () => {
-    const res = await api.get('/sensors');
+  listSensors: async (params = {}) => {
+    const res = await api.get('/sensors', { params });
     return res;
   },
-  listSensorsWithStatus: async () => {
-    const res = await api.get('/sensors/with-status');
+  listSensorsWithStatus: async (params = {}) => {
+    const res = await api.get('/sensors/with-status', { params });
     return res;
   },
   createSensor: async (payload) => {
@@ -28,6 +28,10 @@ export const sensorsService = {
   },
   deleteSensor: async (id) => {
     const res = await api.delete(`/sensors/${id}`);
+    return res;
+  },
+  restoreSensor: async (id) => {
+    const res = await api.patch(`/sensors/${id}/restore`);
     return res;
   },
 };

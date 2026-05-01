@@ -7,6 +7,7 @@ const SensorSchema = new mongoose.Schema({
   longitude: { type: Number, default: null },
   mountHeight: { type: Number, default: null },
   notes: { type: String, default: null },
+  isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
 SensorSchema.index({ sensorId: 1 }, { unique: true });
