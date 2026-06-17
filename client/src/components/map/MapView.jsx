@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '../../utils/constants';
+import { Check, AlertTriangle, X, Satellite } from 'lucide-react';
 
 // Fix Leaflet default marker icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -10,6 +11,14 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
+
+// Create icon components for markers
+const StatusIcons = {
+  Passable: Check,
+  HeavyOnly: AlertTriangle,
+  NotPassable: X,
+  Sensor: Satellite
+};
 
 export const MapView = ({ 
   reports = [], 
@@ -33,8 +42,8 @@ export const MapView = ({
         attributionControl: false
       }).setView(center, zoom);
 
-      // Add elegant dark-themed map tiles
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      // Add minimalist map tiles
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
       }).addTo(mapInstanceRef.current);
 
@@ -119,26 +128,40 @@ export const MapView = ({
       markersRef.current = [];
     }
 
-    // Modern color scheme for flood status
+    // Minimal color scheme
     const statusConfig = {
       'Passable': { 
-        color: '#10b981', 
-        icon: '🟢',
-        label: 'Passable',
-        gradient: 'from-green-500 to-green-600'
+        color: '#10b981', // Green
+        label: 'Passable'
       },
       'HeavyOnly': { 
-        color: '#f59e0b', 
-        icon: '🟡',
-        label: 'Heavy Vehicles Only',
-        gradient: 'from-amber-500 to-amber-600'
+        color: '#f59e0b', // Amber
+        label: 'Heavy Vehicles Only'
       },
       'NotPassable': { 
-        color: '#ef4444', 
-        icon: '🔴',
-        label: 'Not Passable',
-        gradient: 'from-red-500 to-red-600'
+        color: '#ef4444', // Red
+        label: 'Not Passable'
       }
+    };
+
+    // Create SVG icons for markers
+    const createMarkerSVG = (color, IconComponent) => {
+      const svgString = `
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="${color}"/>
+          ${IconComponent === Check ? `
+            <path d="M7 12L10 15L17 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          ` : IconComponent === AlertTriangle ? `
+            <path d="M12 9V11M12 15H12.01M10.29 3.86L1.82 18C1.65 18.3 1.56 18.64 1.56 18.99C1.56 19.83 2.23 20.5 3.07 20.5H20.94C21.78 20.5 22.45 19.83 22.45 18.99C22.45 18.64 22.36 18.3 22.19 18L13.72 3.86C13.43 3.36 12.91 3.06 12.35 3.06C11.79 3.06 11.27 3.36 10.98 3.86Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          ` : IconComponent === X ? `
+            <path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          ` : `
+            <path d="M22 12L18 8V4H14L12 2L10 4H6V8L2 12L6 16V20H10L12 22L14 20H18V16L22 12Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          `}
+        </svg>
+      `;
+      return `data:image/svg+xml;base64,${btoa(svgString)}`;
     };
 
     // Add markers for reports
@@ -147,23 +170,15 @@ export const MapView = ({
 
       const [lng, lat] = report.location.coordinates;
       const status = statusConfig[report.passability] || statusConfig['Passable'];
+      const IconComponent = StatusIcons[report.passability] || Check;
       
-      const iconHtml = `
-        <div class="flood-marker" style="
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          background: #ffffff;
-          border: 3px solid ${status.color};
-          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        "></div>
-      `;
+      const iconUrl = createMarkerSVG(status.color, IconComponent);
 
-      const customIcon = L.divIcon({
-        html: iconHtml,
-        className: 'flood-marker-container',
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
+      const customIcon = L.icon({
+        iconUrl: iconUrl,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+        popupAnchor: [0, -12],
       });
 
       const marker = L.marker([lat, lng], { icon: customIcon });
@@ -173,42 +188,44 @@ export const MapView = ({
         marker.addTo(mapInstanceRef.current);
       }
 
-      // Modern popup design
+      // Minimal popup design
       const brgyTitle = report.barangay ? `Brgy. ${report.barangay}` : 'Flood Report';
-      const statusText = status.label;
       
       const popupContent = `
         <div style="
-          min-width: 260px;
-          background: #ffffff;
-          border: 1px solid rgba(0,0,0,0.08);
-          border-left: 4px solid ${status.color};
-          border-radius: 10px;
-          padding: 14px;
-          color: #111827;
-          box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+          min-width: 240px;
+          background: white;
+          border-radius: 8px;
+          padding: 16px;
+          color: #1f2937;
           font-family: system-ui, -apple-system, sans-serif;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         ">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
             <div style="
-              width: 8px;
-              height: 8px;
-              border-radius: 50%;
+              width: 16px;
+              height: 16px;
+              border-radius: 4px;
               background: ${status.color};
+              display: flex;
+              align-items: center;
+              justify-content: center;
             "></div>
-            <div style="font-weight: 700; font-size: 15px; color: #111827;">${brgyTitle}</div>
+            <div style="font-weight: 600; font-size: 14px; color: #111827;">${brgyTitle}</div>
           </div>
-          <div style="font-size: 13px; color: #374151; margin-bottom: 12px;">
+          
+          <div style="font-size: 13px; color: #6b7280; margin-bottom: 12px;">
             ${report.location.address || 'Unknown Location'}
           </div>
-          <div style="display: grid; gap: 6px; font-size: 12.5px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="color: #6b7280;">Flood Depth:</span>
-              <span style="color: #111827; font-weight: 600;">${report.depth}</span>
+          
+          <div style="display: grid; gap: 6px; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #6b7280;">Depth:</span>
+              <span style="color: #111827; font-weight: 500;">${report.depth}</span>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between;">
               <span style="color: #6b7280;">Status:</span>
-              <span style="color: ${status.color}; font-weight: 700;">${statusText}</span>
+              <span style="color: ${status.color}; font-weight: 600;">${status.label}</span>
             </div>
           </div>
         </div>
@@ -223,25 +240,26 @@ export const MapView = ({
       markersRef.current.push(marker);
     });
 
-    // Add markers for sensors (latest per sensor)
-    sensors.forEach(s => {
-      const lat = s?.location?.lat;
-      const lng = s?.location?.lng;
-      if (lat == null || lng == null) return;
+    // Add markers for sensors - ALL sensors including offline ones
+    sensors.forEach((s, idx) => {
+      const lat = s?.location?.lat ?? s?.latitude ?? null;
+      const lng = s?.location?.lng ?? s?.longitude ?? null;
+      
+      if (lat == null || lng == null) {
+        return;
+      }
 
-      const iconHtml = `
-        <div style="
-          width: 24px; height: 24px; border-radius: 50%;
-          background: #ffffff; border: 3px solid #f59e0b;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-        "></div>
-      `;
+      // Use gray color for offline sensors, blue for online
+      const isOnline = s.online === true;
+      const sensorColor = isOnline ? '#3b82f6' : '#6b7280'; // blue for online, gray for offline
+      
+      const iconUrl = createMarkerSVG(sensorColor, Satellite);
 
-      const customIcon = L.divIcon({
-        html: iconHtml,
-        className: 'sensor-marker-container',
+      const customIcon = L.icon({
+        iconUrl: iconUrl,
         iconSize: [24, 24],
         iconAnchor: [12, 12],
+        popupAnchor: [0, -12],
       });
 
       const marker = L.marker([lat, lng], { icon: customIcon });
@@ -251,34 +269,51 @@ export const MapView = ({
         marker.addTo(mapInstanceRef.current);
       }
 
-      // Sensor popup with Distance and Status (updates throttled by parent)
-      const passStatus = (dist) => {
-        if (dist == null || Number.isNaN(dist)) return { text: 'Passable', color: '#10b981' };
-        if (dist < 10) return { text: 'Not Passable', color: '#ef4444' };
-        if (dist < 20) return { text: 'Heavy Vehicles Only', color: '#f59e0b' };
+      // Sensor popup with online/offline status
+      const passStatus = (dist, online) => {
+        if (!online) return { text: 'Offline', color: '#6b7280' };
+        if (dist == null || Number.isNaN(dist)) return { text: 'No Data', color: '#6b7280' };
+        if (dist < 40) return { text: 'Not Passable', color: '#ef4444' };
+        if (dist < 60) return { text: 'Heavy Vehicles Only', color: '#f59e0b' };
         return { text: 'Passable', color: '#10b981' };
       };
-      const p = passStatus(s.distance);
+      const p = passStatus(s.distance, isOnline);
+      const statusDot = isOnline ? '#10b981' : '#6b7280';
+      
       const popupContent = `
-        <div style="min-width: 240px; background: #ffffff; color: #111827; padding: 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08);">
-          <div style="font-weight: 800; font-size: 14px; margin-bottom: 6px; display:flex; align-items:center; gap:8px;">
-            <span>📡</span>
-            <span>Sensor</span>
+        <div style="min-width: 240px; background: white; border-radius: 8px; padding: 16px; color: #1f2937; font-family: system-ui, -apple-system, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <div style="width: 16px; height: 16px; border-radius: 4px; background: ${sensorColor};"></div>
+            <div style="font-weight: 600; font-size: 14px;">Sensor Station</div>
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 4px;">
+              <div style="width: 8px; height: 8px; border-radius: 50%; background: ${statusDot};"></div>
+              <span style="font-size: 11px; color: ${statusDot};">${isOnline ? 'Online' : 'Offline'}</span>
+            </div>
           </div>
-          <div style="font-size: 12.5px; color: #374151; margin-bottom: 6px;">
+          
+          <div style="font-size: 13px; color: #6b7280; margin-bottom: 12px;">
             ${s.locationName || 'Unknown location'}
           </div>
-          <div style="display:flex; justify-content:space-between; font-size: 12.5px;">
-            <span style="color:#6b7280;">Sensor ID:</span>
-            <span style="color:#111827; font-weight:600;">${s.sensorId || 'N/A'}</span>
-          </div>
-          <div style=\"display:flex; justify-content:space-between; font-size: 12.5px; margin-top:6px;\">
-            <span style=\"color:#6b7280;\">Distance:</span>
-            <span style=\"color:#111827; font-weight:600;\">${s.distance} cm</span>
-          </div>
-          <div style=\"display:flex; justify-content:space-between; font-size: 12.5px; margin-top:6px;\">
-            <span style=\"color:#6b7280;\">Status:</span>
-            <span style=\"color:${p.color}; font-weight:700;\">${p.text}</span>
+          
+          <div style="display: grid; gap: 6px; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #6b7280;">ID:</span>
+              <span style="color: #111827; font-weight: 500;">${s.sensorId || 'N/A'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #6b7280;">Distance:</span>
+              <span style="color: #111827; font-weight: 500;">${s.distance != null ? `${s.distance} cm` : 'No data'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #6b7280;">Road Status:</span>
+              <span style="color: ${p.color}; font-weight: 600;">${p.text}</span>
+            </div>
+            ${s.lastSeen ? `
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #6b7280;">Last Seen:</span>
+              <span style="color: #111827; font-weight: 500;">${new Date(s.lastSeen).toLocaleString()}</span>
+            </div>
+            ` : ''}
           </div>
         </div>
       `;
@@ -293,7 +328,9 @@ export const MapView = ({
       if (r.location?.coordinates) boundsPoints.push([r.location.coordinates[1], r.location.coordinates[0]]);
     });
     sensors.forEach(s => {
-      if (s?.location?.lat != null && s?.location?.lng != null) boundsPoints.push([s.location.lat, s.location.lng]);
+      const lat = s?.location?.lat ?? s?.latitude ?? null;
+      const lng = s?.location?.lng ?? s?.longitude ?? null;
+      if (lat != null && lng != null) boundsPoints.push([lat, lng]);
     });
     if (boundsPoints.length > 0) {
       const bounds = L.latLngBounds(boundsPoints);
@@ -305,7 +342,7 @@ export const MapView = ({
     <div className={`relative w-full h-full ${className}`} style={{ minHeight: '400px' }}>
       <div 
         ref={mapRef} 
-        className="w-full h-full rounded-xl overflow-hidden"
+        className="w-full h-full rounded-lg overflow-hidden"
         style={{ 
           minHeight: '400px',
           zIndex: 0,
@@ -313,49 +350,77 @@ export const MapView = ({
         }}
       />
       
-      {/* Elegant Glass-morphism Legend */}
-      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-gray-900 rounded-2xl border border-gray-200 shadow-lg px-4 py-3 z-[1000]">
-        <div className="text-sm font-semibold mb-2 text-gray-800">Flood Status</div>
-        <div className="space-y-2 text-xs">
+      {/* Minimal Legend */}
+      <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm rounded-lg border border-gray-200 shadow-sm px-3 py-2 z-[1000]">
+        <div className="text-xs font-medium text-gray-700 mb-2">Status</div>
+        <div className="space-y-1.5 text-xs">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500 shadow-sm"></div>
-            <span className="text-gray-700">Passable</span>
+            <div className="w-3 h-3 rounded bg-green-500 flex items-center justify-center">
+              <Check size={8} color="white" />
+            </div>
+            <span className="text-gray-600">Passable</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-amber-500 shadow-sm"></div>
-            <span className="text-gray-700">Heavy Vehicles Only</span>
+            <div className="w-3 h-3 rounded bg-amber-500 flex items-center justify-center">
+              <AlertTriangle size={8} color="white" />
+            </div>
+            <span className="text-gray-600">Heavy Only</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500 shadow-sm"></div>
-            <span className="text-gray-700">Not Passable</span>
+            <div className="w-3 h-3 rounded bg-red-500 flex items-center justify-center">
+              <X size={8} color="white" />
+            </div>
+            <span className="text-gray-600">Not Passable</span>
           </div>
-          <div className="flex items-center gap-2 pt-2 border-t border-gray-200">
-            <div className="w-3 h-3 rounded-[6px] bg-orange-500 shadow-sm"></div>
-            <span className="text-gray-700">Sensor</span>
+          <div className="flex items-center gap-2 pt-1 border-t border-gray-100">
+            <div className="w-3 h-3 rounded bg-blue-500 flex items-center justify-center">
+              <Satellite size={8} color="white" />
+            </div>
+            <span className="text-gray-600">Sensor (Online)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded bg-gray-500 flex items-center justify-center">
+              <Satellite size={8} color="white" />
+            </div>
+            <span className="text-gray-600">Sensor (Offline)</span>
           </div>
         </div>
       </div>
 
-      {/* Add some custom styles for the cluster markers */}
+      {/* Custom styles */}
       <style>{`
         .cluster-marker {
-          background: black;
+          background: #1f2937;
           color: white;
-          border: 2px solid #e5e7eb;
+          border: 2px solid white;
           border-radius: 50%;
           width: 100%;
           height: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-weight: 700;
-          font-size: 13px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+          font-weight: 600;
+          font-size: 12px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
         
-        .flood-marker:hover {
-          transform: scale(1.05);
+        .leaflet-marker-icon {
           transition: all 0.2s ease;
+        }
+        
+        .leaflet-marker-icon:hover {
+          transform: scale(1.15);
+          z-index: 1000;
+        }
+        
+        .leaflet-popup-content-wrapper {
+          background: transparent;
+          box-shadow: none;
+          border-radius: 8px;
+        }
+        
+        .leaflet-popup-tip {
+          background: white;
         }
       `}</style>
     </div>

@@ -11,6 +11,8 @@ const BARANGAYS = [
   'Barangay 171',
   'Barangay 172',
   'Barangay 173',
+  'Barangay 174',
+  'Barangay 175',
   'Barangay 176-A',
   'Barangay 176-B',
   'Barangay 176-C',

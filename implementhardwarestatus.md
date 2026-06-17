@@ -127,12 +127,6 @@ void loop() {
 
 ## 2) Backend (Express) — receive and save the data
 
-### Install packages
-
-```bash
-npm install express mongoose cors socket.io
-```
-
 ### server.js (example)
 
 ```js
@@ -207,13 +201,8 @@ You should receive a JSON response with `success: true` and a saved document.
 
 ## 3) Frontend (React) — display live updates
 
-1. In your React project install Socket.IO client:
 
-```bash
-npm install socket.io-client
-```
-
-2. Create `src/components/SensorDashboard.jsx` with this content:
+1. Create `src/components/SensorDashboard.jsx` with this content:
 
 ```jsx
 import React, { useEffect, useState } from 'react';

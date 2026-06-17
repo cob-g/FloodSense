@@ -19,6 +19,7 @@ import fallbackRoutes from './routes/fallbacks.js';
 import sensorRoutes from './routes/sensors.js';
 import analyticsRoutes from './routes/analytics.js';
 import usersAdminRoutes from './routes/usersAdmin.js';
+import contactRoutes from './routes/contact.js';
 
 // Load environment variables
 dotenv.config();
@@ -103,6 +104,7 @@ app.use('/api/fallbacks', fallbackRoutes);
 app.use('/api', sensorRoutes); // Sensor routes (handles /api/sensor-data)
 app.use('/api/admin', analyticsRoutes); // Admin analytics (weekly report)
 app.use('/api/admin', usersAdminRoutes); // Admin users management
+app.use('/api/contact', contactRoutes); // Contact form routes
 
 // Basic health check endpoint
 app.get('/api/ping', (req, res) => {
